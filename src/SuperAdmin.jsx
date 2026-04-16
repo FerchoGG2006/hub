@@ -98,6 +98,7 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
   const [step, setStep] = useState(1); // 1: Form, 2: Loading, 3: Success
   const [formData, setFormData] = useState({ name: '', slug: '', brand_color: '#f59e0b', whatsapp_number: '' });
   const [file, setFile] = useState(null);
+  const [createdCredentials, setCreatedCredentials] = useState(null);
 
   const handleProcess = async () => {
     if (!formData.name || !formData.slug || !file) {
@@ -125,6 +126,9 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
       
       const result = await res.json();
       console.log("Resultado Inserción AI:", result);
+      if (result.credentials) {
+        setCreatedCredentials(result.credentials);
+      }
       if (onSuccess) onSuccess(); // Recargar el listado
       setStep(3);
     } catch (err) {
@@ -192,9 +196,24 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
               <p className="text-lg font-bold text-white mb-1">{formData.name} Integrado</p>
               <p className="text-[10px] tracking-widest uppercase text-white/40 mb-6">Base de Datos Generada. Tenant Listo.</p>
             </div>
+            
+            {createdCredentials && (
+              <div className="w-full bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 mb-4 text-left">
+                <p className="text-[9px] uppercase tracking-widest text-amber-500 mb-3 text-center">Credenciales del Administrador</p>
+                <div className="flex justify-between items-center mb-2 px-2">
+                  <span className="text-[10px] text-white/50 uppercase tracking-widest">USER_ID</span>
+                  <span className="font-mono text-sm tracking-widest text-white">{createdCredentials.username}</span>
+                </div>
+                <div className="flex justify-between items-center px-2">
+                  <span className="text-[10px] text-white/50 uppercase tracking-widest">PASSCODE</span>
+                  <span className="font-mono text-sm tracking-widest text-amber-500">{createdCredentials.passcode}</span>
+                </div>
+              </div>
+            )}
+
             <button 
                 onClick={onClose}
-                className="px-8 py-3 bg-white/10 text-white font-bold uppercase tracking-widest text-[9px] rounded-full hover:bg-white/20 transition-colors"
+                className="px-8 py-3 bg-white/10 text-white font-bold uppercase tracking-widest text-[9px] rounded-full hover:bg-white/20 transition-colors w-full"
                 >
                 Volver al Panel
             </button>

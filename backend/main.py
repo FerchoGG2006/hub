@@ -268,16 +268,35 @@ def onboard_new_tenant(
                 emoji=p.get("emoji", "🍽️")
             )
             db.add(nuevo_prod)
-            
         db.commit()
 
-    return {"status": "ok", "message": "Tenant y Menú inyectados vía AI", "tenant_id": nuevo_tenant.id}
+    # 4. Crear Credenciales Dinámicas para el Dueño del Restaurante (Tenant Admin)
+    # Por defecto, usuario = slug, clave = 1234. En producción se puede aleatorizar o pedir en form.
+    import auth
+    tenant_admin = models.User(
+        username=slug,
+        hashed_password=auth.get_password_hash("1234"),
+        role="admin",
+        tenant_id=nuevo_tenant.id
+    )
+    db.add(tenant_admin)
+    db.commit()
+
+    return {
+        "status": "ok", 
+        "message": "Tenant y Menú inyectados vía AI", 
+        "tenant_id": nuevo_tenant.id,
+        "credentials": {"username": slug, "passcode": "1234"}
+    }
 
 @app.put("/api/admin/products/{product_id}/toggle")
-async def toggle_product(product_id: int, db: Session = Depends(get_db)):
+async def toggle_product(product_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     p = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not p:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
+        
+    if current_user.role != "superadmin" and current_user.tenant_id != p.tenant_id:
+        raise HTTPException(status_code=403, detail="Operación denegada")
         
     p.is_available = not p.is_available
     db.commit()
