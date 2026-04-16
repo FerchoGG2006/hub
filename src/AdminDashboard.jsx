@@ -375,6 +375,64 @@ const AddProductModal = ({ onClose, onProductAdded }) => {
   );
 };
 
+/* ── AI INGEST MODAL (Para dueños de Tenant) ── */
+const AIIngestModal = ({ onClose, onSuccess }) => {
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleIngest = async () => {
+    if (!file) {
+      alert("Por favor selecciona la imagen de la carta física.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = new FormData();
+      data.append('file', file);
+      
+      const token = localStorage.getItem('hub_token');
+      const res = await fetch(`${API_URL}/api/admin/ai-ingest`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: data
+      });
+
+      if (!res.ok) throw new Error("Error en la extracción AI");
+      await res.json();
+      
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (err) {
+      alert("Fallo la migración: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      <div className="bg-[#050505] border border-amber-500/20 rounded-[2rem] p-8 w-full max-w-sm relative overflow-hidden shadow-2xl">
+        {loading && <motion.div animate={{ rotate: 360 }} transition={{ duration: 5, repeat: Infinity, ease: 'linear' }} className="absolute -inset-10 bg-amber-500/10 blur-[50px] pointer-events-none" />}
+        
+        <h3 className="text-xl font-black italic uppercase tracking-tighter mb-2 text-white flex items-center gap-2">
+          <span className="text-amber-500">✦</span> Agente Migrador AI
+        </h3>
+        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-6">Convierte tu menú impreso en datos operacionales.</p>
+        
+        <div className="space-y-4 relative z-10">
+          <input type="file" accept="image/*" onChange={e => setFile(e.target.files[0])} className="w-full text-xs text-white/50 file:bg-white/5 file:text-white file:border-none file:px-4 file:py-3 file:rounded-xl file:cursor-pointer outline-none" />
+          
+          <div className="flex gap-2 mt-6">
+            <button onClick={onClose} disabled={loading} className="flex-1 py-3 bg-white/5 text-white/50 uppercase text-[9px] font-bold rounded-xl tracking-widest hover:bg-white/10">Cancelar</button>
+            <button onClick={handleIngest} disabled={loading} className="flex-1 py-3 font-bold uppercase tracking-widest text-[9px] text-black rounded-xl" style={{ background: loading ? '#b45309' : '#f59e0b' }}>
+              {loading ? 'Procesando...' : 'Migrar Ahora'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 /* ── MASTER TERMINAL ── */
 export const AdminDashboard = () => {
@@ -383,6 +441,7 @@ export const AdminDashboard = () => {
   const [view, setView] = useState('inventory'); // inventory, stats
   const [products, setProducts] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
 
   const fetchProducts = async () => {
     if (!tenantSlug) return;
@@ -456,17 +515,24 @@ export const AdminDashboard = () => {
       </main>
 
       {/* Dock Inferior */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center p-1.5 rounded-[1.5rem] bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl z-40">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center p-1.5 rounded-[1.5rem] bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl z-40 gap-1.5">
          <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowAddModal(true)}
            className="h-12 px-6 rounded-2xl text-black flex items-center justify-center gap-2 transition-all hover:brightness-110"
            style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
            <span className="text-xl font-black leading-none">+</span>
            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Añadir Carga</span>
          </motion.button>
+
+         <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowAIModal(true)}
+           className="h-12 px-4 rounded-2xl text-amber-500 bg-amber-500/10 flex items-center justify-center gap-2 transition-all hover:bg-amber-500/20 border border-amber-500/20">
+           <span className="text-lg">✦</span>
+           <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Migrar con IA</span>
+         </motion.button>
       </div>
 
       <AnimatePresence>
         {showAddModal && <AddProductModal onClose={() => setShowAddModal(false)} onProductAdded={fetchProducts} />}
+        {showAIModal && <AIIngestModal onClose={() => setShowAIModal(false)} onSuccess={fetchProducts} />}
       </AnimatePresence>
     </motion.div>
   );

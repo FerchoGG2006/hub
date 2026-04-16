@@ -341,3 +341,49 @@ async def create_product(
     
     await manager.broadcast({"type": "MENU_UPDATE", "event": "NEW_PRODUCT", "tenant_id": cat.tenant_id})
     return new_prod
+
+# ════════════════ ONBOARDING AUTÓNOMO (TENANTS) ════════════════
+
+@app.post("/api/admin/ai-ingest")
+def ai_ingest_tenant_menu(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail="Los superadmins deben usar el onboarding global.")
+
+    # 1. Leer imagen
+    image_bytes = file.file.read()
+    
+    # 2. IA procesa
+    menu_data = extract_menu_from_image(image_bytes)
+    
+    # 3. Guardar categorías y productos para ESTE usuario y Tenant
+    for category_data in menu_data:
+        cat_name = category_data.get("category", "Miscelaneo")
+        cat_icon = category_data.get("icon", "🍽️")
+        
+        # Revisar si ya existe la categoría (para no duplicar si sube el menú en partes)
+        cat = db.query(models.Category).filter_by(tenant_id=current_user.tenant_id, name=cat_name).first()
+        if not cat:
+            cat = models.Category(tenant_id=current_user.tenant_id, name=cat_name, icon=cat_icon)
+            db.add(cat)
+            db.commit()
+            db.refresh(cat)
+            
+        products = category_data.get("products", [])
+        for p in products:
+            nuevo_prod = models.Product(
+                tenant_id=current_user.tenant_id,
+                category_id=cat.id,
+                name=p.get("name", "Plato Desconocido"),
+                description=p.get("description", ""),
+                price=str(p.get("price", "$0")),
+                emoji=p.get("emoji", "🍽️")
+            )
+            db.add(nuevo_prod)
+            
+        db.commit()
+        
+    return {"status": "ok", "message": "Carta migrada vía IA exitosamente"}
