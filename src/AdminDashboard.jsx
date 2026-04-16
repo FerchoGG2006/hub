@@ -170,37 +170,37 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
       
-      {/* Header Estilo Editorial de Lujo */}
-      <header className="mb-14 pt-8 border-b border-white/5 pb-8 relative">
-        <button onClick={onLogout} className="absolute top-2 right-0 text-[8px] uppercase tracking-[0.3em] text-white/30 hover:text-white/80 transition-colors z-10">
-          Logout
-        </button>
-        <div className="flex justify-between items-start mb-12">
+      <header className="mb-12 pt-8 pb-6 border-b border-white/10 relative">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8 mb-10">
           <div>
-            <p className="text-[10px] tracking-[0.5em] text-white/30 uppercase font-light mb-1">
-              Dashboard — 01
+            <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-light mb-3 flex items-center gap-3">
+              <span className="w-5 h-px bg-amber-500/50"></span> DASHBOARD_01
             </p>
-            <h1 className="text-6xl font-extralight tracking-tighter text-white leading-none">
+            <h1 className="text-6xl sm:text-7xl font-extralight tracking-tighter text-white leading-none">
               H<span className="text-amber-500 font-normal">U</span>B
             </h1>
           </div>
-          <div className="text-right mt-1">
-            <p className="text-[9px] tracking-[0.2em] text-amber-500/60 uppercase font-medium">
-              Valledupar, CO
-            </p>
-            <p className="text-[9px] tracking-[0.2em] text-white/20 uppercase mt-0.5">
-              {new Date().toLocaleString('es-CO', { month: 'long', year: 'numeric' }).replace(' de ', ' ')}
-            </p>
+          
+          {/* Metadata Block */}
+          <div className="flex flex-col items-start sm:items-end gap-1.5 text-[9px] font-mono tracking-[0.15em] uppercase bg-black/40 p-4 rounded-2xl border border-white/5 backdrop-blur-md">
+            <p className="text-white/40">ADMIN: <span className="text-white font-medium ml-2">FERNANDO_BAQUERO</span></p>
+            <p className="text-white/40">STATUS: <span className="text-amber-500 font-bold ml-2">LINKED_SECURE</span></p>
+            <p className="text-white/40">LOCATION: <span className="text-white/80 ml-2">NODE_01_VPAR</span></p>
           </div>
         </div>
 
-        <div className="max-w-[280px]">
-          <h2 className="text-3xl font-light tracking-tight text-white leading-tight">
-            Gestión de <span className="italic font-serif text-amber-500">Colecciones</span>
-          </h2>
-          <p className="text-[11px] text-white/40 mt-3 font-light leading-relaxed tracking-wide">
-            Edite y organice la disponibilidad de sus colecciones en tiempo real.
-          </p>
+        <div className="flex justify-between items-end">
+          <div className="max-w-[300px]">
+            <h2 className="text-2xl font-light tracking-tight text-white">
+              Gestión de <span className="italic font-serif text-amber-500">Colecciones</span>
+            </h2>
+            <p className="text-[10px] text-white/40 mt-2 font-light leading-relaxed tracking-wider">
+              Control de sincronización y disponibilidad en el ecosistema.
+            </p>
+          </div>
+          <button onClick={onLogout} className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-500/50 hover:text-amber-500 transition-colors border border-amber-500/20 px-5 py-2.5 rounded-full hover:bg-amber-500/10">
+            Desconectar
+          </button>
         </div>
       </header>
       
@@ -369,7 +369,7 @@ export const AdminDashboard = () => {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen bg-[#050505] text-white font-sans selection:bg-amber-500/30 overflow-y-auto" style={{ touchAction: 'auto', paddingBottom: '100px' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 h-[100dvh] w-full bg-[#050505] text-white font-sans selection:bg-amber-500/30 overflow-y-auto" style={{ paddingBottom: '100px' }}>
       
       {/* Barra de Navegación Editorial */}
       <nav className="fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">

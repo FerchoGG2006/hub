@@ -3,14 +3,26 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
 
+class Tenant(Base):
+    """Modelo Multi-inquilino para la plataforma HUB SaaS."""
+    __tablename__ = "tenants"
+    id = Column(Integer, primary_key=True, index=True)
+    slug = Column(String(50), unique=True, index=True, nullable=False) # ej "la-rivera"
+    name = Column(String(100), nullable=False)
+    brand_color = Column(String(20), default="#f59e0b")
+    logo_url = Column(String(255))
+    whatsapp_number = Column(String(20))
+    whatsapp_message = Column(Text, default="¡Hola! Quiero hacer el siguiente pedido:")
 
 class Category(Base):
     __tablename__ = "categories"
 
-    id   = Column(Integer, primary_key=True, index=True)   # primary_key (minúsculas)
-    name = Column(String(50), unique=True, nullable=False)
-    icon = Column(String(10), default="🍽️")               # emoji para los tabs del menú 3D
+    id   = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    name = Column(String(50), nullable=False)
+    icon = Column(String(10), default="🍽️")
 
+    tenant = relationship("Tenant")
     products = relationship(
         "Product",
         back_populates="category",
@@ -18,41 +30,45 @@ class Category(Base):
         order_by="Product.id",
     )
 
-
 class Product(Base):
     __tablename__ = "products"
 
     id           = Column(Integer, primary_key=True, index=True)
+    tenant_id    = Column(Integer, ForeignKey("tenants.id"), nullable=False)
     category_id  = Column(Integer, ForeignKey("categories.id"), nullable=False)
     name         = Column(String(100), nullable=False)
     description  = Column(Text)
-    price        = Column(String(20), nullable=False)   # Ej: "$32k"
-    emoji        = Column(String(10), default="🍽️")    # Emoji para la ProductCell
+    price        = Column(String(20), nullable=False)
+    emoji        = Column(String(10), default="🍽️")
     image_url    = Column(Text)
     is_available = Column(Boolean, default=True)
 
+    tenant = relationship("Tenant")
     category = relationship("Category", back_populates="products")
 
-
 class Order(Base):
-    """Registro de pedidos — almacena el carrito enviado por el CheckoutView."""
     __tablename__ = "orders"
 
     id              = Column(Integer, primary_key=True, index=True)
-    delivery_method = Column(String(20), nullable=False)  # mesa | recoger | domicilio
-    payment_method  = Column(String(20), nullable=False)  # efectivo | transferencia
-    total_price     = Column(Integer, nullable=False)      # en pesos
-    items_json      = Column(Text, nullable=False)         # JSON serializado del carrito
+    tenant_id       = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    delivery_method = Column(String(20), nullable=False)
+    payment_method  = Column(String(20), nullable=False)
+    total_price     = Column(Integer, nullable=False)
+    items_json      = Column(Text, nullable=False)
     status          = Column(String(20), default="pending")
     table_number    = Column(String(10))
     phone           = Column(String(20))
+    
+    tenant = relationship("Tenant")
 
 class Analytics(Base):
-    """Eventos de click y monitor HUD en tiempo real."""
     __tablename__ = "analytics"
+    
     id         = Column(Integer, primary_key=True, index=True)
+    tenant_id  = Column(Integer, ForeignKey("tenants.id"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
-    action     = Column(String(50), nullable=False) # "view", "add_to_cart"
+    action     = Column(String(50), nullable=False)
     timestamp  = Column(DateTime, default=datetime.utcnow)
 
-    product    = relationship("Product")
+    tenant  = relationship("Tenant")
+    product = relationship("Product")

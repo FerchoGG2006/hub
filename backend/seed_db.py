@@ -1,122 +1,88 @@
-"""
-seed_db.py — Poblar Neon DB con categorías y productos de ejemplo.
-
-Ejecutar desde la carpeta raíz del proyecto:
-    cd lacarta
-    python -m backend.seed_db
-
-O directamente desde la carpeta backend (sin el paquete):
-    cd lacarta/backend
-    python seed_db.py
-"""
-import os, sys
-from dotenv import load_dotenv
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
+import models
 
-# Permite ejecutar como script directo (sin paquete)
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
-
+load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL no encontrada en .env")
+    print("Falta DATABASE_URL en .env")
+    exit(1)
 
-from models import Base, Category, Product, Order  # noqa: E402
-
-engine = create_engine(DATABASE_URL, connect_args={"sslmode": "require"})
-Base.metadata.create_all(bind=engine)
-
-SessionLocal = sessionmaker(bind=engine)
-db = SessionLocal()
-
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"sslmode": "require", "options": "-c timezone=utc", "keepalives": 1, "keepalives_idle": 30, "keepalives_interval": 10, "keepalives_count": 5}
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def seed_data():
-    print("🗑  Limpiando datos existentes…")
-    db.query(Product).delete()
-    db.query(Order).delete()
-    db.query(Category).delete()
+    print("Limpiando y Recreando esquema Multi-Tenant en Neon DB...")
+    models.Base.metadata.drop_all(bind=engine)
+    models.Base.metadata.create_all(bind=engine)
+    
+    db = SessionLocal()
+    
+    # 1. Crear el primer Tenant Master: La Rivera
+    t_rivera = models.Tenant(
+        slug="la-rivera",
+        name="La Rivera Restaurante",
+        brand_color="#f59e0b",
+        whatsapp_number="573210000000",
+        whatsapp_message="Hola HUB, mi orden:"
+    )
+    db.add(t_rivera)
     db.commit()
+    db.refresh(t_rivera)
+    print(f"Tenant Creado: {t_rivera.name} (ID: {t_rivera.id})")
 
-    # ── Categorías (cada una es una "hoja" del libro 3D) ──
-    print("📂 Creando categorías…")
-    cat_entradas = Category(name="Entradas",           icon="🌿")
-    cat_fuertes  = Category(name="Fuertes",            icon="🔥")
-    cat_licores  = Category(name="Licores",            icon="🥃")
-    db.add_all([cat_entradas, cat_fuertes, cat_licores])
+    # 2. Categorías asociadas a La Rivera
+    c1 = models.Category(name="Entradas", icon="🥟", tenant_id=t_rivera.id)
+    c2 = models.Category(name="Platos Fuertes", icon="🥘", tenant_id=t_rivera.id)
+    c3 = models.Category(name="Cócteles", icon="🍸", tenant_id=t_rivera.id)
+    
+    db.add_all([c1, c2, c3])
     db.commit()
+    db.refresh(c1)
+    db.refresh(c2)
+    db.refresh(c3)
 
-    # ── Productos ──
-    print("🍽️  Añadiendo productos…")
+    # 3. Productos
     productos = [
-        # Entradas
-        Product(category_id=cat_entradas.id, emoji="🐟", name="Ceviche Valle",
-                price="$32k", description="Pesca del día maridada con cítricos y suero costeño.",
-                image_url="https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400"),
-        Product(category_id=cat_entradas.id, emoji="🍌", name="Patacón Power",
-                price="$18k", description="Base crocante con ahogao artesanal y queso fundido.",
-                image_url="https://images.unsplash.com/photo-1541529086526-db283c563270?w=400"),
-        Product(category_id=cat_entradas.id, emoji="🫓", name="Empanaditas",
-                price="$15k", description="Cuatro unidades rellenas de carne desmechada.",
-                image_url="https://images.unsplash.com/photo-1626074353765-517a681e40be?w=400"),
-        Product(category_id=cat_entradas.id, emoji="🥩", name="Carpaccio Res",
-                price="$35k", description="Láminas finas con aceite de trufa y parmesano.",
-                image_url="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400"),
-        Product(category_id=cat_entradas.id, emoji="🧀", name="Tabla de Quesos",
-                price="$42k", description="Selección artesanal con miel, nueces y mermelada.",
-                image_url="https://images.unsplash.com/photo-1486297678162-eb2a19b0a318?w=400"),
-        Product(category_id=cat_entradas.id, emoji="🌮", name="Nachos Rivera",
-                price="$25k", description="Con chili, guacamole y pico de gallo fresco.",
-                image_url="https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=400"),
-
-        # Fuertes
-        Product(category_id=cat_fuertes.id, emoji="🔥", name="Punta de Anca",
-                price="$55k", description="350g a la parrilla con papas rústicas y hogao.",
-                image_url="https://images.unsplash.com/photo-1544025162-d76694265947?w=400"),
-        Product(category_id=cat_fuertes.id, emoji="🍕", name="Pizza Artisanal",
-                price="$32k", description="Masa madre, pepperoni curado y miel picante.",
-                image_url="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400"),
-        Product(category_id=cat_fuertes.id, emoji="🫒", name="Salmón Grill",
-                price="$48k", description="A la plancha con puré de coliflor y espárragos.",
-                image_url="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400"),
-        Product(category_id=cat_fuertes.id, emoji="🍔", name="Burger Monster",
-                price="$35k", description="Triple carne, cheddar importado y tocineta crocante.",
-                image_url="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400"),
-        Product(category_id=cat_fuertes.id, emoji="🍚", name="Risotto Trufa",
-                price="$52k", description="Arroz arborio cremoso con trufa negra y parmesano.",
-                image_url="https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=400"),
-        Product(category_id=cat_fuertes.id, emoji="🐙", name="Pulpo a la Parrilla",
-                price="$68k", description="Tentáculos braseados con aceite de pimentón ahumado.",
-                image_url="https://images.unsplash.com/photo-1559742811-822873691df8?w=400"),
-
-        # Licores
-        Product(category_id=cat_licores.id, emoji="🥃", name="Old Parr 12",
-                price="$180k", description="Botella 750ml con hielo cristalino y agua de manantial.",
-                image_url="https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=400"),
-        Product(category_id=cat_licores.id, emoji="🍾", name="Ron Dictador 12",
-                price="$95k", description="Ron colombiano premium añejado en roble americano.",
-                image_url="https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=400"),
-        Product(category_id=cat_licores.id, emoji="🍺", name="Corona Extra",
-                price="$12k", description="Cerveza premium bien fría, servida con limón.",
-                image_url="https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=400"),
-        Product(category_id=cat_licores.id, emoji="🍹", name="Cóctel de Casa",
-                price="$28k", description="Creación del bartender con ron, fruta y jengibre.",
-                image_url="https://images.unsplash.com/photo-1536935338788-846bb9981813?w=400"),
-        Product(category_id=cat_licores.id, emoji="🍷", name="Vino Tinto Reserva",
-                price="$45k", description="Malbec argentino. Frutas rojas, taninos suaves.",
-                image_url="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400"),
-        Product(category_id=cat_licores.id, emoji="☕", name="Café Especial",
-                price="$9k", description="Origen Sierra Nevada. Preparado en V60 o espresso.",
-                image_url="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400"),
+        models.Product(tenant_id=t_rivera.id, category_id=c1.id, name="Empanadas Vallunas", description="Rellenas de guiso tradicional con ají de lulo.", price="$12.000", emoji="🥟"),
+        models.Product(tenant_id=t_rivera.id, category_id=c1.id, name="Ceviche de Chicharrón", description="Crocante panceta en leche de tigre al cilantro.", price="$22.000", emoji="🍋"),
+        models.Product(tenant_id=t_rivera.id, category_id=c2.id, name="Bife de Chorizo", description="Corte madurado 400g con chimichurri.", price="$55.000", emoji="🥩"),
+        models.Product(tenant_id=t_rivera.id, category_id=c2.id, name="Salchipapa", description="La mejor salchipapa del mundo.", price="$23.000", emoji="🍟"),
+        models.Product(tenant_id=t_rivera.id, category_id=c3.id, name="Margarita Clásica", description="Tequila 100% agave, triple sec y limón taiti.", price="$28.000", emoji="🍸")
     ]
-
     db.add_all(productos)
     db.commit()
-    print(f"✅ {len(productos)} productos insertados en Neon DB.")
-    print("   Abre tu panel en https://console.neon.tech para verificar.")
+    
+    # 4. Crear un segundo Tenant de prueba para evidenciar que funciona
+    t_pizza = models.Tenant(
+        slug="pizzacol",
+        name="Pizza Colombia",
+        brand_color="#e11d48", # Rosa oscuro / Rojo rosa
+        whatsapp_number="573000000000",
+    )
+    db.add(t_pizza)
+    db.commit()
+    db.refresh(t_pizza)
+    
+    c_pizzas = models.Category(name="Pizzas Artesanales", icon="🍕", tenant_id=t_pizza.id)
+    db.add(c_pizzas)
+    db.commit()
+    db.refresh(c_pizzas)
+    
+    prod_pizza = models.Product(
+        tenant_id=t_pizza.id, category_id=c_pizzas.id, 
+        name="Pizza Margarita", description="Mozzarella, tomate San Marzano y albahaca fresca.", 
+        price="$35.000", emoji="🍕"
+    )
+    db.add(prod_pizza)
+    db.commit()
 
+    print("Operacion completada: Multiples tenants inyectados con exito.")
 
 if __name__ == "__main__":
     seed_data()
-    db.close()
