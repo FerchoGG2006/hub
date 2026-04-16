@@ -6,14 +6,48 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 /* ── BIOMETRIC LOGIN TERMINAL ── */
 export const LoginTerminal = ({ onAuth }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const formData = new URLSearchParams();
+      formData.append('username', username);
+      formData.append('password', password);
+
+      const res = await fetch(`${API_URL}/api/auth/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+      });
+
+      if (!res.ok) throw new Error('Credenciales Inválidas');
+      const data = await res.json();
+      
+      localStorage.setItem('hub_token', data.access_token);
+      localStorage.setItem('hub_role', data.role);
+      localStorage.setItem('hub_tenant', data.tenant_slug || '');
+      
+      onAuth(data.access_token);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="h-screen bg-[#050505] flex flex-col items-center justify-center p-6 w-full fixed inset-0 z-[200]">
       <motion.div 
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative w-64 h-64 flex items-center justify-center"
+        className="relative w-48 h-48 flex items-center justify-center mb-8"
       >
-        {/* Círculos de escaneo rotatorios */}
         <motion.div 
           animate={{ rotate: 360 }}
           transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
@@ -24,28 +58,36 @@ export const LoginTerminal = ({ onAuth }) => {
           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
           className="absolute inset-4 border border-white/10 rounded-full"
         />
-        
-        {/* Icono de Seguridad */}
         <div className="text-center z-10">
-          <motion.div
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="text-5xl mb-4"
-          >
-            🛡️
-          </motion.div>
-          <h2 className="text-[10px] text-amber-500 uppercase tracking-[0.5em] font-black">
-            System_Auth
-          </h2>
+          <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }} className="text-4xl mb-2">🛡️</motion.div>
+          <h2 className="text-[10px] text-amber-500 uppercase tracking-[0.5em] font-black">Auth</h2>
         </div>
       </motion.div>
 
-      <input 
-        type="password" 
-        placeholder="PASSCODE" 
-        className="mt-12 w-48 bg-transparent border-b border-white/20 py-2 text-center text-white tracking-[0.5em] outline-none focus:border-amber-500 transition-all font-mono"
-        onChange={(e) => e.target.value === '1234' && onAuth()} // Clave maestra rápida
-      />
+      <form onSubmit={handleLogin} className="flex flex-col gap-4 w-64">
+        <input 
+          type="text" 
+          placeholder="USER_ID" 
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="bg-transparent border-b border-white/20 py-2 text-center text-white tracking-[0.2em] outline-none focus:border-amber-500 transition-all font-mono"
+        />
+        <input 
+          type="password" 
+          placeholder="PASSCODE" 
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="bg-transparent border-b border-white/20 py-2 text-center text-white tracking-[0.5em] outline-none focus:border-amber-500 transition-all font-mono"
+        />
+        {error && <p className="text-red-500 text-[10px] text-center uppercase tracking-widest">{error}</p>}
+        <button 
+          type="submit" 
+          disabled={loading}
+          className="mt-6 py-3 bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500 hover:text-black uppercase text-[10px] font-black tracking-widest transition-all rounded-full"
+        >
+          {loading ? 'Verificando...' : 'Enlazar'}
+        </button>
+      </form>
     </div>
   );
 };
@@ -270,7 +312,12 @@ const AddProductModal = ({ onClose, onProductAdded }) => {
     if (file) data.append('image', file);
 
     try {
-      const res = await fetch(`${API_URL}/api/admin/products`, { method: 'POST', body: data });
+      const token = localStorage.getItem('hub_token');
+      const res = await fetch(`${API_URL}/api/admin/products`, { 
+        method: 'POST', 
+        body: data,
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!res.ok) throw new Error('Error saving');
       onProductAdded();
       onClose();
@@ -361,7 +408,11 @@ export const AdminDashboard = () => {
   const toggleProduct = async (id, currentStatus) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, is_available: !currentStatus } : p));
     try {
-      const res = await fetch(`${API_URL}/api/admin/products/${id}/toggle`, { method: 'PUT' });
+      const token = localStorage.getItem('hub_token');
+      const res = await fetch(`${API_URL}/api/admin/products/${id}/toggle`, { 
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!res.ok) throw new Error("Toggle failed");
       if (navigator.vibrate) navigator.vibrate([15, 30, 15]);
     } catch(e) {

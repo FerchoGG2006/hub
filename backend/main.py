@@ -11,6 +11,7 @@ import models
 from database import get_db, engine
 from utils.storage import upload_product_image
 from utils.gemini_extractor import extract_menu_from_image
+import auth
 
 load_dotenv()
 
@@ -61,6 +62,23 @@ async def websocket_menu(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
+# ════════════════ AUTHENTICATION ════════════════
+from fastapi.security import OAuth2PasswordRequestForm
+from datetime import timedelta
+
+@app.post("/api/auth/token")
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == form_data.username).first()
+    if not user or not auth.verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Incorrect username or password", headers={"WWW-Authenticate": "Bearer"})
+    
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = auth.create_access_token(
+        data={"sub": user.username, "role": user.role, "tenant_id": user.tenant_id}, 
+        expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer", "role": user.role, "tenant_slug": user.tenant.slug if user.tenant else None}
 
 # ════════════════ ENDPOINTS MULTI-TENANT ════════════════
 
@@ -186,7 +204,7 @@ def get_legacy_cats(db: Session = Depends(get_db)):
     return get_tenant_categories("la-rivera", db)
 
 @app.get("/api/admin/tenants")
-def get_all_tenants(db: Session = Depends(get_db)):
+def get_all_tenants(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_superadmin)):
     tenants = db.query(models.Tenant).all()
     result = []
     for t in tenants:
@@ -207,7 +225,8 @@ def onboard_new_tenant(
     brand_color: str = Form("#f59e0b"),
     whatsapp_number: str = Form(""),
     file: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_superadmin)
 ):
     # 1. Crear el nuevo Tenant en la base de datos
     nuevo_tenant = models.Tenant(
@@ -275,8 +294,11 @@ async def create_product(
     category_id: int = Form(...),
     image: UploadFile = File(None),
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
 ):
     cat = db.query(models.Category).filter(models.Category.id == category_id).first()
+    if current_user.role != "superadmin" and current_user.tenant_id != cat.tenant_id:
+        raise HTTPException(status_code=403, detail="No puedes añadir items a la carta de este HUB.")
     if not cat:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
 

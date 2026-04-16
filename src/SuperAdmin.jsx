@@ -2,23 +2,31 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
+import { LoginTerminal } from './AdminDashboard';
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const SuperAdmin = () => {
   const [showAIModal, setShowAIModal] = useState(false);
   const [tenants, setTenants] = useState([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
   const loadTenants = () => {
-    fetch(`${API_URL}/api/admin/tenants`)
+    const token = localStorage.getItem('hub_token');
+    fetch(`${API_URL}/api/admin/tenants`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
       .then(res => res.json())
       .then(data => setTenants(data))
       .catch(err => console.error("Error loading tenants:", err));
   };
 
   useEffect(() => {
-    loadTenants();
-  }, []);
+    if (isAuthenticated) loadTenants();
+  }, [isAuthenticated]);
+
+  if (!isAuthenticated) return <AnimatePresence mode="wait"><LoginTerminal onAuth={() => setIsAuthenticated(true)} /></AnimatePresence>;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white p-10 font-sans relative overflow-x-hidden">
@@ -106,8 +114,10 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
       if (formData.whatsapp_number) data.append('whatsapp_number', formData.whatsapp_number);
       data.append('file', file);
 
+      const token = localStorage.getItem('hub_token');
       const res = await fetch(`${API_URL}/api/admin/onboard`, {
         method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
         body: data
       });
 
