@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -174,7 +175,7 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8 mb-10">
           <div>
             <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-light mb-3 flex items-center gap-3">
-              <span className="w-5 h-px bg-amber-500/50"></span> DASHBOARD_01
+              <span className="w-5 h-px bg-amber-500/50"></span> {(window.location.pathname.split("/")[2] || 'DASHBOARD').toUpperCase()}
             </p>
             <img src="/logo.png" alt="HUB" className="h-14 lg:h-16 object-contain invert mix-blend-screen opacity-90 -ml-1" />
           </div>
@@ -326,14 +327,16 @@ const AddProductModal = ({ onClose, onProductAdded }) => {
 
 /* ── MASTER TERMINAL ── */
 export const AdminDashboard = () => {
+  const { tenantSlug } = useParams();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [view, setView] = useState('inventory'); // inventory, stats
   const [products, setProducts] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
 
   const fetchProducts = async () => {
+    if (!tenantSlug) return;
     try {
-      const res = await fetch(`${API_URL}/api/menu-dynamic`);
+      const res = await fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/menu`);
       const data = await res.json();
       const flatProducts = [];
       Object.keys(data).forEach(catName => {
@@ -349,7 +352,7 @@ export const AdminDashboard = () => {
 
   useEffect(() => { 
     if (isAuthenticated) fetchProducts(); 
-  }, [isAuthenticated]);
+  }, [isAuthenticated, tenantSlug]);
 
   const toggleProduct = async (id, currentStatus) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, is_available: !currentStatus } : p));

@@ -85,7 +85,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/:tenantSlug" element={<AdminDashboard />} />
         <Route path="/superadmin" element={<SuperAdmin />} />
         <Route path="/:tenantSlug" element={<HubLoader />} />
         <Route path="/" element={<Navigate to="/la-rivera" replace />} /> {/* Default dev fallback */}

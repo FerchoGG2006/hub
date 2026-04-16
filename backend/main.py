@@ -172,6 +172,21 @@ def get_legacy_menu(db: Session = Depends(get_db)):
 def get_legacy_cats(db: Session = Depends(get_db)):
     return get_tenant_categories("la-rivera", db)
 
+@app.get("/api/admin/tenants")
+def get_all_tenants(db: Session = Depends(get_db)):
+    tenants = db.query(models.Tenant).all()
+    result = []
+    for t in tenants:
+        prods = db.query(models.Product).filter_by(tenant_id=t.id).count()
+        result.append({
+            "id": t.id,
+            "name": t.name,
+            "slug": t.slug,
+            "brand_color": t.brand_color,
+            "total_products": prods
+        })
+    return result
+
 @app.post("/api/admin/onboard")
 def onboard_new_tenant(
     name: str = Form(...),
