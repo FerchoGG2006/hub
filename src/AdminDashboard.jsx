@@ -51,15 +51,19 @@ export const LoginTerminal = ({ onAuth }) => {
 };
 
 /* ── LIVE MONITOR (Analytics with WebSockets) ── */
-export const LiveMonitor = ({ onLogout }) => {
+export const LiveMonitor = ({ onLogout, tenantSlug }) => {
   const [stats, setStats] = useState([]);
   const [totalHits, setTotalHits] = useState(0);
 
   // Fetch inicial
   const fetchTopStats = () => {
-    fetch(`${API_URL}/api/analytics/top`)
+    fetch(`${API_URL}/api/v1/tenant/${tenantSlug || 'la-rivera'}/analytics/top`)
       .then(res => res.json())
       .then(data => {
+        if (!Array.isArray(data)) {
+            setStats([]);
+            return;
+        }
         setStats(data);
         setTotalHits(data.reduce((acc, item) => acc + item.hits, 0));
       })
@@ -395,7 +399,7 @@ export const AdminDashboard = () => {
           {view === 'inventory' ? (
             <InventoryManager key="inv" products={products} toggleProduct={toggleProduct} onLogout={() => setIsAuthenticated(false)} />
           ) : (
-            <LiveMonitor key="stats" onLogout={() => setIsAuthenticated(false)} />
+            <LiveMonitor key="stats" tenantSlug={tenantSlug} onLogout={() => setIsAuthenticated(false)} />
           )}
         </AnimatePresence>
       </main>

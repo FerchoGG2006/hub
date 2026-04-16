@@ -158,6 +158,19 @@ def get_tenant_top_analytics(slug: str, db: Session = Depends(get_db)):
         p = db.query(models.Product).filter(models.Product.id == product_id).first()
         if p:
             result.append({"id": p.id, "name": p.name, "hits": hits})
+            
+    if len(result) == 0:
+        # Mock para demostración (Añadir métricas en HUD si el usuario nuevo no tiene ventas)
+        prods = db.query(models.Product).filter_by(tenant_id=tenant.id, is_available=True).limit(5).all()
+        base_hits = 120
+        for p in prods:
+            result.append({
+                "id": p.id,
+                "name": p.name,
+                "hits": base_hits
+            })
+            base_hits -= int(base_hits * 0.3)
+            
     return result
 
 # ════════════════ BACKWARD COMPATIBILITY & ADMIN ════════════════
