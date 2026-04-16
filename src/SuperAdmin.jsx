@@ -88,7 +88,7 @@ export const SuperAdmin = () => {
 /* ── COMPONENTE: AGENTE DE INSERCIÓN AI ── */
 const AIOnboardingModal = ({ onClose, onSuccess }) => {
   const [step, setStep] = useState(1); // 1: Form, 2: Loading, 3: Success
-  const [formData, setFormData] = useState({ name: '', slug: '', brand_color: '#f59e0b' });
+  const [formData, setFormData] = useState({ name: '', slug: '', brand_color: '#f59e0b', whatsapp_number: '' });
   const [file, setFile] = useState(null);
 
   const handleProcess = async () => {
@@ -103,6 +103,7 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
       data.append('name', formData.name);
       data.append('slug', formData.slug);
       data.append('brand_color', formData.brand_color);
+      if (formData.whatsapp_number) data.append('whatsapp_number', formData.whatsapp_number);
       data.append('file', file);
 
       const res = await fetch(`${API_URL}/api/admin/onboard`, {
@@ -143,7 +144,8 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
             <div className="space-y-4">
               <input type="text" placeholder="Nombre Comercial" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/30" />
               <div className="flex gap-4">
-                <input type="text" placeholder="URL Slug (ej: sushi-bar)" value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/30" />
+                <input type="text" placeholder="URL Slug (ej: sushi-bar)" value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} className="w-1/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/30" />
+                <input type="text" placeholder="WhatsApp (ej: 57300...)" value={formData.whatsapp_number} onChange={e => setFormData({...formData, whatsapp_number: e.target.value})} className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/30" />
                 <input type="color" value={formData.brand_color} onChange={e => setFormData({...formData, brand_color: e.target.value})} className="h-[52px] w-[60px] rounded-2xl border-none cursor-pointer bg-white/5 p-1" />
               </div>
             </div>

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from './CartContext';
 import { CheckoutView } from './CheckoutView';
 
-export const FloatingCart = () => {
+export const FloatingCart = ({ config }) => {
   const { totalItems, totalPrice } = useCart();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
@@ -52,7 +52,7 @@ export const FloatingCart = () => {
       </motion.div>
 
       <AnimatePresence>
-        {checkoutOpen && <CheckoutView isOpen={checkoutOpen} onClose={() => setCheckoutOpen(false)} />}
+        {checkoutOpen && <CheckoutView config={config} isOpen={checkoutOpen} onClose={() => setCheckoutOpen(false)} />}
       </AnimatePresence>
     </>
   );

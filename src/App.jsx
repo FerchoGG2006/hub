@@ -28,7 +28,7 @@ const MainApp = ({ config }) => {
             <motion.div key="menu" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               transition={{ duration: 0.4 }} className="absolute inset-0">
               <MenuEngine config={config} />
-              <FloatingCart />
+              <FloatingCart config={config} />
             </motion.div>
           )}
         </AnimatePresence>

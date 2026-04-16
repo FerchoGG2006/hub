@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from './CartContext';
 import { formatWhatsAppMessage, sendToWhatsApp } from './CheckoutLogic';
 
-export const CheckoutView = ({ isOpen, onClose }) => {
+export const CheckoutView = ({ isOpen, onClose, config }) => {
   /* CartContext expone `total` como alias de `totalPrice` */
   const { cart, total, clearCart } = useCart();
   const [method,  setMethod]  = useState('mesa');      // mesa | recoger | domicilio
@@ -63,8 +63,9 @@ export const CheckoutView = ({ isOpen, onClose }) => {
       );
       return;
     }
-    const msg = formatWhatsAppMessage(cart, total, method, payment);
-    sendToWhatsApp(msg);
+    const waNumber = config?.whatsapp_number || '573000000000';
+    const msg = formatWhatsAppMessage(cart, total, method, payment, config?.name);
+    sendToWhatsApp(waNumber, msg);
     clearCart();
     setDone(true);
   };

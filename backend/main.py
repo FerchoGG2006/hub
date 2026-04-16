@@ -205,6 +205,7 @@ def onboard_new_tenant(
     name: str = Form(...),
     slug: str = Form(...),
     brand_color: str = Form("#f59e0b"),
+    whatsapp_number: str = Form(""),
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
@@ -212,7 +213,8 @@ def onboard_new_tenant(
     nuevo_tenant = models.Tenant(
         slug=slug,
         name=name,
-        brand_color=brand_color
+        brand_color=brand_color,
+        whatsapp_number=whatsapp_number
     )
     db.add(nuevo_tenant)
     db.commit()
