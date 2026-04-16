@@ -2,74 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── DESIGN TOKENS ─── */
-:root {
-  --page-bg: rgba(255, 255, 255, 0.07);
-  --spine-width: 40px;
-  --amber: #f59e0b;
-}
+:root { --page-bg: rgba(255,255,255,0.07); --spine-width: 40px; --amber: #f59e0b; }
 
-/* ─── MOBILE SYSTEM LOCK ─── */
-html {
-  height: 100%;
-  height: -webkit-fill-available;
-  overflow: hidden;
-  overscroll-behavior: none;
-  -webkit-text-size-adjust: 100%;
-}
+html { height: 100%; height: -webkit-fill-available; overflow: hidden; overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
 
 body {
-  margin: 0;
-  padding: 0;
-  background: #000;
-  overflow: hidden;
-  overscroll-behavior: none;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
-  /* Prevent rubber-band on iOS */
-  position: fixed;
-  width: 100%;
+  margin: 0; padding: 0; background: #000; overflow: hidden;
+  overscroll-behavior: none; user-select: none; -webkit-user-select: none;
+  touch-action: none; position: fixed; width: 100%;
+  min-height: 100vh; min-height: -webkit-fill-available;
 }
 
-#root {
-  height: 100svh;
-  width: 100%;
-  overflow: hidden;
-}
+#root { height: 100svh; width: 100%; overflow: hidden; }
 
-/* ─── ESCENARIO 3D ─── */
-/*
-  perspective-container: el "escenario" que da profundidad a las hojas.
-  Con perspective: 2500px las rotaciones quedan muy naturales.
-*/
+/* ─── Escenario 3D ─── */
 .perspective-container {
-  /* 2500px: umbral mínimo para que skewY + rotateY luzca
-     como papel real y no como una tarjeta plástica girando */
   perspective: 2500px;
   perspective-origin: 28% 50%;
-  width: 100vw;
-  height: 100svh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
+  width: 100vw; height: 100svh;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
   background: radial-gradient(ellipse at 25% 50%, #0f0a00 0%, #000 70%);
 }
 
-/* ─── HOJA CON EJE EN IZQUIERDA ─── */
-/*
-  CRÍTICO: transform-origin: left center
-  Garantiza que rotateY gire la hoja desde su borde izquierdo
-  (el lomo del libro), no desde su centro.
-
-  La curva cubic-bezier(0.15, 0.85, 0.35, 1) produce el
-  "latigazo" del papel: arranca lento, se dispara al centro
-  y frena suave — igual que una hoja física.
-*/
+/* ─── Hoja con eje en izquierda — CRÍTICO ─── */
 .page-pivot {
   transform-style: preserve-3d;
   transform-origin: left center;
@@ -81,111 +37,52 @@ body {
   transition: transform 0.8s cubic-bezier(0.15, 0.85, 0.35, 1);
 }
 
-/* ─── SOMBRA DE DOBLEZ ─── */
-/*
-  Simula la curvatura interna del papel mientras rota.
-  Al girar ≈45° el centro queda más alejado del ojo → oscurece.
-  El highlight central (rgba blanco) imita el reflejo del pliegue.
-  Framer Motion controla la opacidad vía animate={{ opacity }}.
-*/
+/* ─── Sombra de doblez ─── */
 .fold-shadow {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to right,
-    transparent             0%,
-    rgba(0, 0, 0, 0.3)     38%,
-    rgba(255,255,255,0.08) 50%,
-    rgba(0, 0, 0, 0.3)     62%,
-    transparent            100%
-  );
-  pointer-events: none;
-  z-index: 30;
-  border-radius: inherit;
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.3) 38%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.3) 62%, transparent 100%);
+  pointer-events: none; z-index: 30; border-radius: inherit;
 }
 
-/* ─── GLASSMORPHISM ─── */
+/* ─── Glassmorphism ─── */
 .glass-card {
   background: var(--page-bg);
   backdrop-filter: blur(25px) saturate(180%);
-  -webkit-backdrop-filter: blur(25px) saturate(180%); /* Safari iOS */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow:
-    20px 0 60px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 20px 0 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08);
 }
 
-/* ─── SOMBRA DEL LOMO ─── */
-/*
-  Simula el grosor del lomo de un libro real.
-  Va pegado al borde izquierdo de cada hoja.
-*/
+/* ─── Lomo del libro ─── */
 .spine-shadow {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  position: absolute; left: 0; top: 0; bottom: 0;
   width: var(--spine-width);
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.55) 0%, transparent 100%);
-  z-index: 10;
-  pointer-events: none;
+  background: linear-gradient(to right, rgba(0,0,0,0.55) 0%, transparent 100%);
+  z-index: 10; pointer-events: none;
 }
 
-/* ─── TABS DEL ÍNDICE ─── */
-.tab-active {
-  background: var(--amber);
-  color: #000;
-  box-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
-}
-
-.tab-inactive {
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.35);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* ─── SCROLL INTERNO DE ITEMS ─── */
+/* ─── Scroll interno ─── */
 .items-scroll {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch; /* Momentum scroll en Safari iOS */
-  overscroll-behavior: contain;
-  scrollbar-width: none;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain; scrollbar-width: none;
 }
-.items-scroll::-webkit-scrollbar {
-  display: none;
-}
+.items-scroll::-webkit-scrollbar { display: none; }
 
-/* ─── SHIMMER DE ORO ─── */
+/* ─── Gold shimmer ─── */
 .gold-shimmer {
   background: linear-gradient(90deg, #d97706, #fbbf24 40%, #fcd34d 55%, #fbbf24 70%, #d97706);
   background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   animation: shimmer 3s linear infinite;
 }
+@keyframes shimmer { from { background-position: -200% center; } to { background-position: 200% center; } }
 
-@keyframes shimmer {
-  from { background-position: -200% center; }
-  to   { background-position:  200% center; }
-}
-
-/* ─── GRAIN OVERLAY (portada) ─── */
+/* ─── Grain overlay (portada) ─── */
 .cover-grain::after {
-  content: '';
-  position: absolute;
-  inset: 0;
+  content: ''; position: absolute; inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
-  opacity: 0.12;
-  pointer-events: none;
-  z-index: 2;
+  opacity: 0.12; pointer-events: none; z-index: 2;
 }
 
-/* ─── AMBIENT BLOB ─── */
-.ambient {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.12;
-  pointer-events: none;
-}
+/* ─── Ambient blob ─── */
+.ambient { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.12; pointer-events: none; }

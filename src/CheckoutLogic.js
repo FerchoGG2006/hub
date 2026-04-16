@@ -1,62 +1,33 @@
-const WA_NUMBER = '573001234567'; // ← reemplazar con el número real del restaurante
+const WA_NUMBER = '573001234567'; // ← reemplaza con el número real del restaurante
 
 /**
- * Formatea el pedido completo en un mensaje estructurado para WhatsApp.
- * @param {Array}  cart      - Items del carrito [{ name, price, qty, emoji }]
- * @param {number} total     - Total en pesos (ej: 64000)
- * @param {string} delivery  - 'mesa' | 'recoger' | 'domicilio'
- * @param {string} payment   - 'efectivo' | 'transferencia'
- * @param {string} [extra]   - Número de mesa o dirección de domicilio
- * @param {boolean} [hasReceipt] - true si el cliente adjuntó comprobante
+ * @param {Array}  cart     - Items [{name, price, qty, emoji}]
+ * @param {number} total    - Total en pesos (ej: 64000)
+ * @param {string} delivery - 'mesa' | 'recoger' | 'domicilio'
+ * @param {string} payment  - 'efectivo' | 'transferencia'
+ * @param {string} [phone]  - Opcional, número del cliente
  */
-export const formatWhatsAppMessage = (
-  cart,
-  total,
-  delivery,
-  payment,
-  extra = '',
-  hasReceipt = false,
-) => {
-  const DELIVERY_LABELS = {
-    mesa:      '🪑 En Mesa',
-    recoger:   '🏃 Para Recoger',
-    domicilio: '🛵 Domicilio',
-  };
-
-  const PAYMENT_LABELS = {
-    efectivo:      '💵 Efectivo',
-    transferencia: '📲 Transferencia',
-  };
-
+export const formatWhatsAppMessage = (cart, total, delivery, payment, phone) => {
   const itemsList = cart
-    .map(item => `  • ${item.emoji ?? ''} ${item.name} ×${item.qty} — ${item.price}`)
+    .map(item => `• ${item.name}${item.qty > 1 ? ` x${item.qty}` : ''} | ${item.price}`)
     .join('\n');
 
-  const extraLine = extra
-    ? `\n*${delivery === 'mesa' ? 'Mesa N°' : 'Dirección'}:* ${extra}`
-    : '';
+  return `*NUEVO PEDIDO - HUB CARTA DIGITAL* 🍽️
+--------------------------------
+*PRODUCTOS:*
+${itemsList}
 
-  const paymentStatus =
-    payment === 'transferencia'
-      ? hasReceipt
-        ? '✅ Comprobante adjunto'
-        : '⚠️ Comprobante pendiente'
-      : '⏳ Pago en efectivo al recibir';
-
-  return (
-    `*🍽️ NUEVO PEDIDO — LA RIVERA TECH GASTRO*\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `*PRODUCTOS:*\n${itemsList}\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `*Subtotal:* $${(total / 1000).toFixed(0)}k\n` +
-    `*Entrega:* ${DELIVERY_LABELS[delivery] ?? delivery}${extraLine}\n` +
-    `*Pago:*  ${PAYMENT_LABELS[payment] ?? payment}\n` +
-    `*Estado:* ${paymentStatus}`
-  );
+*RESUMEN:*
+- Subtotal: $${(total / 1000).toFixed(0)}k
+- Entrega: ${delivery.toUpperCase()}
+- Pago: ${payment.toUpperCase()}
+${phone ? `- Teléfono: ${phone}` : ''}
+--------------------------------
+*ESTADO:* ${payment === 'transferencia' ? '✅ Comprobante Adjunto' : '⏳ Pago en Efectivo'}
+`;
 };
 
-/** Abre WhatsApp con el mensaje ya codificado */
+/** Abre WhatsApp con el mensaje codificado */
 export const sendToWhatsApp = (message) => {
-  const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(message)}`;
-  window.open(url, '_blank');
+  window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
 };
