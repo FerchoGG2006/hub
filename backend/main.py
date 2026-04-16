@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 import models
 from database import get_db, engine
 from utils.storage import upload_product_image
+from utils.gemini_extractor import extract_menu_from_image
 
 load_dotenv()
 
@@ -170,6 +171,58 @@ def get_legacy_menu(db: Session = Depends(get_db)):
 @app.get("/api/categories")
 def get_legacy_cats(db: Session = Depends(get_db)):
     return get_tenant_categories("la-rivera", db)
+
+@app.post("/api/admin/onboard")
+async def onboard_new_tenant(
+    name: str = Form(...),
+    slug: str = Form(...),
+    brand_color: str = Form("#f59e0b"),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    # 1. Crear el nuevo Tenant en la base de datos
+    nuevo_tenant = models.Tenant(
+        slug=slug,
+        name=name,
+        brand_color=brand_color
+    )
+    db.add(nuevo_tenant)
+    db.commit()
+    db.refresh(nuevo_tenant)
+    
+    # 2. Leer la imagen y darsela a Gemini Flash
+    image_bytes = await file.read()
+    menu_data = extract_menu_from_image(image_bytes)
+    
+    # 3. Iterar por el JSON estructurado de la IA y poblar la Base de Datos
+    for category_data in menu_data:
+        cat_name = category_data.get("category", "Miscelaneo")
+        cat_icon = category_data.get("icon", "🍽️")
+        
+        nueva_cat = models.Category(
+            tenant_id=nuevo_tenant.id,
+            name=cat_name,
+            icon=cat_icon
+        )
+        db.add(nueva_cat)
+        db.commit()
+        db.refresh(nueva_cat)
+        
+        products = category_data.get("products", [])
+        for p in products:
+            nuevo_prod = models.Product(
+                tenant_id=nuevo_tenant.id,
+                category_id=nueva_cat.id,
+                name=p.get("name", "Plato Desconocido"),
+                description=p.get("description", ""),
+                price=str(p.get("price", "$0")),
+                emoji=p.get("emoji", "🍽️")
+            )
+            db.add(nuevo_prod)
+            
+        db.commit()
+
+    return {"status": "ok", "message": "Tenant y Menú inyectados vía AI", "tenant_id": nuevo_tenant.id}
 
 @app.put("/api/admin/products/{product_id}/toggle")
 async def toggle_product(product_id: int, db: Session = Depends(get_db)):
