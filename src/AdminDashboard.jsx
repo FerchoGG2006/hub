@@ -176,9 +176,7 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
             <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-light mb-3 flex items-center gap-3">
               <span className="w-5 h-px bg-amber-500/50"></span> DASHBOARD_01
             </p>
-            <h1 className="text-6xl sm:text-7xl font-extralight tracking-tighter text-white leading-none">
-              H<span className="text-amber-500 font-normal">U</span>B
-            </h1>
+            <img src="/logo.png" alt="HUB" className="h-14 lg:h-16 object-contain invert mix-blend-screen opacity-90 -ml-1" />
           </div>
           
           {/* Metadata Block */}
@@ -369,7 +367,7 @@ export const AdminDashboard = () => {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 h-[100dvh] w-full bg-[#050505] text-white font-sans selection:bg-amber-500/30 overflow-y-auto" style={{ paddingBottom: '100px' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 h-[100dvh] w-full bg-[#050505] text-white font-sans selection:bg-amber-500/30 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" style={{ paddingBottom: '100px' }}>
       
       {/* Barra de Navegación Editorial */}
       <nav className="fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">

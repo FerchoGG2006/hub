@@ -8,9 +8,10 @@ export const SuperAdmin = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white p-10 font-sans relative overflow-x-hidden">
-      <h1 className="text-4xl font-extralight tracking-tighter mb-12">
-        H<span className="text-amber-500 font-normal">U</span>B <span className="text-amber-500/50 italic text-2xl ml-2 font-serif">Network</span>
-      </h1>
+      <div className="mb-12 flex items-center justify-start">
+        <img src="/logo.png" alt="HUB" className="h-[4.5rem] object-contain invert mix-blend-screen opacity-90" />
+        <span className="text-amber-500/50 italic text-2xl ml-4 font-serif self-end pb-2">Network</span>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Card de Cliente */}
