@@ -173,7 +173,7 @@ def get_legacy_cats(db: Session = Depends(get_db)):
     return get_tenant_categories("la-rivera", db)
 
 @app.post("/api/admin/onboard")
-async def onboard_new_tenant(
+def onboard_new_tenant(
     name: str = Form(...),
     slug: str = Form(...),
     brand_color: str = Form("#f59e0b"),
@@ -190,8 +190,8 @@ async def onboard_new_tenant(
     db.commit()
     db.refresh(nuevo_tenant)
     
-    # 2. Leer la imagen y darsela a Gemini Flash
-    image_bytes = await file.read()
+    # 2. Leer la imagen de forma síncrona y darsela a Gemini Flash
+    image_bytes = file.file.read()
     menu_data = extract_menu_from_image(image_bytes)
     
     # 3. Iterar por el JSON estructurado de la IA y poblar la Base de Datos
