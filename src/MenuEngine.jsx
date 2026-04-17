@@ -61,7 +61,7 @@ const LoadingSkeleton = () => (
 );
 
 /* ════════════════ MAIN ENGINE ════════════════ */
-export const MenuEngine = () => {
+export const MenuEngine = ({ config }) => {
   const { addToCart } = useCart();
   const [allMenuData, setAllMenuData] = useState(null);   // null = loading
   const [apiError,    setApiError]    = useState(false);
@@ -72,9 +72,10 @@ export const MenuEngine = () => {
 
   /* ── Fetch menu from FastAPI (fallback to static if API unavailable) ── */
   useEffect(() => {
+    const tenantSlug = config?.slug || 'la-rivera';
     const loadMenu = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/menu-dynamic`, { signal: AbortSignal.timeout(4000) });
+        const res = await fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/menu`, { signal: AbortSignal.timeout(4000) });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         // Validate that we got categories with items
@@ -101,7 +102,8 @@ export const MenuEngine = () => {
             navigator.vibrate([20, 50, 20]); // Pequeño destello háptico en la carta
           }
           // Refetch silencioso de la carta 3D
-          fetch(`${API_URL}/api/menu-dynamic`)
+          const currentTenantSlug = config?.slug || 'la-rivera';
+          fetch(`${API_URL}/api/v1/tenant/${currentTenantSlug}/menu`)
             .then(res => res.json())
             .then(newData => {
                if (Object.keys(newData).length > 0) setAllMenuData(newData);

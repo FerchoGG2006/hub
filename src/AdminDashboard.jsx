@@ -228,9 +228,9 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
           
           {/* Metadata Block */}
           <div className="flex flex-col items-start sm:items-end gap-1.5 text-[9px] font-mono tracking-[0.15em] uppercase bg-black/40 p-4 rounded-2xl border border-white/5 backdrop-blur-md">
-            <p className="text-white/40">ADMIN: <span className="text-white font-medium ml-2">FERNANDO_BAQUERO</span></p>
+            <p className="text-white/40">ADMIN: <span className="text-white font-medium ml-2">{localStorage.getItem('hub_tenant') || window.location.pathname.split("/")[2]?.toUpperCase()}</span></p>
             <p className="text-white/40">STATUS: <span className="text-amber-500 font-bold ml-2">LINKED_SECURE</span></p>
-            <p className="text-white/40">LOCATION: <span className="text-white/80 ml-2">NODE_01_VPAR</span></p>
+            <p className="text-white/40">ROLE: <span className="text-white/80 ml-2">{localStorage.getItem('hub_role') || 'ADMIN'}</span></p>
           </div>
         </div>
 
@@ -287,18 +287,18 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
 };
 
 /* ── MODALS ── */
-const AddProductModal = ({ onClose, onProductAdded }) => {
+const AddProductModal = ({ onClose, onProductAdded, tenantSlug }) => {
   const [formData, setFormData] = useState({ name: '', price: '', desc: '', emoji: '🍽️', category: '' });
   const [file, setFile] = useState(null);
   const [cats, setCats] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/categories`)
+    fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/categories`)
       .then(r => r.json())
       .then(data => { setCats(data); if (data.length) setFormData(f => ({ ...f, category: String(data[0].id) })); })
       .catch(() => setCats([{ id: 1, name: 'Entradas' }, { id: 2, name: 'Fuertes' }, { id: 3, name: 'Licores' }]));
-  }, []);
+  }, [tenantSlug]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -531,7 +531,7 @@ export const AdminDashboard = () => {
       </div>
 
       <AnimatePresence>
-        {showAddModal && <AddProductModal onClose={() => setShowAddModal(false)} onProductAdded={fetchProducts} />}
+        {showAddModal && <AddProductModal onClose={() => setShowAddModal(false)} onProductAdded={fetchProducts} tenantSlug={tenantSlug} />}
         {showAIModal && <AIIngestModal onClose={() => setShowAIModal(false)} onSuccess={fetchProducts} />}
       </AnimatePresence>
     </motion.div>
