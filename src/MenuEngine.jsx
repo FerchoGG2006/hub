@@ -20,41 +20,17 @@ const FAST_VARIANTS = {
 
 /* ProductCell is imported from ./ProductCell.jsx */
 
-/* ── Category Tab ── */
-const CategoryTab = ({ cat, idx, isActive, isFlipping, onClick, meta }) => (
-  <motion.button id={`cat-tab-${idx}`} whileTap={{ scale: 0.9 }} onClick={onClick} disabled={isFlipping}
-    className="relative overflow-hidden rounded-r-xl flex items-center justify-center transition-all duration-300"
-    style={{
-      writingMode: 'vertical-rl', textOrientation: 'mixed',
-      width: '38px', minHeight: '72px',
-      background: isActive ? `linear-gradient(180deg, ${meta.accent}, ${meta.accent}cc)` : 'rgba(255,255,255,0.04)',
-      border: isActive ? `1px solid ${meta.accent}88` : '1px solid rgba(255,255,255,0.07)',
-      borderLeft: 'none',
-      boxShadow: isActive ? `4px 0 20px ${meta.accent}44` : 'none',
-      transform: isActive ? 'translateX(0)' : 'translateX(-2px)',
-    }}>
-    <span className="text-[9px] font-black uppercase tracking-[0.15em]" style={{ color: isActive ? '#050505' : 'rgba(255,255,255,0.3)' }}>
-      {cat}
-    </span>
-  </motion.button>
-);
+/* ── Category tabs removed per design request ── */
 
 /* ── Loading Skeleton ── */
 const LoadingSkeleton = () => (
   <div className="perspective-container">
-    <div className="absolute left-0 top-1/2 -translate-y-1/2 flex flex-col gap-1.5">
-      {[1, 2, 3].map(i => (
-        <div key={i} className="w-[38px] h-[72px] rounded-r-xl animate-pulse" style={{ background: 'rgba(255,255,255,0.06)' }} />
-      ))}
-    </div>
-    <div className="absolute top-8 bottom-8 rounded-r-[2.5rem] animate-pulse glass-card" style={{ left: '44px', right: '12px' }}>
-      <div className="p-5 space-y-4">
-        <div className="h-6 w-32 rounded-lg" style={{ background: 'rgba(255,255,255,0.08)' }} />
-        <div className="grid grid-cols-2 gap-2.5 mt-6">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-28 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }} />
-          ))}
-        </div>
+    <div className="absolute top-8 bottom-8 rounded-[2.5rem] animate-pulse glass-card flex flex-col p-5 space-y-4" style={{ left: '12px', right: '12px' }}>
+      <div className="h-6 w-32 rounded-lg" style={{ background: 'rgba(255,255,255,0.08)' }} />
+      <div className="grid grid-cols-1 gap-2.5 mt-6">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="h-28 rounded-2xl w-full" style={{ background: 'rgba(255,255,255,0.05)' }} />
+        ))}
       </div>
     </div>
   </div>
@@ -75,12 +51,51 @@ export const MenuEngine = ({ config }) => {
     const tenantSlug = config?.slug || 'la-rivera';
     const loadMenu = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/menu`, { signal: AbortSignal.timeout(4000) });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+        const [menuRes, catsRes] = await Promise.all([
+          fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/menu`, { signal: AbortSignal.timeout(4000) }),
+          fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/categories`, { signal: AbortSignal.timeout(4000) })
+        ]);
+        if (!menuRes.ok) throw new Error(`HTTP ${menuRes.status}`);
+        
+        const data = await menuRes.json();
+        const catsData = await catsRes.json().catch(() => []);
+        
+        // Dynamically inject any new AI categories into the metadata map
+        const FALLBACK_ACCENTS = ['#10b981', '#f97316', '#f59e0b', '#06b6d4', '#ec4899'];
+        catsData.forEach((c, idx) => {
+          if (!CATEGORY_META[c.name]) {
+            CATEGORY_META[c.name] = {
+               accent: FALLBACK_ACCENTS[idx % FALLBACK_ACCENTS.length],
+               icon: c.icon || '🍽️',
+               label: c.name
+            };
+          }
+        });
+
         // Validate that we got categories with items
         if (Object.keys(data).length === 0) throw new Error('Empty menu');
-        setAllMenuData(data);
+
+        // Automatically Paginate: Max 4 items per page (1 column list for long descriptions)
+        const paginatedData = {};
+        Object.keys(data).forEach(catName => {
+          const prods = data[catName];
+          if (prods.length <= 4) {
+            paginatedData[catName] = prods;
+          } else {
+            for (let i = 0; i < prods.length; i += 4) {
+              const partNum = Math.floor(i / 4) + 1;
+              const newCatName = i === 0 ? catName : `${catName} ${partNum}`;
+              paginatedData[newCatName] = prods.slice(i, i + 4);
+              
+              if (i > 0 && CATEGORY_META[catName]) {
+                 CATEGORY_META[newCatName] = { ...CATEGORY_META[catName] };
+                 CATEGORY_META[newCatName].label = `${CATEGORY_META[catName].label || catName} Pt. ${partNum}`;
+              }
+            }
+          }
+        });
+
+        setAllMenuData(paginatedData);
       } catch (err) {
         console.warn('API not available, using static data:', err.message);
         setApiError(true);
@@ -118,7 +133,7 @@ export const MenuEngine = ({ config }) => {
     return () => {
       if (ws) ws.close();
     };
-  }, []);
+  }, [config?.slug]);
 
   const categories = allMenuData ? Object.keys(allMenuData) : [];
   const cat        = categories[currentPage];
@@ -174,16 +189,8 @@ export const MenuEngine = ({ config }) => {
       )}
 
       {/* Thumb tap zones */}
-      <div className="absolute inset-y-0 left-[38px] w-12 z-[110]" onClick={() => paginate(-1)} />
+      <div className="absolute inset-y-0 left-0 w-12 z-[110]" onClick={() => paginate(-1)} />
       <div className="absolute inset-y-0 right-0 w-12 z-[110]" onClick={() => paginate(1)} />
-
-      {/* Category tabs */}
-      <div className="absolute left-0 top-1/2 -translate-y-1/2 z-[100] flex flex-col gap-1.5">
-        {categories.map((c, idx) => {
-          const tabMeta = CATEGORY_META[c] || { accent: FALLBACK_ACCENTS[idx % FALLBACK_ACCENTS.length], icon: '🍽️', label: c };
-          return <CategoryTab key={c} cat={c} idx={idx} isActive={currentPage === idx} isFlipping={isFlipping} onClick={() => jumpToPage(idx)} meta={tabMeta} />;
-        })}
-      </div>
 
       {/* Page */}
       <AnimatePresence mode="popLayout" custom={direction}>
@@ -191,8 +198,8 @@ export const MenuEngine = ({ config }) => {
           key={currentPage} custom={direction} variants={variants}
           initial="initial" animate="animate" exit="exit"
           drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.07} onDragEnd={handleDragEnd}
-          className="page-pivot glass-card absolute rounded-r-[2.5rem] overflow-hidden"
-          style={{ left: '44px', right: '12px', top: '2rem', bottom: '2rem', transformOrigin: 'left center', boxShadow: '25px 0 60px -15px rgba(0,0,0,0.8)' }}
+          className="page-pivot glass-card absolute rounded-[2.5rem] overflow-hidden"
+          style={{ left: '12px', right: '12px', top: '2rem', bottom: '2rem', transformOrigin: 'center center', boxShadow: '0px 0px 40px -10px rgba(0,0,0,0.8)' }}
         >
           <motion.div className="fold-shadow" animate={{ opacity: lock.current ? 1 : 0 }} transition={{ duration: 0.15 }} />
           <div className="spine-shadow" />
@@ -205,17 +212,17 @@ export const MenuEngine = ({ config }) => {
                   <span className="text-[10px] uppercase tracking-[0.28em] font-semibold" style={{ color: meta.accent }}>{meta.label || cat}</span>
                 </div>
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold"
-                  style={{ background: `${meta.accent}1a`, border: `1px solid ${meta.accent}44`, color: meta.accent, fontFamily: "'JetBrains Mono', monospace" }}>
+                  style={{ background: `${meta.accent}1a`, border: `1px solid ${meta.accent}44`, color: meta.accent }}>
                   {String(currentPage + 1).padStart(2, '0')}
                 </div>
               </div>
-              <h2 className="text-2xl font-black uppercase leading-none tracking-tight"
-                style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', color: 'white' }}>{cat}</h2>
+              <h2 className="text-2xl font-black uppercase leading-none tracking-tight text-white mb-2"
+                style={{ fontStyle: 'italic' }}>{cat}</h2>
               <div className="mt-2 h-px" style={{ background: `linear-gradient(90deg, ${meta.accent}aa, transparent)` }} />
             </div>
 
-            {/* 2-column product grid */}
-            <div className="flex-1 grid grid-cols-2 gap-2.5 content-start overflow-y-auto"
+            {/* 1-column product list */}
+            <div className="flex-1 grid grid-cols-1 gap-3 content-start overflow-y-auto"
               style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', scrollbarWidth: 'none', paddingBottom: '4px' }}>
               {items.map((item, idx) => (
                 <ProductCell key={item.id} item={item} index={idx} accent={meta.accent} onAdd={() => addToCart(item)} />

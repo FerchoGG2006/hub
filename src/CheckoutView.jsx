@@ -4,11 +4,9 @@ import { useCart } from './CartContext';
 import { formatWhatsAppMessage, sendToWhatsApp } from './CheckoutLogic';
 
 export const CheckoutView = ({ isOpen, onClose, config }) => {
-  /* CartContext expone `total` como alias de `totalPrice` */
-  const { cart, total, clearCart } = useCart();
+  const { cart, total, clearCart, addToCart, removeOne } = useCart();
   const [method,  setMethod]  = useState('mesa');      // mesa | recoger | domicilio
   const [payment, setPayment] = useState('efectivo');  // efectivo | transferencia
-  const [receipt, setReceipt] = useState(null);
   const [done, setDone]       = useState(false);
 
   if (!isOpen) return null;
@@ -32,7 +30,7 @@ export const CheckoutView = ({ isOpen, onClose, config }) => {
         </motion.span>
         <h2
           className="text-2xl font-black text-white uppercase text-center tracking-tight"
-          style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic' }}
+          style={{ fontStyle: 'italic' }}
         >
           ¡Pedido enviado!
         </h2>
@@ -56,13 +54,6 @@ export const CheckoutView = ({ isOpen, onClose, config }) => {
   }
 
   const handleSend = () => {
-    if (payment === 'transferencia' && !receipt) {
-      document.getElementById('receipt-zone')?.animate(
-        [{ transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(0)' }],
-        { duration: 280, iterations: 3 }
-      );
-      return;
-    }
     const waNumber = config?.whatsapp_number || '573000000000';
     const msg = formatWhatsAppMessage(cart, total, method, payment, config?.name);
     sendToWhatsApp(waNumber, msg);
@@ -84,7 +75,6 @@ export const CheckoutView = ({ isOpen, onClose, config }) => {
         style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
         <h2
           className="text-2xl font-black text-white italic uppercase tracking-tighter"
-          style={{ fontFamily: "'Playfair Display', serif" }}
         >
           Tu Pedido
         </h2>
@@ -104,22 +94,41 @@ export const CheckoutView = ({ isOpen, onClose, config }) => {
 
         {/* Items list */}
         <section>
-          <p className="text-[10px] text-white/30 uppercase tracking-[0.25em] mb-3 font-semibold">Resumen</p>
+          <p className="text-[10px] text-white/30 uppercase tracking-[0.25em] mb-4 font-semibold">Resumen de tu Orden</p>
           {cart.map(item => (
             <div
               key={item.id}
-              className="flex items-center justify-between py-2"
+              className="flex items-center justify-between py-3"
               style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
             >
-              <span className="text-sm text-white/70">
-                {item.emoji} {item.name} {item.qty > 1 && <span className="text-white/30">×{item.qty}</span>}
-              </span>
-              <span className="text-sm font-bold text-amber-400"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                {item.price}
-              </span>
+              <div className="flex flex-col">
+                <span className="text-[11px] text-white/90 font-black tracking-wide uppercase mb-0.5">
+                  {item.name}
+                </span>
+                <span className="text-[10px] font-bold text-amber-500/80">
+                  {item.price}
+                </span>
+              </div>
+              
+              {/* Product Quantity Modifiers */}
+              <div className="flex items-center bg-white/[0.04] rounded-full border border-white/5 px-1 py-1 gap-1">
+                 <button 
+                    onClick={() => removeOne(item.id)} 
+                    className="w-7 h-7 flex items-center justify-center rounded-full text-white/40 hover:bg-white/10 hover:text-white transition-colors"
+                 >
+                   <span className="font-bold text-lg leading-none mt-[-2px]">&minus;</span>
+                 </button>
+                 <span className="text-[11px] font-black text-white w-4 text-center">{item.qty}</span>
+                 <button 
+                    onClick={() => addToCart(item)} 
+                    className="w-7 h-7 flex items-center justify-center rounded-full text-amber-500 hover:bg-amber-500/20 transition-colors"
+                 >
+                   <span className="font-bold text-lg leading-none mt-[-2px]">+</span>
+                 </button>
+              </div>
             </div>
           ))}
+          {cart.length === 0 && <p className="text-white/30 text-xs italic">Tu carrito está vacío.</p>}
         </section>
 
         {/* ── Método de Entrega ── */}
@@ -187,45 +196,35 @@ export const CheckoutView = ({ isOpen, onClose, config }) => {
         <AnimatePresence>
           {payment === 'transferencia' && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 8 }}
-              animate={{ opacity: 1, scale: 1,    y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              initial={{ opacity: 0, height: 0, scale: 0.95 }}
+              animate={{ opacity: 1, height: 'auto', scale: 1 }}
+              exit={{ opacity: 0, height: 0, scale: 0.95 }}
               transition={{ duration: 0.22 }}
-              className="p-5 rounded-3xl"
+              className="p-5 rounded-3xl overflow-hidden mt-2"
               style={{
                 background: 'rgba(245,158,11,0.07)',
                 border: '1px solid rgba(245,158,11,0.2)',
               }}
             >
-              <p className="text-[11px] text-amber-500/80 mb-2 font-medium">
-                Transfiere a esta cuenta:
+              <p className="text-[10px] text-amber-500/80 mb-3 font-medium uppercase tracking-widest text-center">
+                Datos Bancarios
               </p>
-              <p
-                className="text-xl font-mono font-black text-white mb-4 tracking-wider text-center"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
-                NEQUI: 300 000 0000
-              </p>
+              
+              <div className="bg-black/30 w-full rounded-2xl p-4 mb-4 flex flex-col items-center justify-center border border-white/5 shadow-inner">
+                <p className="text-[9px] text-white/40 uppercase tracking-widest font-black mb-1.5">NEQUI / BANCOLOMBIA</p>
+                <p
+                  className="text-2xl font-black text-white tracking-widest text-center"
+                >
+                  300 000 0000
+                </p>
+              </div>
 
-              {/* Zona de upload */}
-              <label
-                id="receipt-zone"
-                className="flex items-center justify-between p-3 rounded-xl cursor-pointer"
-                style={{
-                  background: receipt ? 'rgba(16,185,129,0.1)' : 'rgba(0,0,0,0.35)',
-                  border: receipt ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(255,255,255,0.07)',
-                }}
-              >
-                <span className="text-[9px] text-white/40 uppercase">
-                  {receipt ? `✅ ${receipt.name}` : 'Sube tu comprobante'}
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="text-[9px] w-32"
-                  onChange={e => setReceipt(e.target.files?.[0] ?? null)}
-                />
-              </label>
+              <div className="flex items-start gap-4 bg-white/5 p-4 rounded-2xl border border-white/5 mt-1">
+                <span className="text-xl leading-none">💬</span>
+                <p className="text-[10px] text-white/60 leading-relaxed font-medium">
+                  Al confirmar, serás redirigido a WhatsApp. <span className="text-amber-400 font-bold block mt-1">Envía el mensaje de la orden y adjunta la foto de tu comprobante.</span>
+                </p>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -241,16 +240,15 @@ export const CheckoutView = ({ isOpen, onClose, config }) => {
             Total a Pagar
           </span>
           <span
-            className="text-3xl font-black text-white italic tracking-tighter"
-            style={{ fontFamily: "'Playfair Display', serif" }}
+            className="text-2xl font-black text-white italic tracking-tighter"
           >
             ${(total / 1000).toFixed(0)}k
           </span>
         </div>
 
-        {payment === 'transferencia' && !receipt && (
-          <p className="text-center text-[10px] text-amber-400/55 mb-3">
-            Adjunta el comprobante para continuar
+        {payment === 'transferencia' && (
+          <p className="text-center text-[10px] text-amber-400/55 mb-3 font-semibold uppercase tracking-widest">
+            Abre WhatsApp con 1 toque
           </p>
         )}
 
@@ -265,7 +263,7 @@ export const CheckoutView = ({ isOpen, onClose, config }) => {
             boxShadow:   'shadow-amber-500/20',
           }}
         >
-          {payment === 'transferencia' ? 'Enviar Pedido + Comprobante' : 'Confirmar Pedido'}
+          {payment === 'transferencia' ? 'Reportar Transferencia' : 'Confirmar Pedido'}
         </motion.button>
       </footer>
     </motion.div>

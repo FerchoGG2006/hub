@@ -43,7 +43,7 @@ export const FloatingCart = ({ config }) => {
           </div>
           <div className="text-left pr-1">
             <p className="text-[9px] text-white/45 uppercase font-bold tracking-widest leading-none mb-0.5">Tu Pedido</p>
-            <p className="font-bold leading-none text-sm" style={{ color: '#f59e0b', fontFamily: "'JetBrains Mono', monospace" }}>
+            <p className="font-bold leading-none text-sm" style={{ color: '#f59e0b' }}>
               ${(totalPrice / 1000).toFixed(0)}k
             </p>
           </div>

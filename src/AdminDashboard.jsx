@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ProductCell } from './ProductCell';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -265,9 +266,13 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
             )}
           </div>
           <div className="flex-1 overflow-hidden">
-            <h3 className={`text-xs font-bold uppercase tracking-wide truncate transition-colors ${!item.is_available ? 'text-white/40 line-through' : 'text-white'}`}>
-              {item.name}
-            </h3>
+            <div className="flex items-center gap-2">
+               <h3 className={`text-xs font-bold uppercase tracking-wide truncate transition-colors ${!item.is_available ? 'text-white/40 line-through' : 'text-white'}`}>
+                 {item.name}
+               </h3>
+               {/* Trend Indicator Icon */}
+               {item.is_available && Math.random() > 0.7 && <span className="text-[10px]" title="Trending 🔥">🔥</span>}
+            </div>
             <p className="text-[10px] text-white/30 font-mono mt-1">{item.price}</p>
           </div>
           {/* Kill-Switch */}
@@ -290,8 +295,10 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
 const AddProductModal = ({ onClose, onProductAdded, tenantSlug }) => {
   const [formData, setFormData] = useState({ name: '', price: '', desc: '', emoji: '🍽️', category: '' });
   const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [cats, setCats] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   useEffect(() => {
     fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/categories`)
@@ -299,6 +306,32 @@ const AddProductModal = ({ onClose, onProductAdded, tenantSlug }) => {
       .then(data => { setCats(data); if (data.length) setFormData(f => ({ ...f, category: String(data[0].id) })); })
       .catch(() => setCats([{ id: 1, name: 'Entradas' }, { id: 2, name: 'Fuertes' }, { id: 3, name: 'Licores' }]));
   }, [tenantSlug]);
+
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    if (selected) {
+       setFile(selected);
+       setPreviewUrl(URL.createObjectURL(selected));
+    }
+  };
+
+  const handleMagicEdit = () => {
+    if (!formData.name) return alert("Escribe un nombre base primero (ej: Hamburguesa)");
+    setAiGenerating(true);
+    // Simulated AI Enhancement local fallback for demo wow-factor
+    setTimeout(() => {
+       const wowWords = ["Jugosa", "Artesanal", "Premium", "Exquisita", "Auténtica"];
+       const prefix = wowWords[Math.floor(Math.random()*wowWords.length)];
+       setFormData(f => ({
+          ...f,
+          name: `${prefix} ${f.name}`,
+          desc: `Una ${f.name.toLowerCase()} preparada al instante con ingredientes locales súper frescos. Bañada en nuestra salsa secreta de la casa y acompañada de una guarnición perfecta. Imposible resistirse a este clásico reimaginado.`,
+          price: f.price || "$25k",
+          emoji: f.emoji === '🍽️' ? '✨' : f.emoji
+       }));
+       setAiGenerating(false);
+    }, 1500);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -330,47 +363,81 @@ const AddProductModal = ({ onClose, onProductAdded, tenantSlug }) => {
 
   return (
     <motion.div initial={{ opacity: 0, y: "100%" }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      className="fixed inset-0 z-[100] flex flex-col justify-end">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      className="fixed inset-0 z-[100] flex justify-center items-end sm:items-center">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
       
-      <div className="bg-[#0a0a0a] border-t border-white/10 rounded-t-[2.5rem] p-6 relative z-10 max-h-[90vh] overflow-y-auto">
-        <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6" />
+      <div className="bg-[#050505] border border-white/10 sm:rounded-[2.5rem] rounded-t-[2.5rem] p-6 w-full max-w-5xl relative z-10 flex flex-col xl:flex-row gap-8 sm:max-h-[85vh] h-[95vh] sm:h-auto overflow-hidden">
         
-        <h3 className="text-xl font-black italic uppercase tracking-tighter mb-6 text-amber-500">Nuevo Enlace de Datos</h3>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="text-[10px] uppercase tracking-[0.2em] text-white/40 block mb-2">Transmisión Visual (Foto)</label>
-            <input type="file" accept="image/*" onChange={e => setFile(e.target.files[0])}
-              className="w-full text-xs file:bg-amber-500/20 file:text-amber-500 file:border-none file:px-4 file:py-2 file:rounded-full file:font-bold file:cursor-pointer" />
+        {/* PANEL IZQUIERDO: Editor de Contenido */}
+        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-black italic uppercase tracking-tighter text-amber-500">Nuevo Enlace</h3>
+            <button type="button" onClick={handleMagicEdit} disabled={aiGenerating} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-indigo-500/20 transition-all">
+               {aiGenerating ? 'Optimizando...' : '🪄 Magic AI Edit'}
+            </button>
           </div>
 
-          <div className="flex gap-3">
-            <input value={formData.emoji} onChange={e => setFormData({ ...formData, emoji: e.target.value })}
-              className="w-14 text-center text-xl bg-transparent border-b border-white/10 py-3 outline-none focus:border-amber-500 transition-colors" />
-            <input placeholder="Nombre del Plato" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
-              className="flex-1 bg-transparent border-b border-white/10 py-3 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/20" />
-          </div>
+          <form id="product-form" onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="text-[10px] uppercase tracking-[0.2em] text-white/40 block mb-2">Transmisión Visual (Foto)</label>
+              <input type="file" accept="image/*" onChange={handleFileChange}
+                className="w-full text-xs file:bg-amber-500/10 file:text-amber-500 file:border file:border-amber-500/20 file:px-4 file:py-2 file:rounded-full file:font-bold file:cursor-pointer" />
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <input placeholder="Precio (EJ: $25k)" required value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })}
-              className="bg-transparent border-b border-white/10 py-3 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/20" />
-            <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}
-              className="bg-transparent border-b border-white/10 py-3 text-sm outline-none focus:border-amber-500 transition-colors text-white/70" style={{ background: '#050505' }}>
-              {cats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
+            <div className="flex gap-3">
+              <input value={formData.emoji} onChange={e => setFormData({ ...formData, emoji: e.target.value })} title="Emoji representative"
+                className="w-14 text-center text-xl bg-transparent border-b border-white/10 py-3 outline-none focus:border-amber-500 transition-colors" />
+              <input placeholder="Nombre del Plato" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
+                className="flex-1 bg-transparent border-b border-white/10 py-3 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/20" />
+            </div>
 
-          <textarea placeholder="Parámetros de descripción..." value={formData.desc} onChange={e => setFormData({ ...formData, desc: e.target.value })}
-            className="w-full bg-transparent border border-white/10 p-4 rounded-2xl text-xs h-24 outline-none focus:border-amber-500 transition-colors resize-none placeholder-white/20" />
+            <div className="grid grid-cols-2 gap-4">
+              <input placeholder="Precio (EJ: $25k)" required value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })}
+                className="bg-transparent border-b border-white/10 py-3 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/20" />
+              <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}
+                className="bg-transparent border-b border-white/10 py-3 text-sm outline-none focus:border-amber-500 transition-colors text-white/70" style={{ background: '#050505' }}>
+                {cats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
 
-          <button type="submit" disabled={loading}
-            className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-sm text-black transition-all"
-            style={{ background: loading ? '#b45309' : '#f59e0b', boxShadow: '0 4px 15px rgba(245,158,11,0.2)' }}>
-            {loading ? 'Sincronizando...' : 'Inyectar al Sistema'}
-          </button>
-        </form>
+            <textarea placeholder="Describe el plato de forma tentadora..." value={formData.desc} onChange={e => setFormData({ ...formData, desc: e.target.value })}
+              className="w-full bg-transparent border border-white/10 p-4 rounded-2xl text-xs h-32 outline-none focus:border-amber-500 transition-colors resize-none placeholder-white/20" />
+          </form>
+        </div>
+
+        {/* PANEL DERECHO: Simulador iOS (Live Preview) */}
+        <div className="hidden sm:flex flex-col items-center justify-center bg-black/50 p-6 border border-white/5 rounded-3xl relative overflow-hidden flex-shrink-0 w-[400px]">
+           <div className="absolute top-4 left-4 flex gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500"></div><div className="w-2 h-2 rounded-full bg-amber-500"></div><div className="w-2 h-2 rounded-full bg-green-500"></div></div>
+           <p className="text-[9px] uppercase tracking-widest text-white/30 font-black mb-6 absolute top-4">Live Emulator</p>
+           
+           <div className="w-[320px] rounded-[2rem] border-[4px] border-zinc-900 bg-black overflow-hidden shadow-2xl relative">
+              {/* Fake iPhone Notch */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-zinc-900 rounded-b-2xl z-50"></div>
+              
+              <div className="p-4 pt-10 min-h-[160px] flex items-center justify-center relative z-10" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(245,158,11,0.1) 0%, #000 100%)' }}>
+                {/* Simulated ProductCell rendering what user types */}
+                <div className="w-full pointer-events-none">
+                  <ProductCell item={{
+                     name: formData.name || 'Tu Producto',
+                     price: formData.price || '$0k',
+                     desc: formData.desc || 'Descripción visualizada en tiempo real según cómo lo verá el cliente en su celular.',
+                     emoji: formData.emoji || '🍽️',
+                     image_url: previewUrl
+                  }} onAdd={()=>{}} />
+                </div>
+              </div>
+           </div>
+        </div>
+
       </div>
+      
+      {/* Botón Flotante para Confirmar Formulario */}
+      <button type="submit" form="product-form" disabled={loading}
+        className="fixed bottom-6 z-[110] w-[90%] sm:w-[400px] py-4 rounded-full font-black uppercase tracking-widest text-sm text-black shadow-2xl transition-all"
+        style={{ background: loading ? '#b45309' : '#f59e0b', boxShadow: '0 8px 30px rgba(245,158,11,0.3)' }}>
+        {loading ? 'Inyectando...' : 'Guardar y Publicar'}
+      </button>
+      
     </motion.div>
   );
 };

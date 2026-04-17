@@ -21,12 +21,11 @@ export const CoverPage = ({ onOpen }) => (
           className="w-20 h-20 rounded-full border flex items-center justify-center mx-auto mb-6"
           style={{ borderColor: 'rgba(245,158,11,0.35)', background: 'radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 70%)' }}
         >
-          <span className="text-3xl font-black text-amber-400" style={{ fontFamily: "'Playfair Display', serif" }}>R</span>
+          <span className="text-3xl font-black text-amber-400">R</span>
         </motion.div>
 
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.7 }}
-          className="text-4xl font-black text-white tracking-tighter uppercase leading-tight mb-1"
-          style={{ fontFamily: "'Playfair Display', serif" }}>
+          className="text-4xl font-black text-white tracking-tighter uppercase leading-tight mb-1">
           LA RIVERA
         </motion.h1>
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}

@@ -8,9 +8,11 @@ html { height: 100%; height: -webkit-fill-available; overflow: hidden; overscrol
 
 body {
   margin: 0; padding: 0; background: #000; overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   overscroll-behavior: none; user-select: none; -webkit-user-select: none;
   touch-action: none; position: fixed; width: 100%;
   min-height: 100vh; min-height: -webkit-fill-available;
+  -webkit-font-smoothing: antialiased;
 }
 
 #root { height: 100svh; width: 100%; overflow: hidden; }
