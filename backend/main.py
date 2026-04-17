@@ -270,12 +270,14 @@ def onboard_new_tenant(
             db.add(nuevo_prod)
         db.commit()
 
-    # 4. Crear Credenciales Dinámicas para el Dueño del Restaurante (Tenant Admin)
-    # Por defecto, usuario = slug, clave = 1234. En producción se puede aleatorizar o pedir en form.
+    import secrets
+    import string
+    passcode = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(8))
+    
     import auth
     tenant_admin = models.User(
         username=slug,
-        hashed_password=auth.get_password_hash("1234"),
+        hashed_password=auth.get_password_hash(passcode),
         role="admin",
         tenant_id=nuevo_tenant.id
     )
@@ -286,7 +288,7 @@ def onboard_new_tenant(
         "status": "ok", 
         "message": "Tenant y Menú inyectados vía AI", 
         "tenant_id": nuevo_tenant.id,
-        "credentials": {"username": slug, "passcode": "1234"}
+        "credentials": {"username": slug, "passcode": passcode}
     }
 
 @app.put("/api/admin/products/{product_id}/toggle")

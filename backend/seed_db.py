@@ -82,7 +82,38 @@ def seed_data():
     db.add(prod_pizza)
     db.commit()
 
-    print("Operacion completada: Multiples tenants inyectados con exito.")
+    print("Creando Usuarios Administradores...")
+    import auth
+    # Superadmin global
+    superadmin = models.User(
+        username="superadmin",
+        hashed_password=auth.get_password_hash("superadmin123"),
+        role="superadmin",
+        tenant_id=None
+    )
+    db.add(superadmin)
+
+    # Admin La Rivera
+    admin_rivera = models.User(
+        username="admin_rivera",
+        hashed_password=auth.get_password_hash("rivera123"),
+        role="admin",
+        tenant_id=t_rivera.id
+    )
+    db.add(admin_rivera)
+
+    # Admin Pizza
+    admin_pizza = models.User(
+        username="admin_pizza",
+        hashed_password=auth.get_password_hash("pizza123"),
+        role="admin",
+        tenant_id=t_pizza.id
+    )
+    db.add(admin_pizza)
+
+    db.commit()
+
+    print("Operacion completada: Multiples tenants y usuarios inyectados con exito.")
 
 if __name__ == "__main__":
     seed_data()
