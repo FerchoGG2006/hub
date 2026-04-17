@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProductCell } from './ProductCell';
 
@@ -99,7 +100,7 @@ export const LiveMonitor = ({ onLogout, tenantSlug }) => {
   const [totalHits, setTotalHits] = useState(0);
 
   // Fetch inicial
-  const fetchTopStats = () => {
+  const fetchTopStats = useCallback(() => {
     fetch(`${API_URL}/api/v1/tenant/${tenantSlug || 'la-rivera'}/analytics/top`)
       .then(res => res.json())
       .then(data => {
@@ -111,7 +112,7 @@ export const LiveMonitor = ({ onLogout, tenantSlug }) => {
         setTotalHits(data.reduce((acc, item) => acc + item.hits, 0));
       })
       .catch(err => console.warn('LiveMonitor init failed:', err));
-  };
+  }, [tenantSlug]);
 
   useEffect(() => {
     fetchTopStats();
@@ -150,7 +151,7 @@ export const LiveMonitor = ({ onLogout, tenantSlug }) => {
        console.warn('WS LiveMonitor error:', e);
     }
     return () => { if (ws) ws.close() };
-  }, []);
+  }, [fetchTopStats]);
 
   const totalFormat = (totalHits * 32000).toLocaleString('es-CO'); // Estimación de dinero base para HUD
   const topProduct = stats.length > 0 ? stats[0] : null;
@@ -182,7 +183,7 @@ export const LiveMonitor = ({ onLogout, tenantSlug }) => {
         
         <div className="space-y-4">
           <AnimatePresence>
-            {stats.map((item, idx) => {
+            {stats.map(item => {
               // Calculamos el % de llenado para la barra de energía
               const maxHits = topProduct ? topProduct.hits : 1;
               const fillPercent = Math.max(5, (item.hits / maxHits) * 100);
@@ -271,7 +272,7 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
                  {item.name}
                </h3>
                {/* Trend Indicator Icon */}
-               {item.is_available && Math.random() > 0.7 && <span className="text-[10px]" title="Trending 🔥">🔥</span>}
+               {item.is_available && item.id % 3 === 0 && <span className="text-[10px]" title="Trending 🔥">🔥</span>}
             </div>
             <p className="text-[10px] text-white/30 font-mono mt-1">{item.price}</p>
           </div>
@@ -510,7 +511,7 @@ export const AdminDashboard = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     if (!tenantSlug) return;
     try {
       const res = await fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/menu`);
@@ -525,11 +526,11 @@ export const AdminDashboard = () => {
     } catch (err) {
       console.warn("API Error, loading fallback", err);
     }
-  };
+  }, [tenantSlug]);
 
   useEffect(() => { 
     if (isAuthenticated) fetchProducts(); 
-  }, [isAuthenticated, tenantSlug]);
+  }, [isAuthenticated, fetchProducts]);
 
   const toggleProduct = async (id, currentStatus) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, is_available: !currentStatus } : p));
@@ -541,7 +542,8 @@ export const AdminDashboard = () => {
       });
       if (!res.ok) throw new Error("Toggle failed");
       if (navigator.vibrate) navigator.vibrate([15, 30, 15]);
-    } catch(e) {
+    } catch(err) {
+      console.warn(err);
       setProducts(prev => prev.map(p => p.id === id ? { ...p, is_available: currentStatus } : p));
     }
   };
