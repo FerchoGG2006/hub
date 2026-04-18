@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { MENU_DATA as STATIC_MENU, CATEGORY_META } from './MenuData';
 import { useCart } from './CartContext';
@@ -43,7 +44,6 @@ export const MenuEngine = ({ config }) => {
   const [apiError,    setApiError]    = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [direction,   setDirection]   = useState(1);
-  const [isFlipping,  setIsFlipping]  = useState(false);
   const lock = useRef(false);
 
   /* ── Fetch menu from FastAPI (fallback to static if API unavailable) ── */
@@ -145,27 +145,15 @@ export const MenuEngine = ({ config }) => {
     icon: '🍽️',
     label: cat || '',
   };
-  const variants = isFlipping ? FAST_VARIANTS : PAGE_VARIANTS;
+  const variants = PAGE_VARIANTS;
 
   const paginate = useCallback((dir) => {
     const next = currentPage + dir;
     if (next < 0 || next >= categories.length || lock.current) return;
     lock.current = true;
     setDirection(dir); setCurrentPage(next);
-    setTimeout(() => { lock.current = false; }, isFlipping ? 240 : 860);
-  }, [currentPage, categories.length, isFlipping]);
-
-  const jumpToPage = useCallback(async (target) => {
-    if (target === currentPage || lock.current) return;
-    lock.current = true; setIsFlipping(true);
-    const dir = target > currentPage ? 1 : -1;
-    setDirection(dir);
-    for (let i = 0; i < Math.abs(target - currentPage); i++) {
-      await new Promise(r => setTimeout(r, 130));
-      setCurrentPage(prev => prev + dir);
-    }
-    setIsFlipping(false); lock.current = false;
-  }, [currentPage]);
+    setTimeout(() => { lock.current = false; }, 860);
+  }, [currentPage, categories.length]);
 
   const handleDragEnd = useCallback((_, info) => {
     if (Math.abs(info.offset.x) < 50 || lock.current) return;

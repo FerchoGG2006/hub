@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
 export const ProductCell = ({ item, onAdd }) => {
-  const [added, setAdded] = useState(false);
+  const [, setAdded] = useState(false);
 
   const handleAdd = () => {
     onAdd?.(item);
