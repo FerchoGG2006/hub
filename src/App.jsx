@@ -61,6 +61,16 @@ const HubLoader = () => {
       });
   }, [tenantSlug]);
 
+  if (config?.subscription_status === 'suspended') {
+    return (
+      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-6 text-center space-y-4">
+        <span className="text-5xl">🚫</span>
+        <h1 className="text-2xl font-black uppercase tracking-widest text-[#f59e0b]">Servicio Suspendido</h1>
+        <p className="text-xs text-white/50 tracking-wider">El acceso a la carta interactiva está inactivo temporalmente.<br/>El administrador del restaurante puede reactivar su suscripción en el panel HUB.</p>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">

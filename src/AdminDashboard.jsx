@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
+import { QRCodeSVG } from 'qrcode.react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { ProductCell } from './ProductCell';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -214,6 +217,102 @@ export const LiveMonitor = ({ onLogout, tenantSlug }) => {
   );
 };
 
+/* ── QR DEPLOYMENT TERMINAL (FASE 1) ── */
+const QRTerminal = ({ tenantSlug }) => {
+  const qrRef = React.useRef(null);
+
+  const handleDownloadPNG = async () => {
+    if (!qrRef.current) return;
+    const canvas = await html2canvas(qrRef.current, { backgroundColor: null });
+    const link = document.createElement('a');
+    link.download = `${tenantSlug}-qr.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!qrRef.current) return;
+    const canvas = await html2canvas(qrRef.current, { scale: 3, backgroundColor: '#ffffff' });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    
+    // Background
+    pdf.setFillColor(5, 5, 5); 
+    pdf.rect(0, 0, 210, 297, 'F');
+    
+    // Titulo
+    pdf.setTextColor(245, 158, 11);
+    pdf.setFontSize(32);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text("Descubre nuestra Carta 4D", 105, 50, { align: "center" });
+
+    // Subtitulo
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(16);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text("Escanea el código con la cámara de tu celular", 105, 65, { align: "center" });
+
+    // QR Image
+    pdf.addImage(imgData, 'PNG', 55, 90, 100, 100);
+
+    // Footer
+    pdf.setFontSize(10);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text(`Powered by HUB SaaS - tenant: ${tenantSlug}`, 105, 280, { align: "center" });
+
+    pdf.save(`${tenantSlug}-kit-digital.pdf`);
+  };
+
+  const menuUrl = `${window.location.origin}/t/${tenantSlug}`;
+
+  return (
+    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12 flex flex-col items-center">
+      <div className="text-center mt-4">
+        <h2 className="text-3xl font-light tracking-tight text-white mb-2">
+          Terminal <span className="italic font-serif text-amber-500">QR</span>
+        </h2>
+        <p className="text-[10px] text-white/40 font-light leading-relaxed tracking-wider uppercase">
+          Despliegue Físico
+        </p>
+      </div>
+
+      <div 
+        ref={qrRef} 
+        className="bg-white p-8 rounded-3xl shadow-[0_0_50px_rgba(245,158,11,0.15)] flex flex-col items-center justify-center gap-6"
+        style={{ border: '4px solid #f59e0b' }}
+      >
+        <QRCodeSVG 
+          value={menuUrl} 
+          size={220}
+          bgColor={"#ffffff"}
+          fgColor={"#050505"}
+          level={"Q"}
+          imageSettings={{
+            src: "/logo.png",
+            x: undefined,
+            y: undefined,
+            height: 50,
+            width: 50,
+            excavate: true,
+          }}
+        />
+        <p className="text-xs uppercase tracking-[0.4em] font-black text-black">
+          ESCANEA AQUÍ
+        </p>
+      </div>
+
+      <div className="flex gap-4 w-full max-w-sm">
+        <button onClick={handleDownloadPNG} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl text-[9px] uppercase tracking-widest hover:bg-white/10 transition-colors">
+          ↓ Bajar PNG
+        </button>
+        <button onClick={handleDownloadPDF} className="flex-1 py-4 bg-amber-500 text-black font-black flex items-center justify-center gap-2 rounded-2xl text-[9px] uppercase tracking-[0.2em] shadow-[0_4px_20px_rgba(245,158,11,0.4)] hover:scale-[1.02] transition-transform">
+          📄 Print Kit PDF
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
 /* ── COMPONENTS (Colecciones) ── */
 const InventoryManager = ({ products, toggleProduct, onLogout }) => {
   return (
@@ -292,6 +391,173 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
   );
 };
 
+/* ── BRANDING EDITOR (FASE 2) ── */
+const BrandingSettings = ({ tenantSlug }) => {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    brand_color: '#f59e0b',
+    whatsapp_number: '',
+    instagram_url: '',
+    tiktok_url: '',
+    maps_url: '',
+  });
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/v1/tenant/${tenantSlug}`)
+      .then(r => r.json())
+      .then(d => {
+        setFormData({
+          brand_color: d.brand_color || '#f59e0b',
+          whatsapp_number: d.whatsapp_number || '',
+          instagram_url: d.instagram_url || '',
+          tiktok_url: d.tiktok_url || '',
+          maps_url: d.maps_url || ''
+        });
+      })
+      .catch(e => console.warn(e));
+  }, [tenantSlug]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('hub_token');
+      const res = await fetch(`${API_URL}/api/admin/tenant/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+      if (!res.ok) throw new Error("Guardado falló");
+      alert("Marca actualizada con éxito. Cambios lanzados vía Live-Socket.");
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
+      <header className="mb-8 border-b border-white/10 pb-6">
+        <h2 className="text-3xl font-light text-white mb-2 tracking-tight">Cero <span className="text-amber-500 font-serif italic">Soporte</span></h2>
+        <p className="text-[10px] uppercase tracking-widest text-white/40">Autogestión de Settings Corporativos</p>
+      </header>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-white/[0.03] p-6 rounded-3xl border border-white/5 space-y-6">
+          <div className="flex flex-col gap-2">
+             <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-500">Color Primario (Tema de Interfaz)</label>
+             <div className="flex items-center gap-4">
+               <input type="color" value={formData.brand_color} onChange={(e) => setFormData({...formData, brand_color: e.target.value})} className="w-12 h-12 rounded-full cursor-pointer bg-transparent border-none appearance-none" />
+               <span className="text-[10px] font-mono text-white/50">{formData.brand_color}</span>
+             </div>
+          </div>
+          
+          <div className="flex flex-col gap-2">
+             <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50">Línea WhatsApp de Pedidos</label>
+             <input type="text" value={formData.whatsapp_number} onChange={(e) => setFormData({...formData, whatsapp_number: e.target.value})} className="bg-black/50 border border-white/10 rounded-2xl py-3 px-4 text-xs focus:border-amber-500 outline-none" placeholder="ej: 573000000000" />
+          </div>
+
+          <div className="flex flex-col gap-2">
+             <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50">Google Maps URL</label>
+             <input type="text" value={formData.maps_url} onChange={(e) => setFormData({...formData, maps_url: e.target.value})} className="bg-black/50 border border-white/10 rounded-2xl py-3 px-4 text-xs focus:border-amber-500 outline-none" placeholder="https://maps.google.com/..." />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+               <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50">Instagram</label>
+               <input type="text" value={formData.instagram_url} onChange={(e) => setFormData({...formData, instagram_url: e.target.value})} className="bg-black/50 border border-white/10 rounded-2xl py-3 px-4 text-xs focus:border-amber-500 outline-none" placeholder="@usuario" />
+            </div>
+            <div className="flex flex-col gap-2">
+               <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50">TikTok</label>
+               <input type="text" value={formData.tiktok_url} onChange={(e) => setFormData({...formData, tiktok_url: e.target.value})} className="bg-black/50 border border-white/10 rounded-2xl py-3 px-4 text-xs focus:border-amber-500 outline-none" placeholder="@usuario" />
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" disabled={loading} className="w-full py-4 text-[10px] uppercase tracking-widest font-black text-black rounded-[2rem] hover:brightness-110 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.2)]" style={{ background: '#f59e0b' }}>
+          {loading ? 'Aplicando...' : 'Desplegar Globalmente'}
+        </button>
+      </form>
+    </motion.div>
+  );
+};
+
+/* ── BILLING MANAGER (FASE 4) ── */
+const BillingManager = ({ tenantSlug }) => {
+  const [loading, setLoading] = useState(false);
+  const [bData, setBData] = useState({ subscription_status: 'active', valid_until: null });
+
+  const fetchBilling = useCallback(() => {
+    fetch(`${API_URL}/api/admin/billing`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('hub_token')}` }
+    })
+      .then(r => r.json())
+      .then(setBData)
+      .catch(console.warn);
+  }, []);
+
+  useEffect(() => { fetchBilling(); }, [fetchBilling]);
+
+  const handleSubscribe = async () => {
+    setLoading(true);
+    // Simulating Stripe / Wompi UI Gateway Delay
+    setTimeout(async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/admin/billing/subscribe`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('hub_token')}` }
+        });
+        if(!res.ok) throw new Error("Payment Error");
+        const data = await res.json();
+        alert("Pago de Suscripción exitoso. Renovado por 30 días.");
+        fetchBilling();
+      } catch (err) {
+        alert(err.message);
+      }
+      setLoading(false);
+    }, 1200);
+  };
+
+  const isSuspended = bData.subscription_status === 'suspended';
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      <header className="mb-8 border-b border-white/10 pb-6">
+        <h2 className="text-3xl font-light text-white mb-2 tracking-tight">Facturación & <span className="text-amber-500 font-serif italic">Planes</span></h2>
+        <p className="text-[10px] uppercase tracking-widest text-white/40">Pago y Control de tu Sistema HUB SaaS</p>
+      </header>
+      
+      <div className={`p-6 rounded-3xl border flex flex-col items-center text-center gap-4 ${isSuspended ? 'bg-red-500/10 border-red-500/30' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
+        <span className="text-4xl">{isSuspended ? '⚠️' : '✅'}</span>
+        <div>
+          <h3 className={`text-xl font-bold uppercase tracking-widest ${isSuspended ? 'text-red-500' : 'text-emerald-500'}`}>
+             {isSuspended ? 'Supendido' : 'Activo'}
+          </h3>
+          <p className="text-[10px] text-white/50 tracking-wider">
+             Vence: {bData.valid_until ? new Date(bData.valid_until).toLocaleDateString() : 'ILIMITADO (Lifetime)'}
+          </p>
+        </div>
+        {isSuspended && <p className="text-xs text-white/80 max-w-sm">Tu carta digital está bloqueada para tus clientes. Renueva de inmediato para reactivar tus ventas.</p>}
+      </div>
+
+      <div className="bg-white/[0.02] p-8 rounded-[2rem] border border-white/10 flex flex-col items-center">
+         <div className="text-center mb-6">
+            <span className="text-4xl font-black italic tracking-tighter text-white select-none">
+              $35<span className="text-sm font-normal text-amber-500/80">/mes</span>
+            </span>
+         </div>
+         <button onClick={handleSubscribe} disabled={loading} className="w-full py-4 uppercase font-black tracking-widest text-[10px] rounded-full hover:scale-[1.02] transition-transform flex justify-center items-center gap-2" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: '#000', boxShadow: '0 10px 30px rgba(16,185,129,0.3)' }}>
+            {loading ? 'Procesando Tarjeta...' : <><span className="text-sm">💳</span> Pagar Renovación Segura</>}
+         </button>
+      </div>
+    </motion.div>
+  );
+};
+
 /* ── MODALS ── */
 const AddProductModal = ({ onClose, onProductAdded, tenantSlug }) => {
   const [formData, setFormData] = useState({ name: '', price: '', desc: '', emoji: '🍽️', category: '' });
@@ -316,22 +582,33 @@ const AddProductModal = ({ onClose, onProductAdded, tenantSlug }) => {
     }
   };
 
-  const handleMagicEdit = () => {
+  const handleMagicEdit = async () => {
     if (!formData.name) return alert("Escribe un nombre base primero (ej: Hamburguesa)");
     setAiGenerating(true);
-    // Simulated AI Enhancement local fallback for demo wow-factor
-    setTimeout(() => {
-       const wowWords = ["Jugosa", "Artesanal", "Premium", "Exquisita", "Auténtica"];
-       const prefix = wowWords[Math.floor(Math.random()*wowWords.length)];
-       setFormData(f => ({
-          ...f,
-          name: `${prefix} ${f.name}`,
-          desc: `Una ${f.name.toLowerCase()} preparada al instante con ingredientes locales súper frescos. Bañada en nuestra salsa secreta de la casa y acompañada de una guarnición perfecta. Imposible resistirse a este clásico reimaginado.`,
-          price: f.price || "$25k",
-          emoji: f.emoji === '🍽️' ? '✨' : f.emoji
-       }));
-       setAiGenerating(false);
-    }, 1500);
+    try {
+      const token = localStorage.getItem('hub_token');
+      const res = await fetch(`${API_URL}/api/admin/magic-edit`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ name: formData.name, price: formData.price, desc: formData.desc })
+      });
+      if (!res.ok) throw new Error("Error en Magic AI Edit");
+      const data = await res.json();
+      setFormData(f => ({
+        ...f,
+        name: data.name,
+        desc: data.desc,
+        price: data.price,
+        emoji: data.emoji
+      }));
+    } catch (err) {
+      alert("Error en Magic Edit: " + err.message);
+    } finally {
+      setAiGenerating(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -555,18 +832,17 @@ export const AdminDashboard = () => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 h-[100dvh] w-full bg-[#050505] text-white font-sans selection:bg-amber-500/30 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" style={{ paddingBottom: '100px' }}>
       
-      {/* Barra de Navegación Editorial */}
-      <nav className="fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">
-        <div className="flex items-center">
+      <nav className="fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 overflow-x-auto custom-scrollbar">
+        <div className="flex items-center min-w-max mr-4">
           {/* El filtro invert convierte el negro en blanco (y el blanco en negro). 
               El mix-blend-screen hace que el negro (fondo) se vuelva completamente transparente. */}
           <img src="/logo.png" alt="HUB" className="h-5 object-contain invert mix-blend-screen opacity-90" />
         </div>
-        <div className="flex gap-4">
-          {['inventory', 'stats'].map(m => (
+        <div className="flex gap-4 min-w-max">
+          {['inventory', 'stats', 'qr', 'settings', 'billing'].map(m => (
             <button key={m} onClick={() => setView(m)}
               className={`text-[9px] font-bold uppercase tracking-[0.2em] transition-all relative ${view === m ? 'text-amber-500' : 'text-white/30 hover:text-white/80'}`}>
-              {m === 'inventory' ? 'Suministros' : 'Live Monitor'}
+              {m === 'inventory' ? 'Suministros' : m === 'stats' ? 'Monitor' : m === 'qr' ? 'Punto QR' : m === 'settings' ? 'Branding' : 'Billing'}
               {view === m && <motion.div layoutId="hud-nav" className="absolute -bottom-1 left-0 h-px bg-amber-500 w-full shadow-[0_0_8px_rgba(245,158,11,0.8)]" />}
             </button>
           ))}
@@ -577,8 +853,14 @@ export const AdminDashboard = () => {
         <AnimatePresence mode="wait">
           {view === 'inventory' ? (
             <InventoryManager key="inv" products={products} toggleProduct={toggleProduct} onLogout={() => setIsAuthenticated(false)} />
-          ) : (
+          ) : view === 'stats' ? (
             <LiveMonitor key="stats" tenantSlug={tenantSlug} onLogout={() => setIsAuthenticated(false)} />
+          ) : view === 'qr' ? (
+            <QRTerminal key="qr" tenantSlug={tenantSlug} />
+          ) : view === 'settings' ? (
+            <BrandingSettings key="settings" tenantSlug={tenantSlug} />
+          ) : (
+            <BillingManager key="billing" tenantSlug={tenantSlug} />
           )}
         </AnimatePresence>
       </main>

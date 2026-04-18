@@ -24,6 +24,15 @@ class Tenant(Base):
     logo_url = Column(String(255))
     whatsapp_number = Column(String(20))
     whatsapp_message = Column(Text, default="¡Hola! Quiero hacer el siguiente pedido:")
+    
+    # Phase 2 Branding
+    instagram_url = Column(String(255), nullable=True)
+    tiktok_url = Column(String(255), nullable=True)
+    maps_url = Column(String(255), nullable=True)
+    
+    # Phase 4 Billing
+    subscription_status = Column(String(20), default="active") # active, suspended
+    valid_until = Column(DateTime, nullable=True)
 
 class Category(Base):
     __tablename__ = "categories"

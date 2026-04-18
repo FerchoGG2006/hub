@@ -84,9 +84,16 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
 
 @app.get("/api/v1/tenant/{slug}")
 def get_tenant_config(slug: str, db: Session = Depends(get_db)):
+    from datetime import datetime
     tenant = db.query(models.Tenant).filter_by(slug=slug).first()
     if not tenant:
         raise HTTPException(status_code=404, detail="HUB no encontrado")
+        
+    if tenant.valid_until and datetime.utcnow() > tenant.valid_until:
+        if tenant.subscription_status == "active":
+            tenant.subscription_status = "suspended"
+            db.commit()
+
     return {
         "id": tenant.id,
         "slug": tenant.slug,
@@ -94,7 +101,9 @@ def get_tenant_config(slug: str, db: Session = Depends(get_db)):
         "brand_color": tenant.brand_color,
         "logo_url": tenant.logo_url,
         "whatsapp_number": tenant.whatsapp_number,
-        "whatsapp_message": tenant.whatsapp_message
+        "whatsapp_message": tenant.whatsapp_message,
+        "subscription_status": tenant.subscription_status,
+        "valid_until": tenant.valid_until.isoformat() if tenant.valid_until else None
     }
 
 @app.get("/api/v1/tenant/{slug}/menu")
@@ -224,6 +233,7 @@ def onboard_new_tenant(
     slug: str = Form(...),
     brand_color: str = Form("#f59e0b"),
     whatsapp_number: str = Form(""),
+    email: str = Form(""),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_superadmin)
@@ -284,6 +294,12 @@ def onboard_new_tenant(
     db.add(tenant_admin)
     db.commit()
 
+    # == HANDOVER KIT EMAIL ==
+    front_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    if email:
+        from utils.email_service import send_welcome_kit
+        send_welcome_kit(email, name, slug, passcode, front_url)
+
     return {
         "status": "ok", 
         "message": "Tenant y Menú inyectados vía AI", 
@@ -305,6 +321,55 @@ async def toggle_product(product_id: int, db: Session = Depends(get_db), current
     
     await manager.broadcast({"type": "MENU_UPDATE", "event": "PRODUCT_TOGGLE", "product_id": product_id, "tenant_id": p.tenant_id})
     return {"status": "ok", "is_available": p.is_available}
+
+class TenantSettingsUpdate(BaseModel):
+    brand_color: str
+    whatsapp_number: str
+    instagram_url: str = None
+    tiktok_url: str = None
+    maps_url: str = None
+
+@app.put("/api/admin/tenant/settings")
+async def update_tenant_settings(
+    settings: TenantSettingsUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    tenant = db.query(models.Tenant).filter(models.Tenant.id == current_user.tenant_id).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant no encontrado")
+        
+    tenant.brand_color = settings.brand_color
+    tenant.whatsapp_number = settings.whatsapp_number
+    tenant.instagram_url = settings.instagram_url
+    tenant.tiktok_url = settings.tiktok_url
+    tenant.maps_url = settings.maps_url
+    db.commit()
+    
+    # Broadcast to trigger theme updates natively across connected clients
+    await manager.broadcast({"type": "TENANT_UPDATE", "tenant_id": tenant.id})
+    return {"status": "ok"}
+
+@app.get("/api/admin/billing")
+def get_billing_status(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    tenant = db.query(models.Tenant).filter(models.Tenant.id == current_user.tenant_id).first()
+    return {
+        "subscription_status": tenant.subscription_status,
+        "valid_until": tenant.valid_until.isoformat() if tenant.valid_until else None
+    }
+
+@app.post("/api/admin/billing/subscribe")
+def subscribe_tenant(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    from datetime import datetime, timedelta
+    tenant = db.query(models.Tenant).filter(models.Tenant.id == current_user.tenant_id).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant no encontrado")
+        
+    tenant.subscription_status = "active"
+    tenant.valid_until = datetime.utcnow() + timedelta(days=30)
+    db.commit()
+    
+    return {"status": "ok", "message": "Facturación completada", "valid_until": tenant.valid_until.isoformat(), "subscription_status": tenant.subscription_status}
 
 @app.post("/api/admin/products", status_code=201)
 async def create_product(
@@ -343,6 +408,22 @@ async def create_product(
     
     await manager.broadcast({"type": "MENU_UPDATE", "event": "NEW_PRODUCT", "tenant_id": cat.tenant_id})
     return new_prod
+
+from pydantic import BaseModel
+
+class MagicEditRequest(BaseModel):
+    name: str
+    price: str
+    desc: str
+
+@app.post("/api/admin/magic-edit")
+def magic_edit_endpoint(
+    req: MagicEditRequest,
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    from utils.gemini_extractor import enhance_copywriting
+    res = enhance_copywriting(req.name, req.price, req.desc)
+    return res
 
 # ════════════════ ONBOARDING AUTÓNOMO (TENANTS) ════════════════
 

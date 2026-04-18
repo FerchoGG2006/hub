@@ -55,3 +55,40 @@ def extract_menu_from_image(image_bytes: bytes) -> list:
         print("Error interacting with Gemini:", e)
         # Retornamos un mock vacio para no crash
         return []
+
+def enhance_copywriting(name: str, price: str, existing_desc: str) -> dict:
+    """Uses Gemini to rewrite product descriptions effectively."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return {"name": name, "desc": existing_desc, "price": price, "emoji": "🍽️"}
+
+    client = genai.Client(api_key=api_key)
+    prompt = f"""
+    Eres un experto copywriter gastronómico. Responde estrictamente con un JSON válido.
+    Mejora este plato para hacerlo sumamente apetitoso, vendedor y persuasivo.
+    Nombre original: {name}
+    Descripción existente: {existing_desc}
+    Precio base: {price}
+    
+    Devuelve un JSON con:
+    {{
+      "name": "Nombre mejorado (mantén la esencia)",
+      "desc": "Descripción gastronómica cautivadora (2 a 3 frases cortas)",
+      "price": "Re-formato elegante del precio si es necesario o envia el mismo",
+      "emoji": "emoji que represente el plato"
+    }}
+    """
+    
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=[prompt],
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.7,
+            )
+        )
+        return json.loads(response.text)
+    except Exception as e:
+        print("Error in magic edit:", e)
+        return {"name": f"✨ {name}", "desc": "Descripción mejorada temporalmente no disponible.", "price": price, "emoji": "✨"}
