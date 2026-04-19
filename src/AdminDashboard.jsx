@@ -6,6 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { ProductCell } from './ProductCell';
+import { PaymentGatewayModal } from './PaymentGatewayModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -488,8 +489,8 @@ const BrandingSettings = ({ tenantSlug }) => {
 
 /* ── BILLING MANAGER (FASE 4) ── */
 const BillingManager = ({ tenantSlug }) => {
-  const [loading, setLoading] = useState(false);
   const [bData, setBData] = useState({ subscription_status: 'active', valid_until: null });
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const fetchBilling = useCallback(() => {
     fetch(`${API_URL}/api/admin/billing`, {
@@ -502,24 +503,21 @@ const BillingManager = ({ tenantSlug }) => {
 
   useEffect(() => { fetchBilling(); }, [fetchBilling]);
 
-  const handleSubscribe = async () => {
-    setLoading(true);
-    // Simulating Stripe / Wompi UI Gateway Delay
-    setTimeout(async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/admin/billing/subscribe`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('hub_token')}` }
-        });
-        if(!res.ok) throw new Error("Payment Error");
-        const data = await res.json();
-        alert("Pago de Suscripción exitoso. Renovado por 30 días.");
-        fetchBilling();
-      } catch (err) {
-        alert(err.message);
-      }
-      setLoading(false);
-    }, 1200);
+  const handleSubscribe = () => {
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSuccess = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/admin/billing/subscribe`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('hub_token')}` }
+      });
+      if(!res.ok) throw new Error("Synchronization Error");
+      fetchBilling();
+    } catch (err) {
+      console.warn("Sync Error", err);
+    }
   };
 
   const isSuspended = bData.subscription_status === 'suspended';
@@ -550,10 +548,17 @@ const BillingManager = ({ tenantSlug }) => {
               $35<span className="text-sm font-normal text-amber-500/80">/mes</span>
             </span>
          </div>
-         <button onClick={handleSubscribe} disabled={loading} className="w-full py-4 uppercase font-black tracking-widest text-[10px] rounded-full hover:scale-[1.02] transition-transform flex justify-center items-center gap-2" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: '#000', boxShadow: '0 10px 30px rgba(16,185,129,0.3)' }}>
-            {loading ? 'Procesando Tarjeta...' : <><span className="text-sm">💳</span> Pagar Renovación Segura</>}
+         <button onClick={handleSubscribe} className="w-full py-4 uppercase font-black tracking-widest text-[10px] rounded-full hover:scale-[1.02] transition-transform flex justify-center items-center gap-2" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: '#000', boxShadow: '0 10px 30px rgba(16,185,129,0.3)' }}>
+            <span className="text-sm">💳</span> Pagar Renovación Segura
          </button>
       </div>
+
+      <PaymentGatewayModal 
+         isOpen={showPaymentModal} 
+         onClose={() => setShowPaymentModal(false)}
+         onSuccess={handlePaymentSuccess}
+         tenantSlug={tenantSlug}
+      />
     </motion.div>
   );
 };

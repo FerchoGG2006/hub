@@ -7,6 +7,7 @@ import { MenuEngine } from './MenuEngine';
 import { FloatingCart } from './FloatingCart';
 import { AdminDashboard } from './AdminDashboard';
 import { SuperAdmin } from './SuperAdmin';
+import { LandingPage } from './LandingPage';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -97,8 +98,9 @@ export default function App() {
       <Routes>
         <Route path="/admin/:tenantSlug" element={<AdminDashboard />} />
         <Route path="/superadmin" element={<SuperAdmin />} />
+        <Route path="/t/:tenantSlug" element={<HubLoader />} />
         <Route path="/:tenantSlug" element={<HubLoader />} />
-        <Route path="/" element={<Navigate to="/la-rivera" replace />} /> {/* Default dev fallback */}
+        <Route path="/" element={<LandingPage />} />
       </Routes>
     </BrowserRouter>
   );
