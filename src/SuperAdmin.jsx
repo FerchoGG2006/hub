@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 // eslint-disable-next-line no-unused-vars
-// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
@@ -112,9 +111,32 @@ export const SuperAdmin = () => {
 const AIOnboardingModal = ({ onClose, onSuccess }) => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1); // 1: Form, 2: Loading, 3: Success
-  const [formData, setFormData] = useState({ name: '', slug: '', brand_color: '#f59e0b', whatsapp_number: '' });
+  const [formData, setFormData] = useState({ name: '', slug: '', brand_color: '#f59e0b', whatsapp_number: '', country_code: '+57' });
   const [file, setFile] = useState(null);
   const [createdCredentials, setCreatedCredentials] = useState(null);
+
+  // Detección automática de país
+  useEffect(() => {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz.includes('Mexico')) setFormData(f => ({ ...f, country_code: '+52' }));
+      else if (tz.includes('Madrid')) setFormData(f => ({ ...f, country_code: '+34' }));
+      else if (tz.includes('Argentina')) setFormData(f => ({ ...f, country_code: '+54' }));
+      else if (tz.includes('Chicago') || tz.includes('New_York')) setFormData(f => ({ ...f, country_code: '+1' }));
+      // Default es +57 (Colombia) ya que es el mercado principal
+    } catch {
+       // Silenciosamente ignorar si falla la resolución de zona horaria
+    }
+  }, []);
+
+  const handleNameChange = (val) => {
+    const slug = val.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    setFormData({ ...formData, name: val, slug });
+  };
 
   const handleProcess = async () => {
     if (!formData.name || !formData.slug || !file) {
@@ -124,11 +146,12 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
     setStep(2);
     
     try {
+      const fullPhone = formData.whatsapp_number ? formData.country_code.replace('+', '') + formData.whatsapp_number.replace(/\D/g, '') : '';
       const data = new FormData();
       data.append('name', formData.name);
       data.append('slug', formData.slug);
       data.append('brand_color', formData.brand_color);
-      if (formData.whatsapp_number) data.append('whatsapp_number', formData.whatsapp_number);
+      if (fullPhone) data.append('whatsapp_number', fullPhone);
       data.append('file', file);
 
       const token = localStorage.getItem('hub_token');
@@ -172,11 +195,65 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
         {step === 1 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 relative z-10">
             <div className="space-y-4">
-              <input type="text" placeholder="Nombre Comercial" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/30" />
-              <div className="flex gap-4">
-                <input type="text" placeholder="URL Slug (ej: sushi-bar)" value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} className="w-1/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/30" />
-                <input type="text" placeholder="WhatsApp (ej: 57300...)" value={formData.whatsapp_number} onChange={e => setFormData({...formData, whatsapp_number: e.target.value})} className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/30" />
-                <input type="color" value={formData.brand_color} onChange={e => setFormData({...formData, brand_color: e.target.value})} className="h-[52px] w-[60px] rounded-2xl border-none cursor-pointer bg-white/5 p-1" />
+              <div className="group">
+                <label className="text-[9px] uppercase tracking-[0.2em] text-white/30 ml-2 mb-1 block font-bold">Identidad del HUB</label>
+                <input 
+                  type="text" 
+                  placeholder="Nombre Comercial (ej: Sushi Master)" 
+                  value={formData.name} 
+                  onChange={e => handleNameChange(e.target.value)} 
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/20" 
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <div className="w-1/3">
+                  <label className="text-[9px] uppercase tracking-[0.2em] text-white/30 ml-2 mb-1 block font-bold">URL / Slug</label>
+                  <input 
+                    type="text" 
+                    placeholder="URL Slug" 
+                    value={formData.slug} 
+                    onChange={e => setFormData({...formData, slug: e.target.value})} 
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs font-mono outline-none focus:border-amber-500 transition-colors placeholder-white/20" 
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-[9px] uppercase tracking-[0.2em] text-white/30 ml-2 mb-1 block font-bold">Línea de Órdenes</label>
+                  <div className="flex gap-2">
+                    <select 
+                      value={formData.country_code} 
+                      onChange={e => setFormData({...formData, country_code: e.target.value})}
+                      className="bg-white/5 border border-white/10 rounded-2xl px-3 py-4 text-xs text-white outline-none focus:border-amber-500 transition-colors appearance-none"
+                    >
+                      <option value="+57">🇨🇴 +57</option>
+                      <option value="+52">🇲🇽 +52</option>
+                      <option value="+1">🇺🇸 +1</option>
+                      <option value="+34">🇪🇸 +34</option>
+                      <option value="+54">🇦🇷 +54</option>
+                      <option value="+56">🇨🇱 +56</option>
+                      <option value="+51">🇵🇪 +51</option>
+                    </select>
+                    <input 
+                      type="text" 
+                      placeholder="WhatsApp" 
+                      value={formData.whatsapp_number} 
+                      onChange={e => setFormData({...formData, whatsapp_number: e.target.value})} 
+                      className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/20" 
+                    />
+                  </div>
+                </div>
+                <div className="w-20">
+                  <label className="text-[9px] uppercase tracking-[0.2em] text-white/30 ml-2 mb-1 block font-bold text-center">Marca</label>
+                  <div className="relative w-full h-[54px] rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden hover:border-amber-500/50 transition-colors">
+                    <input 
+                      type="color" 
+                      value={formData.brand_color} 
+                      onChange={e => setFormData({...formData, brand_color: e.target.value})} 
+                      className="absolute inset-0 w-[200%] h-[200%] -top-[50%] -left-[50%] cursor-pointer bg-transparent border-none p-0 outline-none" 
+                    />
+                    <div className="pointer-events-none w-6 h-6 rounded-full shadow-2xl border border-white/20" style={{ backgroundColor: formData.brand_color }}></div>
+                  </div>
+                </div>
               </div>
             </div>
             

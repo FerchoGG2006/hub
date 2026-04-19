@@ -341,7 +341,7 @@ const QRTerminal = ({ tenantSlug }) => {
 };
 
 /* ── COMPONENTS (Colecciones) ── */
-const InventoryManager = ({ products, toggleProduct, onLogout }) => {
+const InventoryManager = ({ products, toggleProduct, onLogout, tenantSlug }) => {
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
       
@@ -349,12 +349,9 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8 mb-10">
           <div>
             <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-light mb-3 flex items-center gap-3">
-              <span className="w-5 h-px bg-amber-500/50"></span> {(window.location.pathname.split("/")[2] || 'DASHBOARD').toUpperCase()}
+              <span className="w-5 h-px bg-amber-500/50"></span> {(tenantSlug || 'DASHBOARD').toUpperCase()}
             </p>
-            <img src="/logo.png" alt="HUB" className="h-14 lg:h-16 object-contain -ml-1 drop-shadow-xl" />
           </div>
-          
-          {/* Metadata Block */}
           <div className="flex flex-col items-start sm:items-end gap-1.5 text-[9px] font-mono tracking-[0.15em] uppercase bg-black/40 p-4 rounded-2xl border border-white/5 backdrop-blur-md">
             <p className="text-white/40">ADMIN: <span className="text-white font-medium ml-2">{localStorage.getItem('hub_tenant') || window.location.pathname.split("/")[2]?.toUpperCase()}</span></p>
             <p className="text-white/40">STATUS: <span className="text-amber-500 font-bold ml-2">LINKED_SECURE</span></p>
@@ -478,8 +475,16 @@ const BrandingSettings = ({ tenantSlug }) => {
           <div className="flex flex-col gap-2">
              <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-500">Color Primario (Tema de Interfaz)</label>
              <div className="flex items-center gap-4">
-               <input type="color" value={formData.brand_color} onChange={(e) => setFormData({...formData, brand_color: e.target.value})} className="w-12 h-12 rounded-full cursor-pointer bg-transparent border-none appearance-none" />
-               <span className="text-[10px] font-mono text-white/50">{formData.brand_color}</span>
+               <div className="relative group overflow-hidden w-12 h-12 rounded-full border-2 border-white/10 shadow-lg transition-transform hover:scale-110 active:scale-95 ring-offset-2 ring-offset-[#020202] focus-within:ring-2 ring-amber-500">
+                 <input 
+                    type="color" 
+                    value={formData.brand_color} 
+                    onChange={(e) => setFormData({...formData, brand_color: e.target.value})} 
+                    className="absolute inset-0 w-[150%] h-[150%] -top-[25%] -left-[25%] cursor-pointer bg-transparent border-none p-0 outline-none"
+                 />
+                 <div className="absolute inset-0 pointer-events-none rounded-full shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"></div>
+               </div>
+               <span className="text-[10px] font-mono text-white/50 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">{formData.brand_color.toUpperCase()}</span>
              </div>
           </div>
           
@@ -875,18 +880,24 @@ export const AdminDashboard = () => {
          style={{ backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px)', backgroundSize: '32px 32px' }}
       ></div>
 
-      <nav className="fixed top-0 w-full z-50 px-6 py-4 flex flex-nowrap items-center bg-[#020202]/80 backdrop-blur-xl border-b border-white/5 overflow-x-auto touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <nav className="fixed top-0 w-full z-50 px-6 py-4 flex flex-nowrap items-center bg-[#020202]/85 backdrop-blur-2xl border-b border-white/10 overflow-x-auto no-scrollbar touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
+        {/* Shadow Overlay for scroll hint */}
+        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#020202] to-transparent pointer-events-none md:hidden" />
+        
         <div className="flex-shrink-0 mr-8 relative z-10">
-          {/* El filtro invert convierte el negro en blanco (y el blanco en negro). 
-              El mix-blend-screen hace que el negro (fondo) se vuelva completamente transparente. */}
-          <img src="/logo.png" alt="HUB" className="h-5 object-contain" />
+          <img src="/logo.png" alt="HUB" className="h-5 lg:h-6 object-contain" />
         </div>
-        <div className="flex gap-6 flex-shrink-0 whitespace-nowrap">
+        <div className="flex gap-8 flex-shrink-0 whitespace-nowrap pr-12">
           {['kanban', 'inventory', 'stats', 'qr', 'marketing', 'settings', 'billing'].map(m => (
             <button key={m} onClick={() => setView(m)}
-              className={`text-[9px] font-bold uppercase tracking-[0.2em] transition-all relative ${view === m ? 'text-amber-500' : 'text-white/30 hover:text-white/80'}`}>
+              className={`text-[10px] font-bold uppercase tracking-[0.22em] transition-all relative py-2 ${view === m ? 'text-amber-500' : 'text-white/30 hover:text-white/80'}`}>
               {m === 'kanban' ? 'Pedidos Live' : m === 'inventory' ? 'Suministros' : m === 'stats' ? 'Monitor' : m === 'qr' ? 'Punto QR' : m === 'marketing' ? 'Marketing AI' : m === 'settings' ? 'Branding' : 'Billing'}
-              {view === m && <motion.div layoutId="hud-nav" className="absolute -bottom-1 left-0 h-px bg-amber-500 w-full shadow-[0_0_8px_rgba(245,158,11,0.8)]" />}
+              {view === m && (
+                <motion.div 
+                  layoutId="hud-nav" 
+                  className="absolute -bottom-1 left-0 h-0.5 bg-amber-500 w-full shadow-[0_0_12px_rgba(245,158,11,0.9)]" 
+                />
+              )}
             </button>
           ))}
         </div>
@@ -897,7 +908,7 @@ export const AdminDashboard = () => {
           {view === 'kanban' ? (
             <KanbanBoard key="kanban" tenantSlug={tenantSlug} />
           ) : view === 'inventory' ? (
-            <InventoryManager key="inv" products={products} toggleProduct={toggleProduct} onLogout={() => setIsAuthenticated(false)} />
+            <InventoryManager key="inv" products={products} toggleProduct={toggleProduct} onLogout={() => setIsAuthenticated(false)} tenantSlug={tenantSlug} />
           ) : view === 'stats' ? (
             <LiveMonitor key="stats" tenantSlug={tenantSlug} onLogout={() => setIsAuthenticated(false)} />
           ) : view === 'qr' ? (
