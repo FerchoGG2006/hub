@@ -875,13 +875,13 @@ export const AdminDashboard = () => {
          style={{ backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px)', backgroundSize: '32px 32px' }}
       ></div>
 
-      <nav className="fixed top-0 w-full z-50 px-6 py-4 flex items-center bg-[#020202]/80 backdrop-blur-xl border-b border-white/5 overflow-x-auto custom-scrollbar snap-x" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <nav className="fixed top-0 w-full z-50 px-6 py-4 flex flex-nowrap items-center bg-[#020202]/80 backdrop-blur-xl border-b border-white/5 overflow-x-auto touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="flex-shrink-0 mr-8 relative z-10">
           {/* El filtro invert convierte el negro en blanco (y el blanco en negro). 
               El mix-blend-screen hace que el negro (fondo) se vuelva completamente transparente. */}
           <img src="/logo.png" alt="HUB" className="h-5 object-contain" />
         </div>
-        <div className="flex gap-6 flex-shrink-0">
+        <div className="flex gap-6 flex-shrink-0 whitespace-nowrap">
           {['kanban', 'inventory', 'stats', 'qr', 'marketing', 'settings', 'billing'].map(m => (
             <button key={m} onClick={() => setView(m)}
               className={`text-[9px] font-bold uppercase tracking-[0.2em] transition-all relative ${view === m ? 'text-amber-500' : 'text-white/30 hover:text-white/80'}`}>
@@ -892,7 +892,7 @@ export const AdminDashboard = () => {
         </div>
       </nav>
 
-      <main className="pt-24 pb-12 px-5 max-w-xl mx-auto">
+      <main className="pt-24 pb-12 px-5 max-w-7xl w-full mx-auto overflow-x-hidden">
         <AnimatePresence mode="wait">
           {view === 'kanban' ? (
             <KanbanBoard key="kanban" tenantSlug={tenantSlug} />

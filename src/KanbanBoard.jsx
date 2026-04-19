@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
+// eslint-disable-next-line no-unused-vars
+import { motion, AnimatePresence } from 'framer-motion';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -90,7 +91,7 @@ export const KanbanBoard = ({ tenantSlug }) => {
         <h2 className="text-3xl font-light">Live <span className="font-serif italic text-amber-500">Kitchen</span></h2>
         <p className="text-sm text-white/40">Órdenes recibidas vía 4D Socket.</p>
       </div>
-      <div className="flex gap-6 overflow-x-auto pb-6 custom-scrollbar snap-x snap-mandatory" style={{ WebkitOverflowScrolling: 'touch', minHeight: '65vh' }}>
+      <div className="flex flex-nowrap w-full gap-6 overflow-x-auto overflow-y-hidden pb-6 snap-x snap-mandatory touch-pan-x" style={{ WebkitOverflowScrolling: 'touch', minHeight: '65vh' }}>
         <KanbanColumn title="Ingreso" items={pending} nextStatus="cooking" color="#f59e0b" icon="🔥" changeStatus={changeStatus} />
         <KanbanColumn title="Cocina" items={cooking} nextStatus="served" color="#3b82f6" icon="🍳" changeStatus={changeStatus} />
         <KanbanColumn title="Despacho" items={served} nextStatus={null} color="#10b981" icon="✅" changeStatus={changeStatus} />
