@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
@@ -29,20 +30,33 @@ export const SuperAdmin = () => {
   if (!isAuthenticated) return <AnimatePresence mode="wait"><LoginTerminal onAuth={() => setIsAuthenticated(true)} /></AnimatePresence>;
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-10 font-sans relative overflow-x-hidden">
-      <div className="mb-12 flex items-center justify-start">
+    <div className="min-h-screen bg-[#020202] text-white p-10 font-sans relative overflow-x-hidden">
+      
+      {/* ─── AMBIENT BACKGROUND GLOWS ─── */}
+      <div className="absolute top-0 inset-x-0 h-[800px] pointer-events-none opacity-30 z-0">
+         <div className="absolute top-[-20%] left-[20%] w-[50vw] h-[50vw] rounded-full blur-[120px] mix-blend-screen bg-gradient-to-r from-amber-500/20 to-orange-600/10"></div>
+         <div className="absolute top-[10%] right-[10%] w-[30vw] h-[30vw] rounded-full blur-[100px] mix-blend-screen bg-gradient-to-l from-amber-300/10 to-transparent"></div>
+      </div>
+      
+      {/* ─── DOT MATRIX PATTERN ─── */}
+      <div 
+         className="absolute inset-0 pointer-events-none z-0" 
+         style={{ backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px)', backgroundSize: '32px 32px' }}
+      ></div>
+
+      <div className="mb-12 flex items-center justify-start relative z-10">
         <img src="/logo.png" alt="HUB" className="h-[4.5rem] object-contain invert mix-blend-screen opacity-90" />
         <span className="text-amber-500/50 italic text-2xl ml-4 font-serif self-end pb-2">Network</span>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
         {/* Generar Tarjetas por cada Tenant Dinamico */}
         {tenants.map(t => {
            // Simulación de Facturación en base a la cantidad de Items para la demo
            const cost = Math.max(15, t.total_products * 8); 
            
            return (
-            <div key={t.id} className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-8 flex flex-col justify-between hover:bg-white/[0.04] transition-all">
+            <div key={t.id} className="bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.05] rounded-[2rem] p-8 flex flex-col justify-between hover:border-amber-500/20 transition-all group backdrop-blur-md">
               <div className="flex justify-between items-start mb-8">
                 <div>
                   <h3 className="text-xl font-bold tracking-tight">{t.name}</h3>
@@ -80,7 +94,7 @@ export const SuperAdmin = () => {
         {/* Placeholder Agregar Nuevo */}
         <div 
           onClick={() => setShowAIModal(true)}
-          className="border border-dashed border-white/10 rounded-[2rem] p-8 flex flex-col items-center justify-center text-white/30 hover:text-amber-500 hover:border-amber-500/50 cursor-pointer transition-colors min-h-[300px]">
+          className="bg-transparent border border-dashed border-white/10 rounded-[2rem] p-8 flex flex-col items-center justify-center text-white/30 hover:text-amber-500 hover:border-amber-500/30 hover:bg-amber-500/5 cursor-pointer transition-all min-h-[300px] backdrop-blur-sm">
           <span className="text-4xl mb-4 font-light">+</span>
           <span className="text-[10px] uppercase tracking-[0.2em]">Desplegar Nuevo HUB</span>
         </div>
@@ -138,8 +152,8 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
-      <div className="bg-[#050505] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-lg relative overflow-hidden shadow-2xl">
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-lg relative overflow-hidden shadow-[0_30px_100px_rgba(245,158,11,0.07)]">
         
         {/* Glow AI */}
         {step === 2 && (

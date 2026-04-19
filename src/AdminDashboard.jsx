@@ -48,7 +48,17 @@ export const LoginTerminal = ({ onAuth }) => {
   };
 
   return (
-    <div className="h-screen bg-[#050505] flex flex-col items-center justify-center p-6 w-full fixed inset-0 z-[200]">
+    <div className="h-screen bg-[#020202] flex flex-col items-center justify-center p-6 w-full fixed inset-0 z-[200]">
+      {/* ─── AMBIENT BACKGROUND GLOWS ─── */}
+      <div className="absolute top-0 inset-x-0 h-[100%] pointer-events-none opacity-30 z-0">
+         <div className="absolute top-[20%] left-[20%] w-[50vw] h-[50vw] rounded-full blur-[120px] mix-blend-screen bg-gradient-to-r from-amber-500/20 to-orange-600/10"></div>
+         <div className="absolute top-[40%] right-[10%] w-[30vw] h-[30vw] rounded-full blur-[100px] mix-blend-screen bg-gradient-to-l from-amber-300/10 to-transparent"></div>
+      </div>
+      {/* ─── DOT MATRIX PATTERN ─── */}
+      <div 
+         className="absolute inset-0 pointer-events-none z-0" 
+         style={{ backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px)', backgroundSize: '32px 32px' }}
+      ></div>
       <motion.div 
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -835,10 +845,22 @@ export const AdminDashboard = () => {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 h-[100dvh] w-full bg-[#050505] text-white font-sans selection:bg-amber-500/30 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" style={{ paddingBottom: '100px' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 h-[100dvh] w-full bg-[#020202] text-white font-sans selection:bg-amber-500/30 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" style={{ paddingBottom: '100px' }}>
       
-      <nav className="fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 overflow-x-auto custom-scrollbar">
-        <div className="flex items-center min-w-max mr-4">
+      {/* ─── AMBIENT BACKGROUND GLOWS ─── */}
+      <div className="fixed top-0 inset-x-0 h-[800px] pointer-events-none opacity-30 z-0">
+         <div className="absolute top-[-20%] left-[20%] w-[50vw] h-[50vw] rounded-full blur-[120px] mix-blend-screen bg-gradient-to-r from-amber-500/20 to-orange-600/10"></div>
+         <div className="absolute top-[10%] right-[10%] w-[30vw] h-[30vw] rounded-full blur-[100px] mix-blend-screen bg-gradient-to-l from-amber-300/10 to-transparent"></div>
+      </div>
+      
+      {/* ─── DOT MATRIX PATTERN ─── */}
+      <div 
+         className="fixed inset-0 pointer-events-none z-0" 
+         style={{ backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px)', backgroundSize: '32px 32px' }}
+      ></div>
+
+      <nav className="fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center bg-[#020202]/80 backdrop-blur-xl border-b border-white/5 overflow-x-auto custom-scrollbar">
+        <div className="flex items-center min-w-max mr-4 relative z-10">
           {/* El filtro invert convierte el negro en blanco (y el blanco en negro). 
               El mix-blend-screen hace que el negro (fondo) se vuelva completamente transparente. */}
           <img src="/logo.png" alt="HUB" className="h-5 object-contain invert mix-blend-screen opacity-90" />

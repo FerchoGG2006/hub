@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List
+from pydantic import BaseModel
 from dotenv import load_dotenv
 
 import models

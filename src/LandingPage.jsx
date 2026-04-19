@@ -199,7 +199,7 @@ export const LandingPage = () => {
               </div>
 
               {/* Feature 4 */}
-              <div className="md:col-span-7 rounded-[2rem] bg-[url('data:image/svg+xml,%3Csvg viewBox=\"0 0 200 200\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cfilter id=\"n\"%3E%3CfeTurbulence type=\"fractalNoise\" baseFrequency=\"0.75\" numOctaves=\"3\" stitchTiles=\"stitch\"/%3E%3C/filter%3E%3Crect width=\"100%25\" height=\"100%25\" filter=\"url(%23n)\" opacity=\"0.05\"/%3E%3C/svg%3E')] border border-white/[0.05] p-8 md:p-12 relative overflow-hidden flex flex-col justify-end group hover:border-white/20 transition-all">
+              <div className={`md:col-span-7 rounded-[2rem] bg-[url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="n"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23n)" opacity="0.05"/%3E%3C/svg%3E')] border border-white/[0.05] p-8 md:p-12 relative overflow-hidden flex flex-col justify-end group hover:border-white/20 transition-all`}>
                 <div className="absolute -top-32 -right-10 text-[200px] opacity-[0.02] transform rotate-12 group-hover:rotate-6 transition-transform duration-1000">📖</div>
                 <h3 className="text-3xl font-light tracking-tight mb-2">Motor Render <span className="font-serif italic text-amber-500">4D</span></h3>
                 <p className="text-sm font-light text-white/50 leading-relaxed max-w-sm">No es un PDF. Es un motor pseudo-físico que engaña al dedo imitando la fricción e inercia real del papel impreso usando matemática Framer y React.</p>
