@@ -1,17 +1,19 @@
 import sqlalchemy as sa
 from database import engine
 
-con = engine.connect()
-try:
-    con.execute(sa.text("ALTER TABLE tenants ADD COLUMN subscription_status VARCHAR(20) DEFAULT 'active';"))
-except Exception as e:
-    print("Error col 1:", e)
+columns_to_add = [
+    "ALTER TABLE tenants ADD COLUMN subscription_status VARCHAR(20) DEFAULT 'active';",
+    "ALTER TABLE tenants ADD COLUMN valid_until TIMESTAMP;",
+    "ALTER TABLE tenants ADD COLUMN instagram_url VARCHAR(255);",
+    "ALTER TABLE tenants ADD COLUMN tiktok_url VARCHAR(255);",
+    "ALTER TABLE tenants ADD COLUMN maps_url VARCHAR(255);"
+]
 
-try:
-    con.execute(sa.text("ALTER TABLE tenants ADD COLUMN valid_until TIMESTAMP;"))
-except Exception as e:
-    print("Error col 2:", e)
+for stmt in columns_to_add:
+    try:
+        with engine.begin() as conn:
+            conn.execute(sa.text(stmt))
+    except Exception as e:
+        print(f"Skipping or error for stmt: {stmt}\n  => {e}")
 
-con.commit()
-con.close()
-print("Alter executed.")
+print("Alter executed successfully.")

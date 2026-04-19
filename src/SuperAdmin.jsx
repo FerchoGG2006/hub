@@ -45,7 +45,7 @@ export const SuperAdmin = () => {
       ></div>
 
       <div className="mb-12 flex items-center justify-start relative z-10">
-        <img src="/logo.png" alt="HUB" className="h-[4.5rem] object-contain invert mix-blend-screen opacity-90" />
+        <img src="/logo.png" alt="HUB" className="h-[4.5rem] object-contain drop-shadow-xl" />
         <span className="text-amber-500/50 italic text-2xl ml-4 font-serif self-end pb-2">Network</span>
       </div>
       

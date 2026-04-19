@@ -7,6 +7,8 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { ProductCell } from './ProductCell';
 import { PaymentGatewayModal } from './PaymentGatewayModal';
+import { KanbanBoard } from './KanbanBoard';
+import { MarketingManager } from './MarketingManager';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -75,7 +77,12 @@ export const LoginTerminal = ({ onAuth }) => {
           className="absolute inset-4 border border-white/10 rounded-full"
         />
         <div className="text-center z-10">
-          <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }} className="text-4xl mb-2">🛡️</motion.div>
+          <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }} className="flex justify-center mb-2">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </motion.div>
           <h2 className="text-[10px] text-amber-500 uppercase tracking-[0.5em] font-black">Auth</h2>
         </div>
       </motion.div>
@@ -231,6 +238,7 @@ export const LiveMonitor = ({ onLogout, tenantSlug }) => {
 /* ── QR DEPLOYMENT TERMINAL (FASE 1) ── */
 const QRTerminal = ({ tenantSlug }) => {
   const qrRef = React.useRef(null);
+  const [table, setTable] = useState('');
 
   const handleDownloadPNG = async () => {
     if (!qrRef.current) return;
@@ -273,9 +281,7 @@ const QRTerminal = ({ tenantSlug }) => {
 
     pdf.save(`${tenantSlug}-kit-digital.pdf`);
   };
-
-  const menuUrl = `${window.location.origin}/t/${tenantSlug}`;
-
+  const menuUrl = table ? `${window.location.origin}/t/${tenantSlug}?mesa=${table}` : `${window.location.origin}/t/${tenantSlug}`;
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12 flex flex-col items-center">
       <div className="text-center mt-4">
@@ -286,8 +292,18 @@ const QRTerminal = ({ tenantSlug }) => {
           Despliegue Físico
         </p>
       </div>
+      <div className="w-full max-w-xs mb-4">
+        <input 
+          type="text" 
+          placeholder="Número de Mesa (Opcional)" 
+          value={table}
+          onChange={(e) => setTable(e.target.value)}
+          className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-5 text-sm text-center outline-none focus:border-amber-500 transition-colors placeholder-white/30"
+        />
+        <p className="text-[9px] text-white/30 text-center uppercase tracking-widest mt-2">{table ? `Generando QR Dinámico para Mesa ${table}` : 'QR General (Sin mesa asignada)'}</p>
+      </div>
 
-      <div 
+      <div  
         ref={qrRef} 
         className="bg-white p-8 rounded-3xl shadow-[0_0_50px_rgba(245,158,11,0.15)] flex flex-col items-center justify-center gap-6"
         style={{ border: '4px solid #f59e0b' }}
@@ -335,7 +351,7 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
             <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-light mb-3 flex items-center gap-3">
               <span className="w-5 h-px bg-amber-500/50"></span> {(window.location.pathname.split("/")[2] || 'DASHBOARD').toUpperCase()}
             </p>
-            <img src="/logo.png" alt="HUB" className="h-14 lg:h-16 object-contain invert mix-blend-screen opacity-90 -ml-1" />
+            <img src="/logo.png" alt="HUB" className="h-14 lg:h-16 object-contain -ml-1 drop-shadow-xl" />
           </div>
           
           {/* Metadata Block */}
@@ -798,7 +814,7 @@ const AIIngestModal = ({ onClose, onSuccess }) => {
 export const AdminDashboard = () => {
   const { tenantSlug } = useParams();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [view, setView] = useState('inventory'); // inventory, stats
+  const [view, setView] = useState('kanban'); // kanban, inventory, stats
   const [products, setProducts] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
@@ -845,10 +861,10 @@ export const AdminDashboard = () => {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 h-[100dvh] w-full bg-[#020202] text-white font-sans selection:bg-amber-500/30 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" style={{ paddingBottom: '100px' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen w-full bg-[#020202] text-white font-sans selection:bg-amber-500/30 overflow-x-hidden relative pb-32">
       
       {/* ─── AMBIENT BACKGROUND GLOWS ─── */}
-      <div className="fixed top-0 inset-x-0 h-[800px] pointer-events-none opacity-30 z-0">
+      <div className="absolute top-0 inset-x-0 h-[800px] pointer-events-none opacity-30 z-0">
          <div className="absolute top-[-20%] left-[20%] w-[50vw] h-[50vw] rounded-full blur-[120px] mix-blend-screen bg-gradient-to-r from-amber-500/20 to-orange-600/10"></div>
          <div className="absolute top-[10%] right-[10%] w-[30vw] h-[30vw] rounded-full blur-[100px] mix-blend-screen bg-gradient-to-l from-amber-300/10 to-transparent"></div>
       </div>
@@ -859,17 +875,17 @@ export const AdminDashboard = () => {
          style={{ backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px)', backgroundSize: '32px 32px' }}
       ></div>
 
-      <nav className="fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center bg-[#020202]/80 backdrop-blur-xl border-b border-white/5 overflow-x-auto custom-scrollbar">
-        <div className="flex items-center min-w-max mr-4 relative z-10">
+      <nav className="fixed top-0 w-full z-50 px-6 py-4 flex items-center bg-[#020202]/80 backdrop-blur-xl border-b border-white/5 overflow-x-auto custom-scrollbar snap-x" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex-shrink-0 mr-8 relative z-10">
           {/* El filtro invert convierte el negro en blanco (y el blanco en negro). 
               El mix-blend-screen hace que el negro (fondo) se vuelva completamente transparente. */}
-          <img src="/logo.png" alt="HUB" className="h-5 object-contain invert mix-blend-screen opacity-90" />
+          <img src="/logo.png" alt="HUB" className="h-5 object-contain" />
         </div>
-        <div className="flex gap-4 min-w-max">
-          {['inventory', 'stats', 'qr', 'settings', 'billing'].map(m => (
+        <div className="flex gap-6 flex-shrink-0">
+          {['kanban', 'inventory', 'stats', 'qr', 'marketing', 'settings', 'billing'].map(m => (
             <button key={m} onClick={() => setView(m)}
               className={`text-[9px] font-bold uppercase tracking-[0.2em] transition-all relative ${view === m ? 'text-amber-500' : 'text-white/30 hover:text-white/80'}`}>
-              {m === 'inventory' ? 'Suministros' : m === 'stats' ? 'Monitor' : m === 'qr' ? 'Punto QR' : m === 'settings' ? 'Branding' : 'Billing'}
+              {m === 'kanban' ? 'Pedidos Live' : m === 'inventory' ? 'Suministros' : m === 'stats' ? 'Monitor' : m === 'qr' ? 'Punto QR' : m === 'marketing' ? 'Marketing AI' : m === 'settings' ? 'Branding' : 'Billing'}
               {view === m && <motion.div layoutId="hud-nav" className="absolute -bottom-1 left-0 h-px bg-amber-500 w-full shadow-[0_0_8px_rgba(245,158,11,0.8)]" />}
             </button>
           ))}
@@ -878,12 +894,16 @@ export const AdminDashboard = () => {
 
       <main className="pt-24 pb-12 px-5 max-w-xl mx-auto">
         <AnimatePresence mode="wait">
-          {view === 'inventory' ? (
+          {view === 'kanban' ? (
+            <KanbanBoard key="kanban" tenantSlug={tenantSlug} />
+          ) : view === 'inventory' ? (
             <InventoryManager key="inv" products={products} toggleProduct={toggleProduct} onLogout={() => setIsAuthenticated(false)} />
           ) : view === 'stats' ? (
             <LiveMonitor key="stats" tenantSlug={tenantSlug} onLogout={() => setIsAuthenticated(false)} />
           ) : view === 'qr' ? (
             <QRTerminal key="qr" tenantSlug={tenantSlug} />
+          ) : view === 'marketing' ? (
+            <MarketingManager key="marketing" tenantSlug={tenantSlug} />
           ) : view === 'settings' ? (
             <BrandingSettings key="settings" tenantSlug={tenantSlug} />
           ) : (

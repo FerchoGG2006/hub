@@ -9,6 +9,7 @@ export const CheckoutView = ({ isOpen, onClose, config }) => {
   const [method,  setMethod]  = useState('mesa');      // mesa | recoger | domicilio
   const [payment, setPayment] = useState('efectivo');  // efectivo | transferencia
   const [done, setDone]       = useState(false);
+  const [customerName, setCustomerName] = useState('');
 
   if (!isOpen) return null;
 
@@ -33,10 +34,10 @@ export const CheckoutView = ({ isOpen, onClose, config }) => {
           className="text-2xl font-black text-white uppercase text-center tracking-tight"
           style={{ fontStyle: 'italic' }}
         >
-          ¡Pedido enviado!
+          ¡Pedido Enviado!
         </h2>
         <p className="text-sm text-white/35 text-center leading-relaxed max-w-xs">
-          Recibirás confirmación en breve. Gracias por usar{' '}
+          La orden ya está en nuestra cocina y en nuestro WhatsApp. Gracias por usar{' '}
           <span className="text-amber-400 font-bold">hub</span>.
         </p>
         <motion.button
@@ -54,10 +55,40 @@ export const CheckoutView = ({ isOpen, onClose, config }) => {
     );
   }
 
-  const handleSend = () => {
+  const handleSend = async () => {
+    if (!customerName) {
+      alert("Por favor ingresa tu nombre de pedido.");
+      return;
+    }
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const tenantSlug = window.location.pathname.split('/t/')[1]?.split('?')[0]?.split('/')[0] || '';
+    const tableParam = new URLSearchParams(window.location.search).get('mesa');
+    
+    // 1. Send to Live Kitchen (API)
+    try {
+      await fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items_json: JSON.stringify(cart),
+          total_price: total,
+          customer_name: customerName,
+          phone: "0000",
+          table_number: tableParam || "General",
+          delivery_method: method,
+          payment_method: payment
+        })
+      });
+    } catch(err) {
+      console.warn("No se pudo enviar al Kanban:", err);
+    }
+
+    // 2. Open WhatsApp
     const waNumber = config?.whatsapp_number || '573000000000';
+    const waNameLine = `👤 Cliente: *${customerName}*\n📍 Mesa/Ref: *${tableParam || 'N/A'}*\n\n`;
     const msg = formatWhatsAppMessage(cart, total, method, payment, config?.name);
-    sendToWhatsApp(waNumber, msg);
+    sendToWhatsApp(waNumber, waNameLine + msg);
+    
     clearCart();
     setDone(true);
   };
@@ -92,6 +123,19 @@ export const CheckoutView = ({ isOpen, onClose, config }) => {
         className="flex-1 space-y-8 overflow-y-auto px-6 py-6"
         style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
       >
+
+        {/* Customer Info */}
+        <section className="mb-6">
+          <label className="text-[10px] text-white/30 uppercase tracking-[0.2em] block mb-4 font-semibold">Tus Datos</label>
+          <input 
+            type="text" 
+            placeholder="¿A nombre de quién hacemos el pedido?" 
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            required
+            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/30 text-white"
+          />
+        </section>
 
         {/* Items list */}
         <section>

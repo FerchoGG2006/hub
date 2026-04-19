@@ -78,6 +78,20 @@ class Order(Base):
     status          = Column(String(20), default="pending")
     table_number    = Column(String(10))
     phone           = Column(String(20))
+    customer_name   = Column(String(100))
+    created_at      = Column(DateTime, default=datetime.utcnow)
+    
+    tenant = relationship("Tenant")
+
+class Coupon(Base):
+    __tablename__ = "coupons"
+    
+    id         = Column(Integer, primary_key=True, index=True)
+    tenant_id  = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    code       = Column(String(20), nullable=False)
+    discount_percent = Column(Integer, default=10)
+    is_active  = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
     
     tenant = relationship("Tenant")
 

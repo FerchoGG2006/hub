@@ -471,3 +471,95 @@ def ai_ingest_tenant_menu(
         db.commit()
         
     return {"status": "ok", "message": "Carta migrada vía IA exitosamente"}
+
+# ════════════════ KANBAN & MARKETING (NEW FEATURES) ════════════════
+
+class OrderRequest(BaseModel):
+    items_json: str
+    total_price: int
+    customer_name: str
+    phone: str
+    table_number: str = None
+    delivery_method: str = "mesa" # mesa, domicilio, recojo
+    payment_method: str = "transferencia"
+
+@app.post("/api/v1/tenant/{slug}/orders")
+async def receive_order(slug: str, req: OrderRequest, db: Session = Depends(get_db)):
+    t = db.query(models.Tenant).filter_by(slug=slug).first()
+    if not t: raise HTTPException(status_code=404)
+    
+    nuevo = models.Order(
+        tenant_id=t.id,
+        delivery_method=req.delivery_method,
+        payment_method=req.payment_method,
+        total_price=req.total_price,
+        items_json=req.items_json,
+        status="pending",
+        table_number=req.table_number,
+        phone=req.phone,
+        customer_name=req.customer_name
+    )
+    db.add(nuevo)
+    db.commit()
+    db.refresh(nuevo)
+    
+    # Broadcast to admin Kanban!
+    await manager.broadcast({
+        "type": "NEW_ORDER", 
+        "tenant_id": t.id, 
+        "order": {
+            "id": nuevo.id,
+            "customer_name": nuevo.customer_name,
+            "total_price": nuevo.total_price,
+            "status": nuevo.status
+        }
+    })
+    return {"status": "ok", "order_id": nuevo.id}
+
+@app.get("/api/admin/orders")
+def get_orders(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    orders = db.query(models.Order).filter_by(tenant_id=current_user.tenant_id).order_by(models.Order.id.desc()).all()
+    return orders
+
+@app.put("/api/admin/orders/{order_id}/status")
+async def update_order_status(order_id: int, status: str, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    o = db.query(models.Order).filter_by(id=order_id, tenant_id=current_user.tenant_id).first()
+    if not o: raise HTTPException(status_code=404)
+    o.status = status
+    db.commit()
+    await manager.broadcast({"type": "ORDER_UPDATED", "tenant_id": current_user.tenant_id, "order_id": o.id, "status": status})
+    return {"status": "ok"}
+
+class AIMarketingRequest(BaseModel):
+    goal: str
+
+@app.post("/api/admin/marketing/ai")
+def generate_ai_campaign(req: AIMarketingRequest, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    import google.generativeai as genai
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    prompt = f"Eres un experto en marketing gastronómico. El restaurante quiere: '{req.goal}'. Redacta 1 SMS corto persuasivo, 1 Asunto de Email llamativo, y crea un Código de Cupón de descuento de un solo texto (ej: HAMBUR30) y el Porcentaje sugerido. Responde en JSON estricto con claves: sms_text, email_subject, coupon_code, discount_percent."
+    try:
+        response = model.generate_content(prompt)
+        text = response.text.strip().replace("```json", "").replace("```", "")
+        data = json.loads(text)
+        
+        # Guardar cupon en DB
+        nuevo_cupon = models.Coupon(
+            tenant_id=current_user.tenant_id,
+            code=data['coupon_code'],
+            discount_percent=int(data['discount_percent'])
+        )
+        db.add(nuevo_cupon)
+        db.commit()
+        return data
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Error generando campaña")
+
+@app.get("/api/v1/tenant/{slug}/coupon/{code}")
+def validate_coupon(slug: str, code: str, db: Session = Depends(get_db)):
+    t = db.query(models.Tenant).filter_by(slug=slug).first()
+    if not t: raise HTTPException(status_code=404)
+    cp = db.query(models.Coupon).filter_by(tenant_id=t.id, code=code.upper(), is_active=True).first()
+    if not cp: raise HTTPException(status_code=404, detail="Cupón inválido")
+    return {"status": "ok", "discount": cp.discount_percent}
