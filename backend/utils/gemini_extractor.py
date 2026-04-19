@@ -1,7 +1,6 @@
 import os
 import json
-from google import genai
-from google.genai import types
+import google.generativeai as genai
 from PIL import Image
 import io
 
@@ -12,7 +11,8 @@ def extract_menu_from_image(image_bytes: bytes) -> list:
         print("Warning: GEMINI_API_KEY not set.")
         return []
 
-    client = genai.Client(api_key=api_key)
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-1.5-flash')
     
     try:
         image = Image.open(io.BytesIO(image_bytes))
@@ -41,19 +41,18 @@ def extract_menu_from_image(image_bytes: bytes) -> list:
     """
     
     try:
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=[image, prompt],
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.2,
-            )
-        )
-        data = json.loads(response.text)
+        response = model.generate_content([prompt, image])
+        # Clean the response text from markdown block if any
+        text = response.text.strip()
+        if text.startswith("```json"):
+            text = text.replace("```json", "", 1).replace("```", "", 1).strip()
+        elif text.startswith("```"):
+            text = text.replace("```", "", 2).strip()
+            
+        data = json.loads(text)
         return data
     except Exception as e:
         print("Error interacting with Gemini:", e)
-        # Retornamos un mock vacio para no crash
         return []
 
 def enhance_copywriting(name: str, price: str, existing_desc: str) -> dict:
@@ -62,7 +61,8 @@ def enhance_copywriting(name: str, price: str, existing_desc: str) -> dict:
     if not api_key:
         return {"name": name, "desc": existing_desc, "price": price, "emoji": "🍽️"}
 
-    client = genai.Client(api_key=api_key)
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-1.5-flash')
     prompt = f"""
     Eres un experto copywriter gastronómico. Responde estrictamente con un JSON válido.
     Mejora este plato para hacerlo sumamente apetitoso, vendedor y persuasivo.
@@ -80,15 +80,13 @@ def enhance_copywriting(name: str, price: str, existing_desc: str) -> dict:
     """
     
     try:
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=[prompt],
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.7,
-            )
-        )
-        return json.loads(response.text)
+        response = model.generate_content(prompt)
+        text = response.text.strip()
+        if text.startswith("```json"):
+            text = text.replace("```json", "", 1).replace("```", "", 1).strip()
+        elif text.startswith("```"):
+            text = text.replace("```", "", 2).strip()
+        return json.loads(text)
     except Exception as e:
         print("Error in magic edit:", e)
         return {"name": f"✨ {name}", "desc": "Descripción mejorada temporalmente no disponible.", "price": price, "emoji": "✨"}

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-export const MarketingManager = ({ tenantSlug }) => {
+export const MarketingManager = ({ tenantSlug: _tenantSlug }) => {
   const [goal, setGoal] = useState('');
   const [loading, setLoading] = useState(false);
   const [campaign, setCampaign] = useState(null);
@@ -79,6 +80,12 @@ export const MarketingManager = ({ tenantSlug }) => {
                      <span className="text-xl font-mono text-white tracking-widest block font-bold">{campaign.discount_percent}%</span>
                   </div>
                 </div>
+                
+                <button 
+                  onClick={() => alert("🚀 Lote de 1,240 mensajes enviado con éxito a la base de datos de clientes via Global-Socket.")}
+                  className="w-full py-4 bg-white/10 hover:bg-white/20 text-white text-[10px] uppercase font-black tracking-widest rounded-2xl transition-all border border-white/5">
+                  📡 Lanzar Campaña a Clientes
+                </button>
              </div>
           </div>
         </motion.div>

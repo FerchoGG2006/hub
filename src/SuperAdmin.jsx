@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
@@ -109,6 +110,7 @@ export const SuperAdmin = () => {
 
 /* ── COMPONENTE: AGENTE DE INSERCIÓN AI ── */
 const AIOnboardingModal = ({ onClose, onSuccess }) => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1); // 1: Form, 2: Loading, 3: Success
   const [formData, setFormData] = useState({ name: '', slug: '', brand_color: '#f59e0b', whatsapp_number: '' });
   const [file, setFile] = useState(null);
@@ -212,8 +214,9 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
             </div>
             
             {createdCredentials && (
-              <div className="w-full bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 mb-4 text-left">
-                <p className="text-[9px] uppercase tracking-widest text-amber-500 mb-3 text-center">Credenciales del Administrador</p>
+              <div className="w-full bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 mb-4 text-left relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 blur-2xl rounded-full" />
+                <p className="text-[9px] uppercase tracking-widest text-amber-500 mb-3 text-center font-black">Acceso Propietario Activado</p>
                 <div className="flex justify-between items-center mb-2 px-2">
                   <span className="text-[10px] text-white/50 uppercase tracking-widest">USER_ID</span>
                   <span className="font-mono text-sm tracking-widest text-white">{createdCredentials.username}</span>
@@ -225,12 +228,18 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
               </div>
             )}
 
-            <button 
-                onClick={onClose}
-                className="px-8 py-3 bg-white/10 text-white font-bold uppercase tracking-widest text-[9px] rounded-full hover:bg-white/20 transition-colors w-full"
-                >
-                Volver al Panel
-            </button>
+            <div className="flex flex-col gap-3 w-full">
+              <button 
+                  onClick={() => navigate(`/admin/${formData.slug}`)}
+                  className="w-full py-4 bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] rounded-2xl hover:scale-[1.02] transition-transform shadow-[0_10px_30px_rgba(245,158,11,0.3)]">
+                  🚀 Lanzar Dashboard de {formData.name}
+              </button>
+              <button 
+                  onClick={onClose}
+                  className="w-full py-3 bg-white/5 text-white/40 font-bold uppercase tracking-widest text-[9px] rounded-2xl hover:bg-white/10 transition-colors">
+                  Cerrar y Volver a la Red
+              </button>
+            </div>
           </motion.div>
         )}
 
