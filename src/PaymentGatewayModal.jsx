@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
+import { useParams } from 'react-router-dom';
 
-export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, tenantSlug }) => {
+export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess }) => {
+  const { tenantSlug } = useParams();
   const [step, setStep] = useState(1); // 1 = Details, 2 = Processing, 3 = Success
 
   if (!isOpen) return null;

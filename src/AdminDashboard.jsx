@@ -116,7 +116,8 @@ export const LoginTerminal = ({ onAuth }) => {
 };
 
 /* ── LIVE MONITOR (Analytics with WebSockets) ── */
-export const LiveMonitor = ({ onLogout, tenantSlug }) => {
+export const LiveMonitor = ({ onLogout }) => {
+  const { tenantSlug } = useParams();
   const [stats, setStats] = useState([]);
   const [totalHits, setTotalHits] = useState(0);
 
@@ -236,7 +237,8 @@ export const LiveMonitor = ({ onLogout, tenantSlug }) => {
 };
 
 /* ── QR DEPLOYMENT TERMINAL (FASE 1) ── */
-const QRTerminal = ({ tenantSlug }) => {
+const QRTerminal = () => {
+  const { tenantSlug } = useParams();
   const qrRef = React.useRef(null);
   const [table, setTable] = useState('');
 
@@ -341,7 +343,8 @@ const QRTerminal = ({ tenantSlug }) => {
 };
 
 /* ── COMPONENTS (Colecciones) ── */
-const InventoryManager = ({ products, toggleProduct, onLogout, tenantSlug }) => {
+const InventoryManager = ({ products, toggleProduct, onLogout }) => {
+  const { tenantSlug } = useParams();
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
       
@@ -416,7 +419,8 @@ const InventoryManager = ({ products, toggleProduct, onLogout, tenantSlug }) => 
 };
 
 /* ── BRANDING EDITOR (FASE 2) ── */
-const BrandingSettings = ({ tenantSlug }) => {
+const BrandingSettings = () => {
+  const { tenantSlug } = useParams();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     brand_color: '#f59e0b',
@@ -519,7 +523,7 @@ const BrandingSettings = ({ tenantSlug }) => {
 };
 
 /* ── BILLING MANAGER (FASE 4) ── */
-const BillingManager = ({ tenantSlug }) => {
+const BillingManager = () => {
   const [bData, setBData] = useState({ subscription_status: 'active', valid_until: null });
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
@@ -588,14 +592,14 @@ const BillingManager = ({ tenantSlug }) => {
          isOpen={showPaymentModal} 
          onClose={() => setShowPaymentModal(false)}
          onSuccess={handlePaymentSuccess}
-         tenantSlug={tenantSlug}
       />
     </motion.div>
   );
 };
 
 /* ── MODALS ── */
-const AddProductModal = ({ onClose, onProductAdded, tenantSlug }) => {
+const AddProductModal = ({ onClose, onProductAdded }) => {
+  const { tenantSlug } = useParams();
   const [formData, setFormData] = useState({ name: '', price: '', desc: '', emoji: '🍽️', category: '' });
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -885,7 +889,7 @@ export const AdminDashboard = () => {
         <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#020202] to-transparent pointer-events-none md:hidden" />
         
         <div className="flex-shrink-0 mr-8 relative z-10">
-          <img src="/logo.png" alt="HUB" className="h-5 lg:h-6 object-contain" />
+          <img src="/logo.png" alt="HUB" className="h-5 lg:h-6 object-contain" style={{ filter: 'brightness(1.5)', mixBlendMode: 'screen' }} />
         </div>
         <div className="flex gap-8 flex-shrink-0 whitespace-nowrap pr-12">
           {['kanban', 'inventory', 'stats', 'qr', 'marketing', 'settings', 'billing'].map(m => (
@@ -908,17 +912,17 @@ export const AdminDashboard = () => {
           {view === 'kanban' ? (
             <KanbanBoard key="kanban" tenantSlug={tenantSlug} />
           ) : view === 'inventory' ? (
-            <InventoryManager key="inv" products={products} toggleProduct={toggleProduct} onLogout={() => setIsAuthenticated(false)} tenantSlug={tenantSlug} />
+            <InventoryManager key="inv" products={products} toggleProduct={toggleProduct} onLogout={() => setIsAuthenticated(false)} />
           ) : view === 'stats' ? (
-            <LiveMonitor key="stats" tenantSlug={tenantSlug} onLogout={() => setIsAuthenticated(false)} />
+            <LiveMonitor key="stats" onLogout={() => setIsAuthenticated(false)} />
           ) : view === 'qr' ? (
-            <QRTerminal key="qr" tenantSlug={tenantSlug} />
+            <QRTerminal key="qr" />
           ) : view === 'marketing' ? (
             <MarketingManager key="marketing" tenantSlug={tenantSlug} />
           ) : view === 'settings' ? (
-            <BrandingSettings key="settings" tenantSlug={tenantSlug} />
+            <BrandingSettings key="settings" />
           ) : (
-            <BillingManager key="billing" tenantSlug={tenantSlug} />
+            <BillingManager key="billing" />
           )}
         </AnimatePresence>
       </main>
@@ -940,7 +944,7 @@ export const AdminDashboard = () => {
       </div>
 
       <AnimatePresence>
-        {showAddModal && <AddProductModal onClose={() => setShowAddModal(false)} onProductAdded={fetchProducts} tenantSlug={tenantSlug} />}
+        {showAddModal && <AddProductModal onClose={() => setShowAddModal(false)} onProductAdded={fetchProducts} />}
         {showAIModal && <AIIngestModal onClose={() => setShowAIModal(false)} onSuccess={fetchProducts} />}
       </AnimatePresence>
     </motion.div>

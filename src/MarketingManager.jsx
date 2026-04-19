@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
+import { useParams } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-export const MarketingManager = ({ tenantSlug: _tenantSlug }) => {
+export const MarketingManager = () => {
   const [goal, setGoal] = useState('');
   const [loading, setLoading] = useState(false);
   const [campaign, setCampaign] = useState(null);
@@ -33,7 +33,11 @@ export const MarketingManager = ({ tenantSlug: _tenantSlug }) => {
   };
 
   return (
-    <div className="pt-12 px-6 max-w-2xl mx-auto space-y-8 relative z-10">
+    <motion.div 
+      initial={{ opacity: 0, x: 20 }} 
+      animate={{ opacity: 1, x: 0 }}
+      className="pt-12 px-6 max-w-2xl mx-auto space-y-8 relative z-10"
+    >
       <div className="mb-8">
         <h2 className="text-3xl font-light">Agente de <span className="font-serif italic text-amber-500">Marketing</span></h2>
         <p className="text-sm text-white/40">Olvida las estrategias complejas. Dile a la IA qué necesitas impulsar y ella creará la campaña por ti.</p>
@@ -90,6 +94,6 @@ export const MarketingManager = ({ tenantSlug: _tenantSlug }) => {
           </div>
         </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
