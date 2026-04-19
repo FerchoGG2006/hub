@@ -15,6 +15,11 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const MainApp = ({ config }) => {
   const [appState, setAppState] = useState('closed');
 
+  useEffect(() => {
+    document.body.classList.add('lock-scroll');
+    return () => document.body.classList.remove('lock-scroll');
+  }, []);
+
   return (
     <CartProvider>
       <main className="w-full bg-[#050505] select-none overflow-hidden"
