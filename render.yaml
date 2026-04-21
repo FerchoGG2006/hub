@@ -2,6 +2,7 @@ services:
   # ════════════════ BACKEND (FastAPI - Web Service) ════════════════
   - type: web
     name: hub-api
+    plan: hobby
     runtime: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt
@@ -21,6 +22,7 @@ services:
   # ════════════════ FRONTEND (React/Vite - Static Site) ════════════════
   - type: web
     name: hub-client
+    plan: hobby
     runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: dist
