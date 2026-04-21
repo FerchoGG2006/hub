@@ -26,7 +26,4 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        fromService:
-          name: hub-api
-          type: web
-          property: url
+        value: "https://hub-api.onrender.com"
