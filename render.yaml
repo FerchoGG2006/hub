@@ -1,5 +1,5 @@
 services:
-  # ════════════════ BACKEND (FastAPI) ════════════════
+  # ════════════════ BACKEND (FastAPI - Web Service) ════════════════
   - type: web
     name: hub-api
     runtime: python
@@ -8,7 +8,7 @@ services:
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
-        placeholder: "Pega aquí tu URL de Neon (postgresql://...)"
+        value: "postgresql://neondb_owner:npg_oZXsypkIR20u@ep-snowy-salad-ama4nvfw-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
       - key: FRONTEND_URL
         value: "https://hub-client.onrender.com"
       - key: JWT_SECRET_KEY
@@ -17,16 +17,10 @@ services:
         sync: false
       - key: PYTHON_VERSION
         value: 3.11.0
-      - key: CLOUDINARY_CLOUD_NAME
-        sync: false
-      - key: CLOUDINARY_API_KEY
-        sync: false
-      - key: CLOUDINARY_API_SECRET
-        sync: false
 
-  # ════════════════ FRONTEND (React/Vite) ════════════════
-  - type: static
-    name: hub-client
+# ════════════════ FRONTEND (React/Vite - Static Site) ════════════════
+staticSites:
+  - name: hub-client
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
