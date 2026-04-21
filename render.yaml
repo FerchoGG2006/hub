@@ -18,9 +18,10 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.0
 
-# ════════════════ FRONTEND (React/Vite - Static Site) ════════════════
-static_sites:
-  - name: hub-client
+  # ════════════════ FRONTEND (React/Vite - Static Site) ════════════════
+  - type: web
+    name: hub-client
+    runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
