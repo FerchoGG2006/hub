@@ -3,35 +3,30 @@ services:
   - type: web
     name: hub-api
     runtime: python
-    env: python
-    region: oregon
+    rootContext: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-    rootContext: backend
     envVars:
       - key: DATABASE_URL
-        placeholder: "postgresql://user:password@host/dbname?sslmode=require"
+        placeholder: "Pega aquí tu URL de Neon (postgresql://...)"
       - key: FRONTEND_URL
-        value: "https://hub-client.onrender.com" # Cambia esto por la URL final de tu frontend
+        value: "https://hub-client.onrender.com"
       - key: JWT_SECRET_KEY
         generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11.0
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: PYTHON_VERSION
-        value: 3.11.0
 
   # ════════════════ FRONTEND (React/Vite) ════════════════
-  - type: web
+  - type: static
     name: hub-client
-    runtime: static
-    env: static
-    region: oregon
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
