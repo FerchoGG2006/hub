@@ -16,15 +16,10 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const MainApp = ({ config }) => {
   const [appState, setAppState] = useState('closed');
 
-  useEffect(() => {
-    document.body.classList.add('lock-scroll');
-    return () => document.body.classList.remove('lock-scroll');
-  }, []);
 
   return (
     <CartProvider>
-      <main className="w-full bg-[#050505] select-none overflow-hidden"
-        style={{ height: '100svh', touchAction: 'none', overscrollBehavior: 'none' }}>
+      <main className="w-full bg-[#050505] overflow-x-hidden min-h-svh">
         <AnimatePresence mode="wait">
           {appState === 'closed' ? (
             <motion.div key="cover" initial={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.04 }}

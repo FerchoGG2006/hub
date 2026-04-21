@@ -47,7 +47,6 @@ export const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-6 lg:px-12 flex justify-between items-center">
           <div className="flex items-center gap-3">
              <img src="/logo.png" alt="HUB" className="h-8 object-contain" />
-             <span className="text-lg font-black tracking-tighter">HUB<span className="font-light opacity-50 ml-1">SaaS</span></span>
           </div>
           <div className="flex items-center gap-8">
             <button onClick={() => navigate('/superadmin')} className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 hover:text-white transition-colors hidden md:block">

@@ -163,7 +163,7 @@ export const MenuEngine = ({ config }) => {
   if (!allMenuData) return <LoadingSkeleton />;
 
   return (
-    <div className="perspective-container touch-none">
+    <div className="perspective-container">
       <motion.div
         animate={{ background: `radial-gradient(ellipse at 28% 45%, ${meta.accent}1a 0%, transparent 65%)` }}
         transition={{ duration: 0.7 }} className="absolute inset-0 pointer-events-none" />

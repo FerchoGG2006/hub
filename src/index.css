@@ -19,9 +19,6 @@ body {
 .lock-scroll {
   overflow: hidden !important;
   overscroll-behavior: none !important;
-  touch-action: none !important;
-  position: fixed !important;
-  width: 100%;
 }
 
 /* ─── Escenario 3D ─── */
