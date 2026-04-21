@@ -14,7 +14,7 @@ services:
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: GEMINI_API_KEY
-        sync: false
+        value: "AIzaSyBUI4qYnHwRKxFrgbSR2yB86CPYaLLemqw"
       - key: PYTHON_VERSION
         value: 3.11.0
 
