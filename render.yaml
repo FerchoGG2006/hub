@@ -19,7 +19,7 @@ services:
         value: 3.11.0
 
 # ════════════════ FRONTEND (React/Vite - Static Site) ════════════════
-staticSites:
+static_sites:
   - name: hub-client
     buildCommand: npm install && npm run build
     staticPublishPath: dist
