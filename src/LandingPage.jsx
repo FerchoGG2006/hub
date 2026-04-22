@@ -28,7 +28,7 @@ export const LandingPage = () => {
   };
 
   return (
-    <div className="bg-[#020202] text-white font-sans selection:bg-amber-500/30 overflow-x-hidden min-h-screen relative">
+    <div className="bg-[#020202] text-white font-sans selection:bg-amber-500/30 min-h-screen relative">
       
       {/* ─── AMBIENT BACKGROUND GLOWS ─── */}
       <div className="absolute top-0 inset-x-0 h-[800px] pointer-events-none opacity-40">

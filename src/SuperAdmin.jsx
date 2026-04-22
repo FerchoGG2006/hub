@@ -30,7 +30,7 @@ export const SuperAdmin = () => {
   if (!isAuthenticated) return <AnimatePresence mode="wait"><LoginTerminal onAuth={() => setIsAuthenticated(true)} /></AnimatePresence>;
 
   return (
-    <div className="min-h-screen bg-[#020202] text-white p-10 font-sans relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#020202] text-white p-10 font-sans relative">
       
       {/* ─── AMBIENT BACKGROUND GLOWS ─── */}
       <div className="absolute top-0 inset-x-0 h-[800px] pointer-events-none opacity-30 z-0">

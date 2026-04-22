@@ -870,7 +870,7 @@ export const AdminDashboard = () => {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen w-full bg-[#020202] text-white font-sans selection:bg-amber-500/30 overflow-x-hidden relative pb-32">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen w-full bg-[#020202] text-white font-sans selection:bg-amber-500/30 relative pb-32">
       
       {/* ─── AMBIENT BACKGROUND GLOWS ─── */}
       <div className="absolute top-0 inset-x-0 h-[800px] pointer-events-none opacity-30 z-0">
@@ -907,7 +907,7 @@ export const AdminDashboard = () => {
         </div>
       </nav>
 
-      <main className="pt-24 pb-12 px-5 max-w-7xl w-full mx-auto overflow-y-auto">
+      <main className="pt-24 pb-12 px-5 max-w-7xl w-full mx-auto">
         <AnimatePresence mode="wait">
           {view === 'kanban' ? (
             <KanbanBoard key="kanban" tenantSlug={tenantSlug} />
