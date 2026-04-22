@@ -104,7 +104,16 @@ def get_tenant_config(slug: str, db: Session = Depends(get_db)):
         "whatsapp_number": tenant.whatsapp_number,
         "whatsapp_message": tenant.whatsapp_message,
         "subscription_status": tenant.subscription_status,
-        "valid_until": tenant.valid_until.isoformat() if tenant.valid_until else None
+        "valid_until": tenant.valid_until.isoformat() if tenant.valid_until else None,
+        "branches": [
+            {
+                "id": b.id,
+                "name": b.name,
+                "slug": b.slug,
+                "whatsapp_number": b.whatsapp_number,
+                "address": b.address
+            } for b in tenant.branches if b.is_active
+        ]
     }
 
 @app.get("/api/v1/tenant/{slug}/menu")
@@ -482,6 +491,7 @@ class OrderRequest(BaseModel):
     table_number: str = None
     delivery_method: str = "mesa" # mesa, domicilio, recojo
     payment_method: str = "transferencia"
+    branch_id: int = None
 
 @app.post("/api/v1/tenant/{slug}/orders")
 async def receive_order(slug: str, req: OrderRequest, db: Session = Depends(get_db)):
@@ -497,7 +507,8 @@ async def receive_order(slug: str, req: OrderRequest, db: Session = Depends(get_
         status="pending",
         table_number=req.table_number,
         phone=req.phone,
-        customer_name=req.customer_name
+        customer_name=req.customer_name,
+        branch_id=req.branch_id
     )
     db.add(nuevo)
     db.commit()
@@ -519,7 +530,19 @@ async def receive_order(slug: str, req: OrderRequest, db: Session = Depends(get_
 @app.get("/api/admin/orders")
 def get_orders(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     orders = db.query(models.Order).filter_by(tenant_id=current_user.tenant_id).order_by(models.Order.id.desc()).all()
-    return orders
+    result = []
+    for o in orders:
+        result.append({
+            "id": o.id,
+            "customer_name": o.customer_name,
+            "total_price": o.total_price,
+            "status": o.status,
+            "table_number": o.table_number,
+            "items_json": o.items_json,
+            "branch_id": o.branch_id,
+            "branch_name": o.branch.name if o.branch else "Central"
+        })
+    return result
 
 @app.put("/api/admin/orders/{order_id}/status")
 async def update_order_status(order_id: int, status: str, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):

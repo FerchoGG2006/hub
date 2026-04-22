@@ -34,6 +34,22 @@ class Tenant(Base):
     subscription_status = Column(String(20), default="active") # active, suspended
     valid_until = Column(DateTime, nullable=True)
 
+    branches = relationship("Branch", back_populates="tenant", cascade="all, delete-orphan")
+
+class Branch(Base):
+    """Modelo de Sedes/Locales para un Tenant."""
+    __tablename__ = "branches"
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    name = Column(String(100), nullable=False) # ej "Sede Principal", "Mall Plaza"
+    slug = Column(String(50), nullable=False) # ej "principal", "norte"
+    whatsapp_number = Column(String(20))
+    address = Column(String(255))
+    is_active = Column(Boolean, default=True)
+
+    tenant = relationship("Tenant", back_populates="branches")
+    orders = relationship("Order", back_populates="branch")
+
 class Category(Base):
     __tablename__ = "categories"
 
@@ -80,8 +96,10 @@ class Order(Base):
     phone           = Column(String(20))
     customer_name   = Column(String(100))
     created_at      = Column(DateTime, default=datetime.utcnow)
+    branch_id       = Column(Integer, ForeignKey("branches.id"), nullable=True)
     
     tenant = relationship("Tenant")
+    branch = relationship("Branch", back_populates="orders")
 
 class Coupon(Base):
     __tablename__ = "coupons"

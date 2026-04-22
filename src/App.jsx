@@ -9,12 +9,36 @@ import { FloatingCart } from './FloatingCart';
 import { AdminDashboard } from './AdminDashboard';
 import { SuperAdmin } from './SuperAdmin';
 import { LandingPage } from './LandingPage';
+import { BranchPicker } from './BranchPicker';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 /* ── MAIN APP ENGINE ── */
 const MainApp = ({ config }) => {
   const [appState, setAppState] = useState('closed');
+  const [selectedBranch, setSelectedBranch] = useState(() => {
+    if (config.branches?.length === 1) return config.branches[0];
+    
+    // Check for ?sede=slug in URL
+    const params = new URLSearchParams(window.location.search);
+    const sedeSlug = params.get('sede');
+    if (sedeSlug) {
+      return config.branches.find(b => b.slug === sedeSlug) || null;
+    }
+    return null;
+  });
+
+  // If many branches and none selected, show picker
+  if (config.branches?.length > 1 && !selectedBranch) {
+    return (
+      <BranchPicker 
+        brandName={config.name} 
+        branches={config.branches} 
+        branding={config}
+        onSelect={(b) => setSelectedBranch(b)} 
+      />
+    );
+  }
 
 
   return (
@@ -30,7 +54,7 @@ const MainApp = ({ config }) => {
             <motion.div key="menu" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               transition={{ duration: 0.4 }} className="absolute inset-0">
               <MenuEngine config={config} />
-              <FloatingCart config={config} />
+              <FloatingCart config={config} branch={selectedBranch} />
             </motion.div>
           )}
         </AnimatePresence>

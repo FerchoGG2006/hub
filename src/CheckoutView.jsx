@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from './CartContext';
 import { formatWhatsAppMessage, sendToWhatsApp } from './CheckoutLogic';
 
-export const CheckoutView = ({ isOpen, onClose, config }) => {
+export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
   const { cart, total, clearCart, addToCart, removeOne } = useCart();
   const [method,  setMethod]  = useState('mesa');      // mesa | recoger | domicilio
   const [payment, setPayment] = useState('efectivo');  // efectivo | transferencia
@@ -76,7 +76,8 @@ export const CheckoutView = ({ isOpen, onClose, config }) => {
           phone: "0000",
           table_number: tableParam || "General",
           delivery_method: method,
-          payment_method: payment
+          payment_method: payment,
+          branch_id: branch?.id
         })
       });
     } catch(err) {
@@ -84,8 +85,8 @@ export const CheckoutView = ({ isOpen, onClose, config }) => {
     }
 
     // 2. Open WhatsApp
-    const waNumber = config?.whatsapp_number || '573000000000';
-    const waNameLine = `👤 Cliente: *${customerName}*\n📍 Mesa/Ref: *${tableParam || 'N/A'}*\n\n`;
+    const waNumber = branch?.whatsapp_number || config?.whatsapp_number || '573000000000';
+    const waNameLine = `👤 Cliente: *${customerName}*\n📍 Mesa/Ref: *${tableParam || 'N/A'}*\n🏛️ Sede: *${branch?.name || 'Central'}*\n\n`;
     const msg = formatWhatsAppMessage(cart, total, method, payment, config?.name);
     sendToWhatsApp(waNumber, waNameLine + msg);
     

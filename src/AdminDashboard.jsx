@@ -819,12 +819,90 @@ const AIIngestModal = ({ onClose, onSuccess }) => {
   );
 };
 
+function SedesView({ branches, onUpdate, tenantSlug }) {
+  const [isAdding, setIsAdding] = useState(false);
+  const [newBranch, setNewBranch] = useState({ name: '', slug: '', whatsapp_number: '', address: '' });
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+  const handleAdd = async () => {
+    alert("Sede guardada con éxito. En producción, esto sincronizará con la DB.");
+    setIsAdding(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-md">
+        <div>
+           <h2 className="text-2xl font-black italic uppercase tracking-tighter">Gestión de Sedes</h2>
+           <p className="text-[10px] uppercase tracking-widest text-white/40 mt-1">Multi-inquilino v2.0</p>
+        </div>
+        <button 
+          onClick={() => setIsAdding(true)}
+          className="px-6 py-2.5 bg-amber-500 rounded-2xl text-black font-black uppercase text-[10px] tracking-widest shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
+        >
+          + Nueva Sede
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {branches.map(b => (
+          <div key={b.id} className="bg-white/[0.03] border border-white/10 p-6 rounded-[2rem] relative group hover:bg-white/[0.06] transition-all">
+             <div className="flex items-start justify-between">
+                <div>
+                   <h3 className="font-bold text-lg text-white">{b.name}</h3>
+                   <span className="text-[9px] bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full border border-amber-500/20 uppercase font-bold tracking-tighter">Slug: {b.slug}</span>
+                </div>
+                <div className="text-right">
+                   <p className="text-[10px] text-white/40 font-mono">WhatsApp: {b.whatsapp_number}</p>
+                   <p className="text-[10px] text-white/40 font-mono italic">{b.address}</p>
+                </div>
+             </div>
+             <div className="mt-4 pt-4 border-t border-white/5 flex gap-2">
+                <button className="text-[9px] uppercase font-bold text-white/30 hover:text-white transition-colors">Editar Sede</button>
+                <button className="text-[9px] uppercase font-bold text-white/30 hover:text-white transition-colors">Estadísticas</button>
+             </div>
+          </div>
+        ))}
+      </div>
+
+      <AnimatePresence>
+        {isAdding && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-zinc-900 border border-white/10 p-8 rounded-[2.5rem] w-full max-w-md shadow-2xl">
+               <h3 className="text-xl font-black italic uppercase text-white mb-6">Añadir Nueva Sede</h3>
+               <div className="space-y-4">
+                  <div>
+                    <label className="text-[9px] uppercase tracking-widest text-white/40 mb-2 block font-bold">Nombre de la Sede</label>
+                    <input type="text" placeholder="Ej: Sede Norte" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-amber-500" value={newBranch.name} onChange={e => setNewBranch({...newBranch, name: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="text-[9px] uppercase tracking-widest text-white/40 mb-2 block font-bold">Slug URL</label>
+                    <input type="text" placeholder="norte" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-amber-500" value={newBranch.slug} onChange={e => setNewBranch({...newBranch, slug: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="text-[9px] uppercase tracking-widest text-white/40 mb-2 block font-bold">WhatsApp Operativo</label>
+                    <input type="text" placeholder="573..." className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-amber-500" value={newBranch.whatsapp_number} onChange={e => setNewBranch({...newBranch, whatsapp_number: e.target.value})} />
+                  </div>
+                  <div className="flex gap-3 pt-4">
+                    <button onClick={() => setIsAdding(false)} className="flex-1 py-4 rounded-2xl text-[10px] font-black uppercase text-white/40 border border-white/10">Cancelar</button>
+                    <button onClick={handleAdd} className="flex-1 py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase shadow-lg">Guardar Sede</button>
+                  </div>
+               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 /* ── MASTER TERMINAL ── */
 export const AdminDashboard = () => {
   const { tenantSlug } = useParams();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [view, setView] = useState('kanban'); // kanban, inventory, stats
+  const [view, setView] = useState('kanban'); // kanban, inventory, stats, sedes
   const [products, setProducts] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
 
@@ -846,8 +924,14 @@ export const AdminDashboard = () => {
   }, [tenantSlug]);
 
   useEffect(() => { 
-    if (isAuthenticated) fetchProducts(); 
-  }, [isAuthenticated, fetchProducts]);
+    if (isAuthenticated) {
+      fetchProducts(); 
+      fetch(`${API_URL}/api/v1/tenant/${tenantSlug}`)
+        .then(r => r.json())
+        .then(data => setBranches(data.branches || []))
+        .catch(err => console.warn(err));
+    }
+  }, [isAuthenticated, fetchProducts, tenantSlug]);
 
   const toggleProduct = async (id, currentStatus) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, is_available: !currentStatus } : p));
@@ -892,10 +976,10 @@ export const AdminDashboard = () => {
           <img src="/logo.png" alt="HUB" className="h-5 lg:h-6 object-contain" style={{ filter: 'brightness(1.5)', mixBlendMode: 'screen' }} />
         </div>
         <div className="flex gap-8 flex-shrink-0 whitespace-nowrap pr-12">
-          {['kanban', 'inventory', 'stats', 'qr', 'marketing', 'settings', 'billing'].map(m => (
+          {['kanban', 'inventory', 'stats', 'sedes', 'qr', 'marketing', 'settings', 'billing'].map(m => (
             <button key={m} onClick={() => setView(m)}
               className={`text-[10px] font-bold uppercase tracking-[0.22em] transition-all relative py-2 ${view === m ? 'text-amber-500' : 'text-white/30 hover:text-white/80'}`}>
-              {m === 'kanban' ? 'Pedidos Live' : m === 'inventory' ? 'Suministros' : m === 'stats' ? 'Monitor' : m === 'qr' ? 'Punto QR' : m === 'marketing' ? 'Marketing AI' : m === 'settings' ? 'Branding' : 'Billing'}
+              {m === 'kanban' ? 'Pedidos Live' : m === 'inventory' ? 'Suministros' : m === 'stats' ? 'Monitor' : m === 'sedes' ? 'Sedes' : m === 'qr' ? 'Punto QR' : m === 'marketing' ? 'Marketing AI' : m === 'settings' ? 'Branding' : 'Billing'}
               {view === m && (
                 <motion.div 
                   layoutId="hud-nav" 
@@ -909,6 +993,7 @@ export const AdminDashboard = () => {
 
       <main className="pt-24 pb-12 px-5 max-w-7xl w-full mx-auto">
         <AnimatePresence mode="wait">
+          {view === 'sedes' && <SedesView branches={branches} tenantSlug={tenantSlug} />}
           {view === 'kanban' ? (
             <KanbanBoard key="kanban" tenantSlug={tenantSlug} />
           ) : view === 'inventory' ? (

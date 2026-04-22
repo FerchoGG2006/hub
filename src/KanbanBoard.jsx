@@ -19,7 +19,10 @@ const KanbanColumn = ({ title, items, nextStatus, color, icon, changeStatus, pri
               <span className="text-white font-bold">{o.customer_name || 'Mesa Local'}</span>
               <span className="text-amber-500 font-bold">${o.total_price.toLocaleString()}</span>
             </div>
-            <p className="text-[10px] text-white/40 uppercase tracking-widest mb-4">ORDEN #{o.id} • {o.table_number || 'S/M'}</p>
+            <p className="text-[10px] text-white/40 uppercase tracking-widest mb-4 flex items-center justify-between">
+              <span>ORDEN #{o.id} • {o.table_number || 'S/M'}</span>
+              <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded-full border border-white/5">{o.branch_name || 'Central'}</span>
+            </p>
             
             <div className="flex gap-2 w-full mt-2">
                {nextStatus && (

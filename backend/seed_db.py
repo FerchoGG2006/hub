@@ -35,6 +35,12 @@ def seed_data():
     db.commit()
     db.refresh(t_rivera)
     print(f"Tenant Creado: {t_rivera.name} (ID: {t_rivera.id})")
+    
+    # 1.1 Sedes para La Rivera
+    b1 = models.Branch(tenant_id=t_rivera.id, name="Sede Principal (Centro)", slug="centro", whatsapp_number="573210000000", address="Calle 15 #4-20")
+    b2 = models.Branch(tenant_id=t_rivera.id, name="Sede Norte", slug="norte", whatsapp_number="573009999999", address="Av. Sierra Nevada")
+    db.add_all([b1, b2])
+    db.commit()
 
     # 2. Categorías asociadas a La Rivera
     c1 = models.Category(name="Entradas", icon="🥟", tenant_id=t_rivera.id)
