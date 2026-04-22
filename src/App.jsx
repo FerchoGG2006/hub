@@ -40,13 +40,20 @@ const MainApp = ({ config }) => {
 };
 
 /* ── TENANT RESOLVER ── */
+/* ── TENANT RESOLVER ── */
 const HubLoader = () => {
   const { tenantSlug } = useParams();
+  // Normalize slug: remove trailing slashes and convert to lowercase
+  const cleanSlug = tenantSlug?.replace(/\/$/, '').toLowerCase();
+  
   const [config, setConfig] = useState(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/v1/tenant/${tenantSlug}`)
+    // Prevent fetching for obvious non-tenant assets
+    if (!cleanSlug || ['favicon.ico', 'logo.png', 'manifest.json'].includes(cleanSlug)) return;
+
+    fetch(`${API_URL}/api/v1/tenant/${cleanSlug}`)
       .then(res => {
          if (!res.ok) throw new Error('Tenant not found');
          return res.json();
@@ -58,10 +65,10 @@ const HubLoader = () => {
         }
       })
       .catch(err => {
-        console.error(err);
+        console.error("HubLoader Fetch Error:", err);
         setError(true);
       });
-  }, [tenantSlug]);
+  }, [cleanSlug]);
 
   if (config?.subscription_status === 'suspended') {
     return (
@@ -97,11 +104,11 @@ export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
-        <Route path="/admin/:tenantSlug" element={<AdminDashboard />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/superadmin" element={<SuperAdmin />} />
+        <Route path="/admin/:tenantSlug" element={<AdminDashboard />} />
         <Route path="/t/:tenantSlug" element={<HubLoader />} />
         <Route path="/:tenantSlug" element={<HubLoader />} />
-        <Route path="/" element={<LandingPage />} />
       </Routes>
     </BrowserRouter>
   );
