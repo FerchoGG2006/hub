@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion';
 
 export const CoverPage = ({ onOpen }) => (
-  <div className="cover-grain h-svh w-full flex items-center justify-center bg-black overflow-hidden relative" style={{ touchAction: 'none' }}>
+  <div className="cover-grain min-h-svh w-full flex items-center justify-center bg-black relative">
     <video autoPlay muted loop playsInline className="absolute w-full h-full object-cover" style={{ opacity: 0.3, transform: 'scale(1.06)' }}>
       <source src="https://assets.mixkit.co/videos/preview/mixkit-fire-flames-in-the-dark-1234-large.mp4" type="video/mp4" />
     </video>

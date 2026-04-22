@@ -178,7 +178,7 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
 
   return (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-lg relative overflow-hidden shadow-[0_30px_100px_rgba(245,158,11,0.07)]">
+      <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-lg relative overflow-y-auto max-h-[90vh] shadow-[0_30px_100px_rgba(245,158,11,0.07)]">
         
         {/* Glow AI */}
         {step === 2 && (

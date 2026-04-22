@@ -684,7 +684,7 @@ const AddProductModal = ({ onClose, onProductAdded }) => {
       className="fixed inset-0 z-[100] flex justify-center items-end sm:items-center">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
       
-      <div className="bg-[#050505] border border-white/10 sm:rounded-[2.5rem] rounded-t-[2.5rem] p-6 w-full max-w-5xl relative z-10 flex flex-col xl:flex-row gap-8 sm:max-h-[85vh] h-[95vh] sm:h-auto overflow-hidden">
+      <div className="bg-[#050505] border border-white/10 sm:rounded-[2.5rem] rounded-t-[2.5rem] p-6 w-full max-w-5xl relative z-10 flex flex-col xl:flex-row gap-8 sm:max-h-[90vh] h-[95vh] sm:h-auto overflow-y-auto">
         
         {/* PANEL IZQUIERDO: Editor de Contenido */}
         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
@@ -796,7 +796,7 @@ const AIIngestModal = ({ onClose, onSuccess }) => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="bg-[#050505] border border-amber-500/20 rounded-[2rem] p-8 w-full max-w-sm relative overflow-hidden shadow-2xl">
+      <div className="bg-[#050505] border border-amber-500/20 rounded-[2rem] p-8 w-full max-w-sm relative overflow-y-auto max-h-[90vh] shadow-2xl">
         {loading && <motion.div animate={{ rotate: 360 }} transition={{ duration: 5, repeat: Infinity, ease: 'linear' }} className="absolute -inset-10 bg-amber-500/10 blur-[50px] pointer-events-none" />}
         
         <h3 className="text-xl font-black italic uppercase tracking-tighter mb-2 text-white flex items-center gap-2">
@@ -907,7 +907,7 @@ export const AdminDashboard = () => {
         </div>
       </nav>
 
-      <main className="pt-24 pb-12 px-5 max-w-7xl w-full mx-auto overflow-x-hidden">
+      <main className="pt-24 pb-12 px-5 max-w-7xl w-full mx-auto overflow-y-auto">
         <AnimatePresence mode="wait">
           {view === 'kanban' ? (
             <KanbanBoard key="kanban" tenantSlug={tenantSlug} />

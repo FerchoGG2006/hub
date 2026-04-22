@@ -7,9 +7,9 @@
 html { height: 100%; height: -webkit-fill-available; -webkit-text-size-adjust: 100%; overflow-x: hidden; }
 
 body {
-  margin: 0; padding: 0; background: #000; overflow-x: hidden;
+  margin: 0; padding: 0; background: #000;
   font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  user-select: none; -webkit-user-select: none; width: 100%;
+  width: 100%;
   min-height: 100vh; min-height: -webkit-fill-available;
   -webkit-font-smoothing: antialiased;
 }
