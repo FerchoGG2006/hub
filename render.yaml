@@ -19,9 +19,8 @@ services:
   - type: web
     name: hub-frontend
     env: static
-    static: true
     buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
+    publishPath: ./dist
     envVars:
       - key: VITE_API_URL
         value: https://hub-api.onrender.com
