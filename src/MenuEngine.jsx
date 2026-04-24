@@ -9,7 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const LoadingSkeleton = () => (
   <div className="perspective-container bg-black flex items-center justify-center">
-    <div className="w-[85vw] max-w-[350px] h-[70vh] rounded-[2.5rem] animate-pulse bg-white/5 border border-white/10 flex flex-col p-6 space-y-4">
+    <div className="w-[85vw] max-w-[350px] h-[70vh] rounded-[2.5rem] animate-pulse bg-white/5 border border-white/10 flex flex-col p-8 space-y-4">
       <div className="h-4 w-24 rounded-lg bg-white/10" />
       <div className="h-10 w-48 rounded-lg bg-white/10" />
       <div className="space-y-3 mt-6">
@@ -21,7 +21,7 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-/* ════════════════ MAIN ENGINE (RESPONSIVE HIGH-FIDELITY) ════════════════ */
+/* ════════════════ MAIN ENGINE (PRO 3D MESH & RELIEF) ════════════════ */
 export const MenuEngine = ({ config }) => {
   const { addToCart } = useCart();
   const [allMenuData, setAllMenuData] = useState(null);
@@ -78,23 +78,23 @@ export const MenuEngine = ({ config }) => {
         if (pageFlip.current) pageFlip.current.destroy();
 
         pageFlip.current = new PageFlip(bookRef.current, {
-          width: 380,
-          height: 650,
+          width: 400,
+          height: 700,
           size: 'stretch',
           minWidth: 280,
           maxWidth: 450,
           minHeight: 480,
-          maxHeight: 800,
-          maxShadowOpacity: 0.4,
+          maxHeight: 850,
+          maxShadowOpacity: 0.6,
           showCover: false,
           mobileScrollSupport: true,
           usePortrait: true,
-          flippingTime: 800,
-          swipeDistance: 15, // More sensitive swipe
+          flippingTime: 1000,
+          swipeDistance: 15,
           showPageCorners: true,
-          disableFlipByClick: true, // IMPORTANT: Disables flipping on random clicks
+          disableFlipByClick: true,
           autoSize: true,
-          clickEventForward: false // Prevents clicks from triggering flips
+          clickEventForward: false
         });
 
         pageFlip.current.loadFromHTML(document.querySelectorAll('.page-item'));
@@ -136,22 +136,30 @@ export const MenuEngine = ({ config }) => {
       </div>
 
       {/* ── THE BOOK ── */}
-      <div className="relative w-[94vw] max-w-[400px] aspect-[4/6.8] shadow-[0_40px_100px_-20px_rgba(0,0,0,1)] rounded-[2.5rem] overflow-hidden border border-white/5">
+      <div className="relative w-[94vw] max-w-[420px] aspect-[4/7] shadow-[0_60px_150px_-30px_rgba(0,0,0,1)] rounded-[2.8rem] overflow-hidden">
         <div ref={bookRef} className="w-full h-full" style={{ touchAction: 'none' }}>
           {categories.map((cat, pageIdx) => {
             const items = allMenuData[cat] || [];
             const meta = CATEGORY_META[cat] || { accent: '#fff', icon: '🍽️', label: cat };
             return (
-              <div key={cat} className="page-item bg-[#080808] text-white overflow-hidden" data-density="hard">
-                <div className="page-content h-full flex flex-col p-6 sm:p-8 relative bg-[#080808]">
-                  {/* Spine effect */}
-                  <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-black/80 to-transparent pointer-events-none z-10" />
+              <div key={cat} className="page-item bg-[#0a0a0a] text-white overflow-hidden" data-density="soft">
+                <div className="page-content h-full flex flex-col p-7 relative bg-[#0a0a0a]">
                   
-                  <div className="mb-6 relative z-20">
+                  {/* ── 3D SPINE RELIEF EFFECT ── */}
+                  <div className="absolute left-0 top-0 bottom-0 w-[40px] z-30 pointer-events-none flex">
+                    <div className="w-[12px] bg-gradient-to-r from-black/90 to-transparent" />
+                    <div className="w-[1px] h-full bg-white/5" />
+                    <div className="w-[27px] bg-gradient-to-r from-black/40 to-transparent opacity-50" />
+                  </div>
+                  
+                  {/* Internal Glow */}
+                  <div className="absolute inset-0 bg-radial-gradient from-white/[0.02] to-transparent pointer-events-none" />
+
+                  <div className="mb-6 relative z-20 pl-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2.5">
                         <span className="text-xl">{meta.icon}</span>
-                        <span className="text-[9px] font-black uppercase tracking-[0.4em]" style={{ color: meta.accent }}>{meta.label}</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em]" style={{ color: meta.accent }}>{meta.label}</span>
                       </div>
                       <span className="text-white/10 font-mono text-[10px]">{String(pageIdx + 1).padStart(2, '0')}</span>
                     </div>
@@ -159,7 +167,9 @@ export const MenuEngine = ({ config }) => {
                     <div className="h-0.5 w-16 rounded-full" style={{ backgroundColor: meta.accent }} />
                   </div>
 
-                  <div className="flex-1 grid grid-cols-1 gap-3 content-start overflow-y-auto no-scrollbar pb-12">
+                  {/* PRODUCTS SCROLL AREA - RESTRICTED GESTURES */}
+                  <div className="flex-1 grid grid-cols-1 gap-3 content-start overflow-y-auto no-scrollbar pb-16 px-1 relative z-20"
+                       style={{ touchAction: 'pan-y' }}>
                     {items.map((item, idx) => (
                       <ProductCell 
                         key={item.id} item={item} index={idx} accent={meta.accent} 
@@ -168,13 +178,13 @@ export const MenuEngine = ({ config }) => {
                     ))}
                   </div>
 
-                  <div className="absolute bottom-6 left-10 right-6 flex items-center justify-between opacity-10">
-                    <p className="text-[7px] font-black uppercase tracking-[0.6em] text-white">Hub Premium</p>
-                    <div className="flex gap-1.5">
-                      {categories.map((_, i) => (
-                        <div key={i} className={`w-1 h-1 rounded-full ${i === currentPage ? 'bg-white scale-125' : 'bg-white/30'}`} />
-                      ))}
-                    </div>
+                  {/* Corner indicator */}
+                  <div className="absolute bottom-6 right-6 w-8 h-8 opacity-20 pointer-events-none">
+                     <div className="w-full h-full border-r-2 border-b-2 border-white rounded-br-lg" />
+                  </div>
+
+                  <div className="absolute bottom-6 left-12 flex items-center gap-4 opacity-10">
+                    <p className="text-[7px] font-black uppercase tracking-[0.8em] text-white">Hub Pro v2.0</p>
                   </div>
                 </div>
               </div>
