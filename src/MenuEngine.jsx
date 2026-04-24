@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageFlip } from 'page-flip';
 import { MENU_DATA as STATIC_MENU, CATEGORY_META } from './MenuData';
@@ -27,11 +28,12 @@ export const MenuEngine = ({ config }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const bookRef = useRef(null);
-  const pageFlip = useRef(null);
+  const pflip = useRef(null);
 
+  /* ── FETCH MENU ── */
   useEffect(() => {
     const tenantSlug = config?.slug || 'la-rivera';
-    const loadMenu = async () => {
+    (async () => {
       try {
         const [menuRes, catsRes] = await Promise.all([
           fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/menu`, { signal: AbortSignal.timeout(4000) }),
@@ -40,7 +42,7 @@ export const MenuEngine = ({ config }) => {
         if (!menuRes.ok) throw new Error(`HTTP ${menuRes.status}`);
         const data = await menuRes.json();
         const catsData = await catsRes.json().catch(() => []);
-        
+
         const FALLBACK_ACCENTS = ['#10b981', '#f97316', '#f59e0b', '#06b6d4', '#ec4899'];
         catsData.forEach((c, idx) => {
           if (!CATEGORY_META[c.name]) {
@@ -48,35 +50,37 @@ export const MenuEngine = ({ config }) => {
           }
         });
 
-        const paginatedData = {};
+        const paginated = {};
         Object.keys(data).forEach(catName => {
           const prods = data[catName];
-          if (prods.length <= 4) { paginatedData[catName] = prods; } 
+          if (prods.length <= 4) { paginated[catName] = prods; }
           else {
             for (let i = 0; i < prods.length; i += 4) {
-              const partNum = Math.floor(i / 4) + 1;
-              const newCatName = i === 0 ? catName : `${catName} ${partNum}`;
-              paginatedData[newCatName] = prods.slice(i, i + 4);
+              const pn = Math.floor(i / 4) + 1;
+              const key = i === 0 ? catName : `${catName} ${pn}`;
+              paginated[key] = prods.slice(i, i + 4);
               if (i > 0 && CATEGORY_META[catName]) {
-                 CATEGORY_META[newCatName] = { ...CATEGORY_META[catName], label: `${CATEGORY_META[catName].label || catName} Pt. ${partNum}` };
+                CATEGORY_META[key] = { ...CATEGORY_META[catName], label: `${CATEGORY_META[catName].label || catName} Pt. ${pn}` };
               }
             }
           }
         });
-        setAllMenuData(paginatedData);
-      } catch (_) {
+        setAllMenuData(paginated);
+      } catch { 
         setAllMenuData(STATIC_MENU);
       }
-    };
-    loadMenu();
+    })();
   }, [config?.slug]);
 
+  /* ── INIT PAGE-FLIP ── */
   useEffect(() => {
-    if (allMenuData && bookRef.current) {
-      const timer = setTimeout(() => {
-        if (pageFlip.current) pageFlip.current.destroy();
+    if (!allMenuData || !bookRef.current) return;
 
-        pageFlip.current = new PageFlip(bookRef.current, {
+    const timer = setTimeout(() => {
+      try {
+        if (pflip.current) pflip.current.destroy();
+
+        pflip.current = new PageFlip(bookRef.current, {
           width: 400,
           height: 700,
           size: 'stretch',
@@ -93,44 +97,86 @@ export const MenuEngine = ({ config }) => {
           showPageCorners: true,
           disableFlipByClick: true,
           autoSize: true,
-          clickEventForward: false
+          direction: 'rtl'
         });
 
-        pageFlip.current.loadFromHTML(document.querySelectorAll('.page-item'));
-        pageFlip.current.on('flip', (e) => setCurrentPage(e.data));
-      }, 800);
+        const pages = document.querySelectorAll('.page-item');
+        if (pages.length > 0) {
+          pflip.current.loadFromHTML(pages);
+          pflip.current.on('flip', (e) => setCurrentPage(e.data));
+        }
+      } catch (e) {
+        console.error('PageFlip init error:', e);
+      }
+    }, 1000);
 
-      return () => clearTimeout(timer);
-    }
+    return () => {
+      clearTimeout(timer);
+      if (pflip.current) { try { pflip.current.destroy(); } catch { /* cleanup */ } }
+    };
   }, [allMenuData]);
 
+  /* ── NAVIGATION ── */
   const categories = allMenuData ? Object.keys(allMenuData) : [];
-  const goToPage = (index) => {
-    if (pageFlip.current) {
-      pageFlip.current.turnToPage(index);
+
+  const goToPage = (idx) => {
+    if (pflip.current && idx >= 0 && idx < categories.length) {
+      pflip.current.turnToPage(idx);
       if (navigator.vibrate) navigator.vibrate(10);
     }
   };
 
-  const flipPrev = () => {
-    if (pageFlip.current) {
-      pageFlip.current.flipPrev();
-      if (navigator.vibrate) navigator.vibrate(10);
-    }
-  };
+  /* ── SWIPE-BACK: Native DOM listeners in capture phase ── */
+  const pageRef = useRef(0);
+  useEffect(() => { pageRef.current = currentPage; }, [currentPage]);
 
-  const flipNext = () => {
-    if (pageFlip.current) {
-      pageFlip.current.flipNext();
-      if (navigator.vibrate) navigator.vibrate(10);
-    }
-  };
+  useEffect(() => {
+    const el = bookRef.current;
+    if (!el || !allMenuData) return;
+
+    let startX = 0, startY = 0, startTime = 0;
+
+    const onStart = (e) => {
+      if (e.touches.length !== 1) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      startTime = Date.now();
+    };
+
+    const onEnd = (e) => {
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      const dt = Date.now() - startTime;
+
+      // Only process dominant horizontal swipes under 600ms
+      if (Math.abs(dx) > Math.abs(dy) * 1.3 && dt < 600) {
+        if (dx < -50 && pflip.current) {
+          // Swipe LEFT → next page
+          pflip.current.flipNext();
+          if (navigator.vibrate) navigator.vibrate(10);
+        } else if (dx > 50 && pflip.current && pageRef.current > 0) {
+          // Swipe RIGHT → previous page (reverse flip)
+          pflip.current.flipPrev();
+          if (navigator.vibrate) navigator.vibrate(10);
+        }
+      }
+    };
+
+    // Capture phase fires BEFORE page-flip's own listeners
+    el.addEventListener('touchstart', onStart, { capture: true, passive: true });
+    el.addEventListener('touchend', onEnd, { capture: true, passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onStart, { capture: true });
+      el.removeEventListener('touchend', onEnd, { capture: true });
+    };
+  }, [allMenuData]);
 
   if (!allMenuData) return <LoadingSkeleton />;
 
   return (
     <div className="perspective-container flex flex-col items-center justify-center bg-black overflow-hidden py-10">
-      {/* ── NAVIGATION ── */}
+      {/* ── TOP CATEGORY BAR ── */}
       <div className="fixed top-4 left-0 right-0 z-[200] pointer-events-none">
         <div className="flex justify-center px-4">
           <div className="flex gap-1.5 overflow-x-auto no-scrollbar pointer-events-auto px-4 py-2 rounded-full bg-black/60 backdrop-blur-3xl border border-white/10 shadow-2xl max-w-full">
@@ -157,13 +203,13 @@ export const MenuEngine = ({ config }) => {
             return (
               <div key={cat} className="page-item bg-[#0a0a0a] text-white overflow-hidden" data-density="soft">
                 <div className="page-content h-full flex flex-col p-7 relative bg-[#0a0a0a]">
-                  {/* 3D SPINE RELIEF */}
-                  <div className="absolute left-0 top-0 bottom-0 w-[40px] z-30 pointer-events-none flex">
-                    <div className="w-[12px] bg-gradient-to-r from-black/90 to-transparent" />
+                  {/* 3D SPINE RELIEF (inverted for RTL) */}
+                  <div className="absolute right-0 top-0 bottom-0 w-[40px] z-30 pointer-events-none flex flex-row-reverse">
+                    <div className="w-[12px] bg-gradient-to-l from-black/90 to-transparent" />
                     <div className="w-[1px] h-full bg-white/5" />
-                    <div className="w-[27px] bg-gradient-to-r from-black/40 to-transparent opacity-50" />
+                    <div className="w-[27px] bg-gradient-to-l from-black/40 to-transparent opacity-50" />
                   </div>
-                  
+
                   <div className="mb-6 relative z-20 pl-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2.5">
@@ -178,9 +224,9 @@ export const MenuEngine = ({ config }) => {
 
                   <div className="flex-1 grid grid-cols-1 gap-3 content-start overflow-y-auto no-scrollbar pb-20 px-1 relative z-20">
                     {items.map((item, idx) => (
-                      <ProductCell 
-                        key={item.id} item={item} index={idx} accent={meta.accent} 
-                        onAdd={() => addToCart(item)} onClick={() => setSelectedProduct(item)} 
+                      <ProductCell
+                        key={item.id} item={item} index={idx} accent={meta.accent}
+                        onAdd={() => addToCart(item)} onClick={() => setSelectedProduct(item)}
                       />
                     ))}
                   </div>
@@ -189,24 +235,9 @@ export const MenuEngine = ({ config }) => {
             );
           })}
         </div>
-
-        {/* ── FLOATING NAV ARROWS (outside page-flip DOM) ── */}
-        <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between z-[100] pointer-events-none">
-          <button 
-            onClick={flipPrev}
-            className={`pointer-events-auto w-11 h-11 rounded-full bg-black/70 backdrop-blur-xl border border-white/15 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/15 active:scale-90 transition-all shadow-lg ${currentPage === 0 ? 'opacity-0 pointer-events-none' : ''}`}
-          >
-            ←
-          </button>
-          <p className="text-[8px] font-black uppercase tracking-[0.5em] text-white/20 pointer-events-none">{currentPage + 1} / {categories.length}</p>
-          <button 
-            onClick={flipNext}
-            className={`pointer-events-auto w-11 h-11 rounded-full bg-black/70 backdrop-blur-xl border border-white/15 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/15 active:scale-90 transition-all shadow-lg ${currentPage === categories.length - 1 ? 'opacity-0 pointer-events-none' : ''}`}
-          >
-            →
-          </button>
-        </div>
       </div>
+
+
 
       {/* ── CINEMATIC PRODUCT MODAL ── */}
       <AnimatePresence>
