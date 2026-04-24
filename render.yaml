@@ -23,4 +23,7 @@ static_sites:
     publishPath: ./dist
     envVars:
       - key: VITE_API_URL
-        value: https://hub-client-gpby.onrender.com
+        fromService:
+          name: hub-api
+          type: web
+          property: url
