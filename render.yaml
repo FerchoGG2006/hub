@@ -15,12 +15,12 @@ services:
       - key: FRONTEND_URL
         fromService:
           name: hub-frontend
-          type: static
+          type: static_site
           property: url
 
+static_sites:
   # ─── FRONTEND (React + Vite) ───
-  - type: static
-    name: hub-frontend
+  - name: hub-frontend
     env: static
     buildCommand: npm install && npm run build
     publishPath: ./dist
