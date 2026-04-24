@@ -111,7 +111,60 @@ body {
 .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--amber); }
+/* ── APPLE BOOKS 3D ENGINE ── */
+.scene-3d {
+  perspective: 2500px;
+  perspective-origin: center center;
+}
+
+.book-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.page-flipper {
+  position: absolute;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.page-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background: #0a0a0a;
+  box-shadow: inset 20px 0 50px -20px rgba(0,0,0,0.5);
+}
+
+.page-face-back {
+  transform: rotateY(180deg);
+  box-shadow: inset -20px 0 50px -20px rgba(0,0,0,0.5);
+}
+
+/* Sombra dinámica del lomo */
+.page-face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(0,0,0,0.3) 0%, transparent 15%);
+  pointer-events: none;
+}
+
+.page-face-back::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to left, rgba(0,0,0,0.3) 0%, transparent 15%);
+  pointer-events: none;
+}
 
 /* Prevent horizontal body scroll on dashboard */
 

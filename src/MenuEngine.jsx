@@ -1,52 +1,35 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-// eslint-disable-next-line no-unused-vars
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageFlip } from 'page-flip';
 import { MENU_DATA as STATIC_MENU, CATEGORY_META } from './MenuData';
 import { useCart } from './CartContext';
 import { ProductCell } from './ProductCell';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-/* ── Page flip variants (skewY via custom prop) ── */
-const PAGE_VARIANTS = {
-  initial: (dir) => ({ rotateY: dir > 0 ? 110 : -110, skewY: dir > 0 ? -12 : 12, x: dir > 0 ? 80 : -80, opacity: 0, scale: 0.92 }),
-  animate: { rotateY: 0, skewY: 0, x: 0, opacity: 1, scale: 1, transition: { duration: 0.82, ease: [0.15, 0.85, 0.35, 1] } },
-  exit:    (dir) => ({ rotateY: dir > 0 ? -115 : 115, skewY: dir > 0 ? 16 : -16, opacity: 0, scale: 0.82, transition: { duration: 0.65, ease: [0.4, 0, 0.6, 1] } }),
-};
-const FAST_VARIANTS = {
-  initial: (dir) => ({ rotateY: dir > 0 ? 90 : -90, skewY: dir > 0 ? -8 : 8, opacity: 0, scale: 0.95 }),
-  animate: { rotateY: 0, skewY: 0, opacity: 1, scale: 1, transition: { duration: 0.22, ease: 'easeInOut' } },
-  exit:    (dir) => ({ rotateY: dir > 0 ? -90 : 90, skewY: dir > 0 ? 12 : -12, opacity: 0, scale: 0.9, transition: { duration: 0.18, ease: 'easeIn' } }),
-};
-
-/* ProductCell is imported from ./ProductCell.jsx */
-
-/* ── Category tabs removed per design request ── */
-
-/* ── Loading Skeleton ── */
 const LoadingSkeleton = () => (
-  <div className="perspective-container">
-    <div className="absolute top-8 bottom-8 rounded-[2.5rem] animate-pulse glass-card flex flex-col p-5 space-y-4" style={{ left: '12px', right: '12px' }}>
-      <div className="h-6 w-32 rounded-lg" style={{ background: 'rgba(255,255,255,0.08)' }} />
-      <div className="grid grid-cols-1 gap-2.5 mt-6">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="h-28 rounded-2xl w-full" style={{ background: 'rgba(255,255,255,0.05)' }} />
+  <div className="perspective-container bg-black flex items-center justify-center">
+    <div className="w-[85vw] max-w-[350px] h-[70vh] rounded-[2.5rem] animate-pulse bg-white/5 border border-white/10 flex flex-col p-6 space-y-4">
+      <div className="h-4 w-24 rounded-lg bg-white/10" />
+      <div className="h-10 w-48 rounded-lg bg-white/10" />
+      <div className="space-y-3 mt-6">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="h-20 rounded-2xl w-full bg-white/5" />
         ))}
       </div>
     </div>
   </div>
 );
 
-/* ════════════════ MAIN ENGINE ════════════════ */
+/* ════════════════ MAIN ENGINE (RESPONSIVE HIGH-FIDELITY) ════════════════ */
 export const MenuEngine = ({ config }) => {
   const { addToCart } = useCart();
-  const [allMenuData, setAllMenuData] = useState(null);   // null = loading
-  const [apiError,    setApiError]    = useState(false);
+  const [allMenuData, setAllMenuData] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [direction,   setDirection]   = useState(1);
-  const lock = useRef(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const bookRef = useRef(null);
+  const pageFlip = useRef(null);
 
-  /* ── Fetch menu from FastAPI (fallback to static if API unavailable) ── */
   useEffect(() => {
     const tenantSlug = config?.slug || 'la-rivera';
     const loadMenu = async () => {
@@ -56,180 +39,172 @@ export const MenuEngine = ({ config }) => {
           fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/categories`, { signal: AbortSignal.timeout(4000) })
         ]);
         if (!menuRes.ok) throw new Error(`HTTP ${menuRes.status}`);
-        
         const data = await menuRes.json();
         const catsData = await catsRes.json().catch(() => []);
         
-        // Dynamically inject any new AI categories into the metadata map
         const FALLBACK_ACCENTS = ['#10b981', '#f97316', '#f59e0b', '#06b6d4', '#ec4899'];
         catsData.forEach((c, idx) => {
           if (!CATEGORY_META[c.name]) {
-            CATEGORY_META[c.name] = {
-               accent: FALLBACK_ACCENTS[idx % FALLBACK_ACCENTS.length],
-               icon: c.icon || '🍽️',
-               label: c.name
-            };
+            CATEGORY_META[c.name] = { accent: FALLBACK_ACCENTS[idx % FALLBACK_ACCENTS.length], icon: c.icon || '🍽️', label: c.name };
           }
         });
 
-        // Validate that we got categories with items
-        if (Object.keys(data).length === 0) throw new Error('Empty menu');
-
-        // Automatically Paginate: Max 4 items per page (1 column list for long descriptions)
         const paginatedData = {};
         Object.keys(data).forEach(catName => {
           const prods = data[catName];
-          if (prods.length <= 4) {
-            paginatedData[catName] = prods;
-          } else {
+          if (prods.length <= 4) { paginatedData[catName] = prods; } 
+          else {
             for (let i = 0; i < prods.length; i += 4) {
               const partNum = Math.floor(i / 4) + 1;
               const newCatName = i === 0 ? catName : `${catName} ${partNum}`;
               paginatedData[newCatName] = prods.slice(i, i + 4);
-              
               if (i > 0 && CATEGORY_META[catName]) {
-                 CATEGORY_META[newCatName] = { ...CATEGORY_META[catName] };
-                 CATEGORY_META[newCatName].label = `${CATEGORY_META[catName].label || catName} Pt. ${partNum}`;
+                 CATEGORY_META[newCatName] = { ...CATEGORY_META[catName], label: `${CATEGORY_META[catName].label || catName} Pt. ${partNum}` };
               }
             }
           }
         });
-
         setAllMenuData(paginatedData);
       } catch (err) {
-        console.warn('API not available, using static data:', err.message);
-        setApiError(true);
         setAllMenuData(STATIC_MENU);
       }
     };
     loadMenu();
-
-    /* ── WebSocket Real-Time Magic ── */
-    let ws;
-    try {
-      const wsUrl = API_URL.replace(/^http/, 'ws') + '/ws/menu';
-      ws = new WebSocket(wsUrl);
-      ws.onmessage = (event) => {
-        const payload = JSON.parse(event.data);
-        if (payload.type === 'MENU_UPDATE') {
-          // Un plato se volvió SOLD OUT (o volvió a línea)
-          if (payload.event === 'PRODUCT_TOGGLE' && navigator.vibrate) {
-            navigator.vibrate([20, 50, 20]); // Pequeño destello háptico en la carta
-          }
-          // Refetch silencioso de la carta 3D
-          const currentTenantSlug = config?.slug || 'la-rivera';
-          fetch(`${API_URL}/api/v1/tenant/${currentTenantSlug}/menu`)
-            .then(res => res.json())
-            .then(newData => {
-               if (Object.keys(newData).length > 0) setAllMenuData(newData);
-            })
-            .catch(err => console.warn('Sync fallido:', err));
-        }
-      };
-    } catch (e) {
-      console.warn('WebSocket init failed:', e);
-    }
-
-    return () => {
-      if (ws) ws.close();
-    };
   }, [config?.slug]);
 
+  useEffect(() => {
+    if (allMenuData && bookRef.current) {
+      const timer = setTimeout(() => {
+        if (pageFlip.current) pageFlip.current.destroy();
+
+        pageFlip.current = new PageFlip(bookRef.current, {
+          width: 380,
+          height: 650,
+          size: 'stretch',
+          minWidth: 280,
+          maxWidth: 450,
+          minHeight: 480,
+          maxHeight: 800,
+          maxShadowOpacity: 0.4,
+          showCover: false,
+          mobileScrollSupport: true,
+          usePortrait: true,
+          flippingTime: 800,
+          swipeDistance: 15, // More sensitive swipe
+          showPageCorners: true,
+          disableFlipByClick: true, // IMPORTANT: Disables flipping on random clicks
+          autoSize: true,
+          clickEventForward: false // Prevents clicks from triggering flips
+        });
+
+        pageFlip.current.loadFromHTML(document.querySelectorAll('.page-item'));
+        pageFlip.current.on('flip', (e) => setCurrentPage(e.data));
+      }, 800);
+
+      return () => clearTimeout(timer);
+    }
+  }, [allMenuData]);
+
   const categories = allMenuData ? Object.keys(allMenuData) : [];
-  const cat        = categories[currentPage];
-  const items      = allMenuData ? allMenuData[cat] || [] : [];
-  
-  const FALLBACK_ACCENTS = ['#10b981', '#f97316', '#f59e0b', '#06b6d4', '#ec4899'];
-  const meta = cat && CATEGORY_META[cat] ? CATEGORY_META[cat] : {
-    accent: FALLBACK_ACCENTS[currentPage % FALLBACK_ACCENTS.length],
-    icon: '🍽️',
-    label: cat || '',
+  const goToPage = (index) => {
+    if (pageFlip.current) {
+      pageFlip.current.turnToPage(index);
+      if (navigator.vibrate) navigator.vibrate(10);
+    }
   };
-  const variants = PAGE_VARIANTS;
-
-  const paginate = useCallback((dir) => {
-    const next = currentPage + dir;
-    if (next < 0 || next >= categories.length || lock.current) return;
-    lock.current = true;
-    setDirection(dir); setCurrentPage(next);
-    setTimeout(() => { lock.current = false; }, 860);
-  }, [currentPage, categories.length]);
-
-  const handleDragEnd = useCallback((_, info) => {
-    if (Math.abs(info.offset.x) < 50 || lock.current) return;
-    paginate(info.offset.x < 0 ? 1 : -1);
-  }, [paginate]);
 
   if (!allMenuData) return <LoadingSkeleton />;
 
   return (
-    <div className="perspective-container">
-      <motion.div
-        animate={{ background: `radial-gradient(ellipse at 28% 45%, ${meta.accent}1a 0%, transparent 65%)` }}
-        transition={{ duration: 0.7 }} className="absolute inset-0 pointer-events-none" />
-
-      {/* API fallback badge */}
-      {apiError && (
-        <div className="absolute top-3 right-3 z-50 px-2 py-1 rounded-full text-[9px] uppercase tracking-widest"
-          style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: 'rgba(245,158,11,0.7)' }}>
-          modo offline
-        </div>
-      )}
-
-      {/* Thumb tap zones */}
-      <div className="absolute inset-y-0 left-0 w-12 z-[110]" onClick={() => paginate(-1)} />
-      <div className="absolute inset-y-0 right-0 w-12 z-[110]" onClick={() => paginate(1)} />
-
-      {/* Page */}
-      <AnimatePresence mode="popLayout" custom={direction}>
-        <motion.div
-          key={currentPage} custom={direction} variants={variants}
-          initial="initial" animate="animate" exit="exit"
-          drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.07} onDragEnd={handleDragEnd}
-          className="page-pivot glass-card absolute rounded-[2.5rem] overflow-hidden"
-          style={{ left: '12px', right: '12px', top: '2rem', bottom: '2rem', transformOrigin: 'center center', boxShadow: '0px 0px 40px -10px rgba(0,0,0,0.8)' }}
-        >
-          <motion.div className="fold-shadow" animate={{ opacity: lock.current ? 1 : 0 }} transition={{ duration: 0.15 }} />
-          <div className="spine-shadow" />
-
-          <div className="relative z-20 flex flex-col h-full px-4 pt-5 pb-4">
-            <div className="mb-3 pl-1">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">{meta.icon}</span>
-                  <span className="text-[10px] uppercase tracking-[0.28em] font-semibold" style={{ color: meta.accent }}>{meta.label || cat}</span>
-                </div>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold"
-                  style={{ background: `${meta.accent}1a`, border: `1px solid ${meta.accent}44`, color: meta.accent }}>
-                  {String(currentPage + 1).padStart(2, '0')}
-                </div>
-              </div>
-              <h2 className="text-2xl font-black uppercase leading-none tracking-tight text-white mb-2"
-                style={{ fontStyle: 'italic' }}>{cat}</h2>
-              <div className="mt-2 h-px" style={{ background: `linear-gradient(90deg, ${meta.accent}aa, transparent)` }} />
-            </div>
-
-            {/* 1-column product list */}
-            <div className="flex-1 grid grid-cols-1 gap-3 content-start overflow-y-auto"
-              style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', scrollbarWidth: 'none', paddingBottom: '4px' }}>
-              {items.map((item, idx) => (
-                <ProductCell key={item.id} item={item} index={idx} accent={meta.accent} onAdd={() => addToCart(item)} />
-              ))}
-            </div>
-
-            {/* Progress dots */}
-            <div className="mt-3 flex items-center justify-between pl-1">
-              <div className="flex gap-1.5">
-                {categories.map((_, i) => (
-                  <motion.div key={i}
-                    animate={{ width: i === currentPage ? 18 : 5, background: i === currentPage ? meta.accent : 'rgba(255,255,255,0.15)' }}
-                    transition={{ duration: 0.28 }} className="h-1 rounded-full" />
-                ))}
-              </div>
-              <p className="text-[9px] uppercase tracking-[0.45em] text-white/20">— desliza —</p>
-            </div>
+    <div className="perspective-container flex flex-col items-center justify-center bg-black overflow-hidden py-10">
+      {/* ── FLASH NAVIGATION ── */}
+      <div className="fixed top-4 left-0 right-0 z-[200] pointer-events-none">
+        <div className="flex justify-center px-4">
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar pointer-events-auto px-4 py-2 rounded-full bg-black/60 backdrop-blur-3xl border border-white/10 shadow-2xl max-w-full">
+            {categories.map((c, i) => {
+              const m = CATEGORY_META[c] || { icon: '🍽️', label: c };
+              const active = i === currentPage;
+              return (
+                <button key={c} onClick={() => goToPage(i)} className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all duration-500 ${active ? 'bg-white/10' : ''}`}>
+                  <span className="text-sm" style={{ opacity: active ? 1 : 0.4 }}>{m.icon}</span>
+                  {active && <span className="text-[8px] font-black uppercase tracking-widest text-white">{m.label}</span>}
+                </button>
+              );
+            })}
           </div>
-        </motion.div>
+        </div>
+      </div>
+
+      {/* ── THE BOOK ── */}
+      <div className="relative w-[94vw] max-w-[400px] aspect-[4/6.8] shadow-[0_40px_100px_-20px_rgba(0,0,0,1)] rounded-[2.5rem] overflow-hidden border border-white/5">
+        <div ref={bookRef} className="w-full h-full" style={{ touchAction: 'none' }}>
+          {categories.map((cat, pageIdx) => {
+            const items = allMenuData[cat] || [];
+            const meta = CATEGORY_META[cat] || { accent: '#fff', icon: '🍽️', label: cat };
+            return (
+              <div key={cat} className="page-item bg-[#080808] text-white overflow-hidden" data-density="hard">
+                <div className="page-content h-full flex flex-col p-6 sm:p-8 relative bg-[#080808]">
+                  {/* Spine effect */}
+                  <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-black/80 to-transparent pointer-events-none z-10" />
+                  
+                  <div className="mb-6 relative z-20">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xl">{meta.icon}</span>
+                        <span className="text-[9px] font-black uppercase tracking-[0.4em]" style={{ color: meta.accent }}>{meta.label}</span>
+                      </div>
+                      <span className="text-white/10 font-mono text-[10px]">{String(pageIdx + 1).padStart(2, '0')}</span>
+                    </div>
+                    <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-2 leading-none break-words">{cat}</h2>
+                    <div className="h-0.5 w-16 rounded-full" style={{ backgroundColor: meta.accent }} />
+                  </div>
+
+                  <div className="flex-1 grid grid-cols-1 gap-3 content-start overflow-y-auto no-scrollbar pb-12">
+                    {items.map((item, idx) => (
+                      <ProductCell 
+                        key={item.id} item={item} index={idx} accent={meta.accent} 
+                        onAdd={() => addToCart(item)} onClick={() => setSelectedProduct(item)} 
+                      />
+                    ))}
+                  </div>
+
+                  <div className="absolute bottom-6 left-10 right-6 flex items-center justify-between opacity-10">
+                    <p className="text-[7px] font-black uppercase tracking-[0.6em] text-white">Hub Premium</p>
+                    <div className="flex gap-1.5">
+                      {categories.map((_, i) => (
+                        <div key={i} className={`w-1 h-1 rounded-full ${i === currentPage ? 'bg-white scale-125' : 'bg-white/30'}`} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── CINEMATIC PRODUCT MODAL ── */}
+      <AnimatePresence>
+        {selectedProduct && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-6" onClick={() => setSelectedProduct(null)}>
+            <motion.div initial={{ scale: 0.9, y: 50, rotateX: 15 }} animate={{ scale: 1, y: 0, rotateX: 0 }} exit={{ scale: 0.8, y: 50, opacity: 0 }} className="w-full max-w-sm bg-[#050505] rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="relative aspect-square">
+                <img src={selectedProduct.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800'} className="w-full h-full object-cover opacity-80" alt={selectedProduct.name} />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent" />
+                <button onClick={() => setSelectedProduct(null)} className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/50 backdrop-blur-xl flex items-center justify-center text-white border border-white/10">✕</button>
+              </div>
+              <div className="px-8 pb-10 -mt-10 relative z-10 text-center">
+                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-amber-500 mb-2 block">Chef Selection</span>
+                <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white mb-4 leading-[0.9]">{selectedProduct.name}</h3>
+                <p className="text-white/40 text-xs italic font-light leading-relaxed mb-8">{selectedProduct.description || 'Una experiencia gourmet única.'}</p>
+                <div className="flex flex-col gap-3">
+                  <span className="text-2xl font-black text-white">${selectedProduct.price}</span>
+                  <button onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }} className="w-full py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-95 transition-all">Añadir</button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
