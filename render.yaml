@@ -15,15 +15,12 @@ services:
       - key: FRONTEND_URL
         value: https://hub-client-gpby.onrender.com
 
-static_sites:
   # ─── FRONTEND (React + Vite) ───
-  - name: hub-frontend
+  - type: static_site
+    name: hub-frontend
     env: static
     buildCommand: npm install && npm run build
     publishPath: ./dist
     envVars:
       - key: VITE_API_URL
-        fromService:
-          name: hub-api
-          type: web
-          property: url
+        value: https://hub-api.onrender.com # URL fija para evitar dependencias circulares
