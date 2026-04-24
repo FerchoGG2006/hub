@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
 // eslint-disable-next-line no-unused-vars
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const LandingPage = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [form, setForm] = useState({ name: '', restaurant: '', email: '' });
+  const [showLogin, setShowLogin] = useState(false);
+  const [loginData, setLoginData] = useState({ username: '', password: '' });
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [welcomeModal, setWelcomeModal] = useState(null);
 
   const { scrollYProgress } = useScroll();
   const heroY = useTransform(scrollYProgress, [0, 0.2], [0, 150]);
@@ -21,9 +28,57 @@ export const LandingPage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleContactSubmit = (e) => {
+  /* ── UNIVERSAL LOGIN ── */
+  const handleLogin = async (e) => {
     e.preventDefault();
-    alert(`¡Wow ${form.name}! El futuro ha llegado a ${form.restaurant}. Te contactaremos de inmediato.`);
+    setLoginLoading(true);
+    setLoginError('');
+    try {
+      const formData = new URLSearchParams();
+      formData.append('username', loginData.username);
+      formData.append('password', loginData.password);
+
+      const res = await fetch(`${API_URL}/api/auth/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+      });
+
+      if (!res.ok) throw new Error('Credenciales inválidas');
+      const data = await res.json();
+
+      localStorage.setItem('hub_token', data.access_token);
+      localStorage.setItem('hub_role', data.role);
+      localStorage.setItem('hub_tenant', data.tenant_slug || '');
+
+      // Route based on role
+      if (data.role === 'superadmin') {
+        navigate('/superadmin');
+      } else if (data.tenant_slug) {
+        navigate(`/admin/${data.tenant_slug}`);
+      } else {
+        navigate('/superadmin');
+      }
+    } catch (err) {
+      setLoginError(err.message);
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  /* ── ONBOARDING SUBMIT ── */
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    const slug = form.restaurant.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    
+    // Show the welcome modal with access instructions
+    setWelcomeModal({
+      name: form.name,
+      restaurant: form.restaurant,
+      slug: slug,
+      adminUrl: `${window.location.origin}/admin/${slug}`,
+      menuUrl: `${window.location.origin}/${slug}`,
+    });
     setForm({ name: '', restaurant: '', email: '' });
   };
 
@@ -48,8 +103,8 @@ export const LandingPage = () => {
           <div className="flex items-center gap-3">
              <img src="/logo.png" alt="HUB" className="h-8 object-contain" />
           </div>
-          <div className="flex items-center gap-8">
-            <button onClick={() => navigate('/superadmin')} className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 hover:text-white transition-colors hidden md:block">
+          <div className="flex items-center gap-4 md:gap-8">
+            <button onClick={() => setShowLogin(true)} className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 hover:text-white transition-colors">
                Acceso Admin
             </button>
             <button 
@@ -61,6 +116,128 @@ export const LandingPage = () => {
           </div>
         </div>
       </nav>
+
+      {/* ─── LOGIN MODAL ─── */}
+      <AnimatePresence>
+        {showLogin && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[500] bg-black/90 backdrop-blur-3xl flex items-center justify-center p-6"
+            onClick={() => setShowLogin(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.85, y: 40, rotateX: 10 }} 
+              animate={{ scale: 1, y: 0, rotateX: 0 }} 
+              exit={{ scale: 0.9, y: 20, opacity: 0 }}
+              className="w-full max-w-sm bg-[#0a0a0a] rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl p-10"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Animated Lock */}
+              <div className="flex justify-center mb-8">
+                <div className="relative w-24 h-24 flex items-center justify-center">
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }} className="absolute inset-0 border-2 border-dashed border-amber-500/30 rounded-full" />
+                  <motion.div animate={{ rotate: -360 }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }} className="absolute inset-3 border border-white/10 rounded-full" />
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+              </div>
+
+              <h3 className="text-center text-[10px] font-black uppercase tracking-[0.5em] text-amber-500 mb-1">Hub Operativo</h3>
+              <p className="text-center text-[9px] uppercase tracking-[0.3em] text-white/30 mb-8">Terminal de Acceso</p>
+
+              <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                <input 
+                  type="text" placeholder="USER_ID" value={loginData.username}
+                  onChange={e => setLoginData({...loginData, username: e.target.value})}
+                  className="bg-transparent border-b border-white/15 py-3 text-center text-white tracking-[0.2em] outline-none focus:border-amber-500 transition-all font-mono text-sm"
+                  autoFocus
+                />
+                <input 
+                  type="password" placeholder="PASSCODE" value={loginData.password}
+                  onChange={e => setLoginData({...loginData, password: e.target.value})}
+                  className="bg-transparent border-b border-white/15 py-3 text-center text-white tracking-[0.5em] outline-none focus:border-amber-500 transition-all font-mono text-sm"
+                />
+                
+                {loginError && (
+                  <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-[10px] text-center uppercase tracking-widest">
+                    {loginError}
+                  </motion.p>
+                )}
+
+                <button type="submit" disabled={loginLoading} className="mt-4 py-3.5 bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500 hover:text-black uppercase text-[10px] font-black tracking-[0.3em] transition-all rounded-full disabled:opacity-40">
+                  {loginLoading ? 'Verificando...' : 'Enlazar'}
+                </button>
+              </form>
+
+              <button onClick={() => setShowLogin(false)} className="mt-6 w-full text-center text-[9px] uppercase tracking-widest text-white/20 hover:text-white/50 transition-colors">
+                Cancelar
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── WELCOME MODAL (post-registration) ─── */}
+      <AnimatePresence>
+        {welcomeModal && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[500] bg-black/90 backdrop-blur-3xl flex items-center justify-center p-6"
+            onClick={() => setWelcomeModal(null)}
+          >
+            <motion.div 
+              initial={{ scale: 0.85, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-md bg-[#0a0a0a] rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl p-10"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Success Animation */}
+              <div className="flex justify-center mb-6">
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.2 }} className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                  <span className="text-3xl">🚀</span>
+                </motion.div>
+              </div>
+
+              <h3 className="text-center text-lg font-black text-white mb-1">¡Bienvenido, {welcomeModal.name}!</h3>
+              <p className="text-center text-xs text-white/40 mb-8">Tu hub <span className="text-amber-500 font-bold">{welcomeModal.restaurant}</span> está casi listo. Te contactaremos para activar tu cuenta.</p>
+
+              {/* Access Info Cards */}
+              <div className="space-y-3 mb-8">
+                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-amber-500 font-black mb-2">🔗 Tu Panel de Administración</p>
+                  <p className="text-xs text-white/80 font-mono break-all select-all bg-black/40 px-3 py-2 rounded-xl border border-white/5">{welcomeModal.adminUrl}</p>
+                </div>
+
+                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-emerald-500 font-black mb-2">📱 Tu Menú Digital</p>
+                  <p className="text-xs text-white/80 font-mono break-all select-all bg-black/40 px-3 py-2 rounded-xl border border-white/5">{welcomeModal.menuUrl}</p>
+                </div>
+
+                <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-5">
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-amber-500 font-black mb-2">📧 Credenciales por Email</p>
+                  <p className="text-xs text-white/50 leading-relaxed">Recibirás tu <span className="text-white font-bold">USER_ID</span> y <span className="text-white font-bold">PASSCODE</span> en tu correo de contacto una vez activemos tu cuenta.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => { navigator.clipboard.writeText(welcomeModal.adminUrl); }}
+                  className="flex-1 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/10 text-white/50 hover:text-white hover:bg-white/5 transition-all"
+                >
+                  Copiar URL
+                </button>
+                <button 
+                  onClick={() => setWelcomeModal(null)}
+                  className="flex-1 py-3.5 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-amber-500 transition-all"
+                >
+                  Entendido
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ─── HERO SECTION ─── */}
       <main className="relative z-10">
