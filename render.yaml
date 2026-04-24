@@ -7,20 +7,17 @@ services:
     startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://neondb_owner:npg_oZXsypkIR20u@ep-snowy-salad-ama4nvfw-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
       - key: GOOGLE_API_KEY
-        sync: false
+        value: AIzaSyBUI4qYnHwRKxFrgbSR2yB86CPYaLLemqw
       - key: JWT_SECRET
         generateValue: true
       - key: FRONTEND_URL
-        fromService:
-          name: hub-frontend
-          type: static_site
-          property: url
+        value: https://hub-client-gpby.onrender.com
 
-static_sites:
   # ─── FRONTEND (React + Vite) ───
-  - name: hub-frontend
+  - type: static_site
+    name: hub-frontend
     env: static
     buildCommand: npm install && npm run build
     publishPath: ./dist
