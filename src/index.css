@@ -21,7 +21,7 @@ body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
   -webkit-font-smoothing: antialiased;
-  overflow: hidden; /* Lock scroll for the app */
+  overflow-x: hidden;
 }
 
 #root {

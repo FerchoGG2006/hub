@@ -64,7 +64,7 @@ export const MenuEngine = ({ config }) => {
           }
         });
         setAllMenuData(paginatedData);
-      } catch (err) {
+      } catch (_) {
         setAllMenuData(STATIC_MENU);
       }
     };
@@ -108,6 +108,20 @@ export const MenuEngine = ({ config }) => {
   const goToPage = (index) => {
     if (pageFlip.current) {
       pageFlip.current.turnToPage(index);
+      if (navigator.vibrate) navigator.vibrate(10);
+    }
+  };
+
+  const flipPrev = () => {
+    if (pageFlip.current) {
+      pageFlip.current.flipPrev();
+      if (navigator.vibrate) navigator.vibrate(10);
+    }
+  };
+
+  const flipNext = () => {
+    if (pageFlip.current) {
+      pageFlip.current.flipNext();
       if (navigator.vibrate) navigator.vibrate(10);
     }
   };
@@ -162,7 +176,7 @@ export const MenuEngine = ({ config }) => {
                     <div className="h-0.5 w-16 rounded-full" style={{ backgroundColor: meta.accent }} />
                   </div>
 
-                  <div className="flex-1 grid grid-cols-1 gap-3 content-start overflow-y-auto no-scrollbar pb-16 px-1 relative z-20" style={{ touchAction: 'pan-y' }}>
+                  <div className="flex-1 grid grid-cols-1 gap-3 content-start overflow-y-auto no-scrollbar pb-20 px-1 relative z-20">
                     {items.map((item, idx) => (
                       <ProductCell 
                         key={item.id} item={item} index={idx} accent={meta.accent} 
@@ -170,15 +184,27 @@ export const MenuEngine = ({ config }) => {
                       />
                     ))}
                   </div>
-
-                  {/* Page HUD */}
-                  <div className="absolute bottom-6 left-12 flex items-center gap-4 opacity-10">
-                    <p className="text-[7px] font-black uppercase tracking-[0.8em] text-white">Hub Pro v2.0</p>
-                  </div>
                 </div>
               </div>
             );
           })}
+        </div>
+
+        {/* ── FLOATING NAV ARROWS (outside page-flip DOM) ── */}
+        <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between z-[100] pointer-events-none">
+          <button 
+            onClick={flipPrev}
+            className={`pointer-events-auto w-11 h-11 rounded-full bg-black/70 backdrop-blur-xl border border-white/15 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/15 active:scale-90 transition-all shadow-lg ${currentPage === 0 ? 'opacity-0 pointer-events-none' : ''}`}
+          >
+            ←
+          </button>
+          <p className="text-[8px] font-black uppercase tracking-[0.5em] text-white/20 pointer-events-none">{currentPage + 1} / {categories.length}</p>
+          <button 
+            onClick={flipNext}
+            className={`pointer-events-auto w-11 h-11 rounded-full bg-black/70 backdrop-blur-xl border border-white/15 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/15 active:scale-90 transition-all shadow-lg ${currentPage === categories.length - 1 ? 'opacity-0 pointer-events-none' : ''}`}
+          >
+            →
+          </button>
         </div>
       </div>
 
