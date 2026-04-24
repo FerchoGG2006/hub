@@ -106,16 +106,30 @@ const HubLoader = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <p className="text-white/40 tracking-widest text-[10px] uppercase">HUB NO ENCONTRADO</p>
+      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10 shadow-2xl">
+          <span className="text-2xl">🔍</span>
+        </div>
+        <h2 className="text-xl font-black uppercase tracking-widest text-white mb-2">HUB NO ENCONTRADO</h2>
+        <p className="text-[10px] text-white/30 uppercase tracking-[0.3em] max-w-xs leading-relaxed">
+          No pudimos localizar la carta de <span className="text-amber-500">{cleanSlug}</span>. <br/>
+          Verifica que el link sea correcto o contacta al administrador.
+        </p>
+        <button onClick={() => window.location.href = '/'} className="mt-8 px-6 py-2 border border-white/10 rounded-full text-[9px] uppercase tracking-widest text-white/40 hover:bg-white/5 transition-all">
+          Volver al Inicio
+        </button>
       </div>
     );
   }
 
   if (!config) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-         <div className="w-4 h-4 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
+         <div className="relative w-12 h-12">
+            <div className="absolute inset-0 border-2 border-amber-500/10 rounded-full"></div>
+            <div className="absolute inset-0 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+         </div>
+         <p className="mt-6 text-[8px] uppercase tracking-[0.5em] text-white/20 animate-pulse">Sincronizando HUB...</p>
       </div>
     );
   }
