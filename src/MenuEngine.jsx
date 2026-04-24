@@ -21,7 +21,6 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-/* ════════════════ MAIN ENGINE (PRO 3D MESH & RELIEF) ════════════════ */
 export const MenuEngine = ({ config }) => {
   const { addToCart } = useCart();
   const [allMenuData, setAllMenuData] = useState(null);
@@ -89,8 +88,8 @@ export const MenuEngine = ({ config }) => {
           showCover: false,
           mobileScrollSupport: true,
           usePortrait: true,
-          flippingTime: 1000,
-          swipeDistance: 15,
+          flippingTime: 1200,
+          swipeDistance: 12,
           showPageCorners: true,
           disableFlipByClick: true,
           autoSize: true,
@@ -117,7 +116,7 @@ export const MenuEngine = ({ config }) => {
 
   return (
     <div className="perspective-container flex flex-col items-center justify-center bg-black overflow-hidden py-10">
-      {/* ── FLASH NAVIGATION ── */}
+      {/* ── NAVIGATION ── */}
       <div className="fixed top-4 left-0 right-0 z-[200] pointer-events-none">
         <div className="flex justify-center px-4">
           <div className="flex gap-1.5 overflow-x-auto no-scrollbar pointer-events-auto px-4 py-2 rounded-full bg-black/60 backdrop-blur-3xl border border-white/10 shadow-2xl max-w-full">
@@ -144,17 +143,13 @@ export const MenuEngine = ({ config }) => {
             return (
               <div key={cat} className="page-item bg-[#0a0a0a] text-white overflow-hidden" data-density="soft">
                 <div className="page-content h-full flex flex-col p-7 relative bg-[#0a0a0a]">
-                  
-                  {/* ── 3D SPINE RELIEF EFFECT ── */}
+                  {/* 3D SPINE RELIEF */}
                   <div className="absolute left-0 top-0 bottom-0 w-[40px] z-30 pointer-events-none flex">
                     <div className="w-[12px] bg-gradient-to-r from-black/90 to-transparent" />
                     <div className="w-[1px] h-full bg-white/5" />
                     <div className="w-[27px] bg-gradient-to-r from-black/40 to-transparent opacity-50" />
                   </div>
                   
-                  {/* Internal Glow */}
-                  <div className="absolute inset-0 bg-radial-gradient from-white/[0.02] to-transparent pointer-events-none" />
-
                   <div className="mb-6 relative z-20 pl-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2.5">
@@ -167,9 +162,7 @@ export const MenuEngine = ({ config }) => {
                     <div className="h-0.5 w-16 rounded-full" style={{ backgroundColor: meta.accent }} />
                   </div>
 
-                  {/* PRODUCTS SCROLL AREA - RESTRICTED GESTURES */}
-                  <div className="flex-1 grid grid-cols-1 gap-3 content-start overflow-y-auto no-scrollbar pb-16 px-1 relative z-20"
-                       style={{ touchAction: 'pan-y' }}>
+                  <div className="flex-1 grid grid-cols-1 gap-3 content-start overflow-y-auto no-scrollbar pb-16 px-1 relative z-20" style={{ touchAction: 'pan-y' }}>
                     {items.map((item, idx) => (
                       <ProductCell 
                         key={item.id} item={item} index={idx} accent={meta.accent} 
@@ -178,11 +171,7 @@ export const MenuEngine = ({ config }) => {
                     ))}
                   </div>
 
-                  {/* Corner indicator */}
-                  <div className="absolute bottom-6 right-6 w-8 h-8 opacity-20 pointer-events-none">
-                     <div className="w-full h-full border-r-2 border-b-2 border-white rounded-br-lg" />
-                  </div>
-
+                  {/* Page HUD */}
                   <div className="absolute bottom-6 left-12 flex items-center gap-4 opacity-10">
                     <p className="text-[7px] font-black uppercase tracking-[0.8em] text-white">Hub Pro v2.0</p>
                   </div>

@@ -2,7 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { --page-bg: rgba(255,255,255,0.07); --spine-width: 40px; --amber: #f59e0b; }
+:root {
+  --amber: #f59e0b;
+}
 
 html {
   min-height: 100%;
@@ -19,7 +21,7 @@ body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow: hidden; /* Lock scroll for the app */
 }
 
 #root {
@@ -27,144 +29,66 @@ body {
   width: 100%;
 }
 
-.lock-scroll {
-  overflow: hidden !important;
-  overscroll-behavior: none !important;
-}
-
-/* ─── Escenario 3D ─── */
+/* ─── ESCENARIO DE LA CARTA ─── */
 .perspective-container {
-  perspective: 2500px;
-  perspective-origin: 28% 50%;
-  width: 100vw; height: 100svh;
-  display: flex; align-items: center; justify-content: center;
-  position: relative; overflow: hidden;
+  width: 100vw;
+  height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
   background: radial-gradient(ellipse at 25% 50%, #0f0a00 0%, #000 70%);
 }
 
-/* ─── Hoja con eje en izquierda — CRÍTICO ─── */
-.page-pivot {
-  transform-style: preserve-3d;
-  transform-origin: left center;
-  -webkit-transform-style: preserve-3d;
-  -webkit-transform-origin: left center;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  will-change: transform, opacity;
-  transition: transform 0.8s cubic-bezier(0.15, 0.85, 0.35, 1);
+/* ─── ESTILOS PARA PAGE-FLIP (ALTA FIDELIDAD) ─── */
+.stf__parent {
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
-/* ─── Sombra de doblez ─── */
-.fold-shadow {
-  position: absolute; inset: 0;
-  background: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.3) 38%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.3) 62%, transparent 100%);
-  pointer-events: none; z-index: 30; border-radius: inherit;
+.stf__block {
+  background-color: transparent !important;
 }
 
-/* ─── Glassmorphism ─── */
-.glass-card {
-  background: var(--page-bg);
-  backdrop-filter: blur(25px) saturate(180%);
-  -webkit-backdrop-filter: blur(25px) saturate(180%);
-  border: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 20px 0 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08);
+.page-item {
+  box-shadow: none;
+  background-color: #080808;
+  color: white;
 }
 
-/* ─── Lomo del libro ─── */
-.spine-shadow {
-  position: absolute; left: 0; top: 0; bottom: 0;
-  width: var(--spine-width);
-  background: linear-gradient(to right, rgba(0,0,0,0.55) 0%, transparent 100%);
-  z-index: 10; pointer-events: none;
+/* El lomo cuando la página está quieta */
+.page-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 50px;
+  background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, transparent 100%);
+  z-index: 10;
+  pointer-events: none;
 }
 
-/* ─── Scroll interno ─── */
-.items-scroll {
-  overflow-y: auto; -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain; scrollbar-width: none;
-}
-.items-scroll::-webkit-scrollbar { display: none; }
-
-/* ─── Gold shimmer ─── */
-.gold-shimmer {
-  background: linear-gradient(90deg, #d97706, #fbbf24 40%, #fcd34d 55%, #fbbf24 70%, #d97706);
-  background-size: 200% auto;
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  animation: shimmer 3s linear infinite;
-}
-@keyframes shimmer { from { background-position: -200% center; } to { background-position: 200% center; } }
-
-/* ─── Grain overlay (portada) ─── */
-.cover-grain::after {
-  content: ''; position: absolute; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
-  opacity: 0.12; pointer-events: none; z-index: 2;
-}
-
-/* ─── Ambient blob ─── */
-.ambient { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.12; pointer-events: none; }
-
-/* ─── Utilities ─── */
+/* ─── UTILITIES ─── */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-.custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
-/* ── APPLE BOOKS 3D ENGINE ── */
-.scene-3d {
-  perspective: 2500px;
-  perspective-origin: center center;
+.glass-card {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
-.book-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
+/* Animación de Shimmer para elementos Gold */
+.gold-shimmer {
+  background: linear-gradient(90deg, #d97706, #fbbf24 40%, #fcd34d 55%, #fbbf24 70%, #d97706);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s linear infinite;
 }
 
-.page-flipper {
-  position: absolute;
-  right: 0;
-  width: 50%;
-  height: 100%;
-  transform-origin: left center;
-  transform-style: preserve-3d;
-  z-index: 50;
-  pointer-events: none;
+@keyframes shimmer {
+  from { background-position: -200% center; }
+  to { background-position: 200% center; }
 }
-
-.page-face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  background: #0a0a0a;
-  box-shadow: inset 20px 0 50px -20px rgba(0,0,0,0.5);
-}
-
-.page-face-back {
-  transform: rotateY(180deg);
-  box-shadow: inset -20px 0 50px -20px rgba(0,0,0,0.5);
-}
-
-/* Sombra dinámica del lomo */
-.page-face::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to right, rgba(0,0,0,0.3) 0%, transparent 15%);
-  pointer-events: none;
-}
-
-.page-face-back::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to left, rgba(0,0,0,0.3) 0%, transparent 15%);
-  pointer-events: none;
-}
-
-/* Prevent horizontal body scroll on dashboard */
-
