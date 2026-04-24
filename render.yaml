@@ -1,29 +1,32 @@
 services:
-  # ════════════════ BACKEND (FastAPI - Web Service) ════════════════
+  # ─── BACKEND (FastAPI) ───
   - type: web
     name: hub-api
-    runtime: python
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
-        value: "postgresql://neondb_owner:npg_oZXsypkIR20u@ep-snowy-salad-ama4nvfw-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-      - key: FRONTEND_URL
-        value: "https://hub-client.onrender.com"
-      - key: JWT_SECRET_KEY
+        sync: false # Poner aquí tu URL de Neon DB o similar
+      - key: GOOGLE_API_KEY
+        sync: false # Tu llave de Gemini
+      - key: JWT_SECRET
         generateValue: true
-      - key: GEMINI_API_KEY
-        value: "AIzaSyBUI4qYnHwRKxFrgbSR2yB86CPYaLLemqw"
-      - key: PYTHON_VERSION
-        value: 3.11.0
+      - key: FRONTEND_URL
+        fromService:
+          name: hub-frontend
+          type: static_site
+          property: url
 
-  # ════════════════ FRONTEND (React/Vite - Static Site) ════════════════
-  - type: web
-    name: hub-client
-    runtime: static
+  # ─── FRONTEND (React + Vite) ───
+  - type: static_site
+    name: hub-frontend
+    env: static
     buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    publishPath: ./dist
     envVars:
       - key: VITE_API_URL
-        value: "https://hub-api-2lql.onrender.com"
+        fromService:
+          name: hub-api
+          type: web
+          property: url

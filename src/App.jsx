@@ -11,7 +11,7 @@ import { SuperAdmin } from './SuperAdmin';
 import { LandingPage } from './LandingPage';
 import { BranchPicker } from './BranchPicker';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
 /* ── MAIN APP ENGINE ── */
 const MainApp = ({ config }) => {
