@@ -7,19 +7,19 @@ services:
     startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
-        sync: false # Poner aquí tu URL de Neon DB o similar
+        sync: false
       - key: GOOGLE_API_KEY
-        sync: false # Tu llave de Gemini
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: FRONTEND_URL
         fromService:
           name: hub-frontend
-          type: static_site
+          type: static
           property: url
 
   # ─── FRONTEND (React + Vite) ───
-  - type: static_site
+  - type: static
     name: hub-frontend
     env: static
     buildCommand: npm install && npm run build
