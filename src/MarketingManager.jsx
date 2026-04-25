@@ -25,9 +25,13 @@ export const MarketingManager = () => {
       if (res.ok) {
         const data = await res.json();
         setCampaign(data);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        alert(`Error de IA: ${errData.detail || 'Error interno del servidor. ¿Falta la API Key?'}`);
       }
     } catch(err) {
       console.error(err);
+      alert(`Error de red: ${err.message}`);
     }
     setLoading(false);
   };

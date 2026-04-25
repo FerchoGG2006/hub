@@ -241,18 +241,21 @@ const QRTerminal = () => {
   const { tenantSlug } = useParams();
   const qrRef = React.useRef(null);
   const [table, setTable] = useState('');
+  const [tableCount, setTableCount] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleDownloadPNG = async () => {
     if (!qrRef.current) return;
     const canvas = await html2canvas(qrRef.current, { backgroundColor: null });
     const link = document.createElement('a');
-    link.download = `${tenantSlug}-qr.png`;
+    link.download = `${tenantSlug}-qr${table ? '-mesa-'+table : ''}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
   };
 
   const handleDownloadPDF = async () => {
     if (!qrRef.current) return;
+    setIsGenerating(true);
     const canvas = await html2canvas(qrRef.current, { scale: 3, backgroundColor: '#ffffff' });
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -265,6 +268,7 @@ const QRTerminal = () => {
     pdf.setTextColor(245, 158, 11);
     pdf.setFontSize(32);
     pdf.setFont('helvetica', 'bold');
+    if (table) pdf.text(`MESA ${table}`, 105, 35, { align: "center" });
     pdf.text("Descubre nuestra Carta 4D", 105, 50, { align: "center" });
 
     // Subtitulo
@@ -281,23 +285,63 @@ const QRTerminal = () => {
     pdf.setTextColor(100, 100, 100);
     pdf.text(`Powered by HUB SaaS - tenant: ${tenantSlug}`, 105, 280, { align: "center" });
 
-    pdf.save(`${tenantSlug}-kit-digital.pdf`);
+    pdf.save(`${tenantSlug}-kit-digital${table ? '-mesa-'+table : ''}.pdf`);
+    setIsGenerating(false);
   };
+
+  const handleDownloadBatchPDF = async () => {
+    const count = parseInt(tableCount);
+    if (!count || count < 1) return alert("Ingresa una cantidad válida de mesas.");
+    
+    setIsGenerating(true);
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    
+    for (let i = 1; i <= count; i++) {
+       const el = document.getElementById(`qr-batch-${i}`);
+       if (!el) continue;
+       const canvas = await html2canvas(el, { scale: 3, backgroundColor: '#ffffff' });
+       const imgData = canvas.toDataURL('image/png');
+       
+       if (i > 1) pdf.addPage();
+       
+       pdf.setFillColor(5, 5, 5); 
+       pdf.rect(0, 0, 210, 297, 'F');
+       pdf.setTextColor(245, 158, 11);
+       pdf.setFontSize(32);
+       pdf.setFont('helvetica', 'bold');
+       pdf.text(`MESA ${i}`, 105, 35, { align: "center" });
+       pdf.text("Descubre nuestra Carta 4D", 105, 50, { align: "center" });
+       pdf.setTextColor(255, 255, 255);
+       pdf.setFontSize(16);
+       pdf.setFont('helvetica', 'normal');
+       pdf.text("Escanea el código con la cámara de tu celular", 105, 65, { align: "center" });
+       pdf.addImage(imgData, 'PNG', 55, 90, 100, 100);
+       pdf.setFontSize(10);
+       pdf.setTextColor(100, 100, 100);
+       pdf.text(`Powered by HUB SaaS - tenant: ${tenantSlug}`, 105, 280, { align: "center" });
+    }
+    
+    pdf.save(`${tenantSlug}-lote-mesas-1-a-${count}.pdf`);
+    setIsGenerating(false);
+  };
+
   const menuUrl = table ? `${window.location.origin}/t/${tenantSlug}?mesa=${table}` : `${window.location.origin}/t/${tenantSlug}`;
   return (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12 flex flex-col items-center">
+    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12 flex flex-col items-center pb-20">
       <div className="text-center mt-4">
         <h2 className="text-3xl font-light tracking-tight text-white mb-2">
           Terminal <span className="italic font-serif text-amber-500">QR</span>
         </h2>
         <p className="text-[10px] text-white/40 font-light leading-relaxed tracking-wider uppercase">
-          Despliegue Físico
+          Despliegue Físico Inteligente
         </p>
       </div>
+      
+      {/* ── GENERACIÓN INDIVIDUAL ── */}
       <div className="w-full max-w-xs mb-4">
         <input 
           type="text" 
-          placeholder="Número de Mesa (Opcional)" 
+          placeholder="Ej: 1, 2, Terraza..." 
           value={table}
           onChange={(e) => setTable(e.target.value)}
           className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-5 text-sm text-center outline-none focus:border-amber-500 transition-colors placeholder-white/30"
@@ -334,9 +378,51 @@ const QRTerminal = () => {
         <button onClick={handleDownloadPNG} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl text-[9px] uppercase tracking-widest hover:bg-white/10 transition-colors">
           ↓ Bajar PNG
         </button>
-        <button onClick={handleDownloadPDF} className="flex-1 py-4 bg-amber-500 text-black font-black flex items-center justify-center gap-2 rounded-2xl text-[9px] uppercase tracking-[0.2em] shadow-[0_4px_20px_rgba(245,158,11,0.4)] hover:scale-[1.02] transition-transform">
-          📄 Print Kit PDF
+        <button onClick={handleDownloadPDF} disabled={isGenerating} className="flex-1 py-4 bg-amber-500 text-black font-black flex items-center justify-center gap-2 rounded-2xl text-[9px] uppercase tracking-[0.2em] shadow-[0_4px_20px_rgba(245,158,11,0.4)] hover:scale-[1.02] transition-transform">
+          {isGenerating ? 'Generando...' : '📄 Print PDF'}
         </button>
+      </div>
+
+      {/* ── GENERACIÓN POR LOTE (BATCH) ── */}
+      <div className="w-full max-w-sm mt-8 border-t border-white/10 pt-10 text-center space-y-4">
+        <h3 className="text-lg font-black uppercase italic text-white">Generación por Lote</h3>
+        <p className="text-[10px] text-white/40 uppercase tracking-widest px-4">Genera un PDF multipágina con QRs independientes para cada mesa de tu local de forma automática.</p>
+        
+        <div className="flex gap-2">
+          <input 
+            type="number" 
+            min="1" max="100"
+            placeholder="Cant. Mesas" 
+            value={tableCount}
+            onChange={(e) => setTableCount(e.target.value)}
+            className="w-1/3 bg-white/5 border border-white/10 rounded-2xl py-3 px-2 text-center text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/30"
+          />
+          <button onClick={handleDownloadBatchPDF} disabled={isGenerating || !tableCount} className="flex-1 py-4 bg-white text-black font-black flex items-center justify-center gap-2 rounded-2xl text-[9px] uppercase tracking-[0.2em] shadow-[0_4px_20px_rgba(255,255,255,0.2)] hover:scale-[1.02] transition-transform disabled:opacity-50">
+            {isGenerating ? 'Procesando Lote...' : '🖨️ Generar PDF Completo'}
+          </button>
+        </div>
+      </div>
+
+      {/* ── HIDDEN RENDER AREA FOR BATCH ── */}
+      <div className="absolute opacity-0 pointer-events-none -z-50" style={{ left: '-9999px', top: 0 }}>
+         {parseInt(tableCount) > 0 && Array.from({length: Math.min(parseInt(tableCount), 100)}).map((_, i) => (
+             <div 
+               key={i} 
+               id={`qr-batch-${i+1}`} 
+               className="bg-white p-8 flex flex-col items-center justify-center gap-6"
+               style={{ border: '4px solid #f59e0b', width: '316px', height: '350px' }}
+             >
+               <QRCodeSVG 
+                 value={`${window.location.origin}/t/${tenantSlug}?mesa=${i+1}`} 
+                 size={220}
+                 bgColor={"#ffffff"}
+                 fgColor={"#050505"}
+                 level={"Q"}
+                 imageSettings={{ src: "/logo.png", height: 50, width: 50, excavate: true }}
+               />
+               <p className="text-xs uppercase tracking-[0.4em] font-black text-black">ESCANEA AQUÍ</p>
+             </div>
+         ))}
       </div>
     </motion.div>
   );
@@ -819,7 +905,7 @@ const AIIngestModal = ({ onClose, onSuccess }) => {
   );
 };
 
-function SedesView({ branches, onUpdate, tenantSlug }) {
+function SedesView({ branches }) {
   const [isAdding, setIsAdding] = useState(false);
   const [newBranch, setNewBranch] = useState({ name: '', slug: '', whatsapp_number: '', address: '' });
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -1013,20 +1099,22 @@ export const AdminDashboard = () => {
       </main>
 
       {/* Dock Inferior */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center p-1.5 rounded-[1.5rem] bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl z-40 gap-1.5">
-         <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowAddModal(true)}
-           className="h-12 px-6 rounded-2xl text-black flex items-center justify-center gap-2 transition-all hover:brightness-110"
-           style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
-           <span className="text-xl font-black leading-none">+</span>
-           <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Añadir Carga</span>
-         </motion.button>
-
-         <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowAIModal(true)}
-           className="h-12 px-4 rounded-2xl text-amber-500 bg-amber-500/10 flex items-center justify-center gap-2 transition-all hover:bg-amber-500/20 border border-amber-500/20">
-           <span className="text-lg">✦</span>
-           <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Migrar con IA</span>
-         </motion.button>
-      </div>
+      {(view === 'inventory' || view === 'stats') && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center p-1.5 rounded-[1.5rem] bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl z-40 gap-1.5">
+           <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowAddModal(true)}
+             className="h-12 px-6 rounded-2xl text-black flex items-center justify-center gap-2 transition-all hover:brightness-110"
+             style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
+             <span className="text-xl font-black leading-none">+</span>
+             <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Añadir Carga</span>
+           </motion.button>
+  
+           <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowAIModal(true)}
+             className="h-12 px-4 rounded-2xl text-amber-500 bg-amber-500/10 flex items-center justify-center gap-2 transition-all hover:bg-amber-500/20 border border-amber-500/20">
+             <span className="text-lg">✦</span>
+             <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Migrar con IA</span>
+           </motion.button>
+        </div>
+      )}
 
       <AnimatePresence>
         {showAddModal && <AddProductModal onClose={() => setShowAddModal(false)} onProductAdded={fetchProducts} />}
