@@ -42,7 +42,11 @@ export const CartProvider = ({ children }) => {
 
   const parsePrice = (price) => {
     if (!price) return 0;
-    return parseInt(price.toString().replace('$', '').replace('k', '').replace('.', '')) * 1000;
+    const str = price.toString().toLowerCase().replace('$', '');
+    if (str.includes('k')) {
+      return parseInt(str.replace('k', '').replace('.', '')) * 1000;
+    }
+    return parseInt(str.replace(/\./g, ''));
   };
 
   const totalItems = cart.reduce((acc, i) => acc + i.qty, 0);
