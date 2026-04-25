@@ -129,6 +129,52 @@ export const MenuEngine = ({ config }) => {
     }
   };
 
+  /* ── SWIPE-BACK: Native DOM listeners in capture phase ── */
+  const pageRef = useRef(0);
+  useEffect(() => { pageRef.current = currentPage; }, [currentPage]);
+
+  useEffect(() => {
+    const el = bookRef.current;
+    if (!el || !allMenuData) return;
+
+    let startX = 0, startY = 0, startTime = 0;
+
+    const onStart = (e) => {
+      if (e.touches.length !== 1) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      startTime = Date.now();
+    };
+
+    const onEnd = (e) => {
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      const dt = Date.now() - startTime;
+
+      // Only process dominant horizontal swipes under 600ms
+      if (Math.abs(dx) > Math.abs(dy) * 1.3 && dt < 600) {
+        if (dx < -50 && pflip.current) {
+          // Swipe LEFT → next page
+          pflip.current.flipNext();
+          if (navigator.vibrate) navigator.vibrate(10);
+        } else if (dx > 50 && pflip.current && pageRef.current > 0) {
+          // Swipe RIGHT → previous page (reverse flip)
+          pflip.current.flipPrev();
+          if (navigator.vibrate) navigator.vibrate(10);
+        }
+      }
+    };
+
+    // Capture phase fires BEFORE page-flip's own listeners
+    el.addEventListener('touchstart', onStart, { capture: true, passive: true });
+    el.addEventListener('touchend', onEnd, { capture: true, passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onStart, { capture: true });
+      el.removeEventListener('touchend', onEnd, { capture: true });
+    };
+  }, [allMenuData]);
+
   if (!allMenuData) return <LoadingSkeleton />;
 
   return (
