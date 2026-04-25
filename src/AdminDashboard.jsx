@@ -985,7 +985,7 @@ function SedesView({ branches }) {
 /* ── MASTER TERMINAL ── */
 export const AdminDashboard = () => {
   const { tenantSlug } = useParams();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('hub_token'));
   const [view, setView] = useState('kanban'); // kanban, inventory, stats, sedes
   const [products, setProducts] = useState([]);
   const [branches, setBranches] = useState([]);
