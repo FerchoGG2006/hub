@@ -11,6 +11,8 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
   const [payment, setPayment] = useState('efectivo');  // efectivo | transferencia
   const [done, setDone]       = useState(false);
   const [customerName, setCustomerName] = useState('');
+  const [address, setAddress] = useState('');
+  const [tableNumber, setTableNumber] = useState('');
   const [editingItem, setEditingItem] = useState(null);
 
   React.useEffect(() => {
@@ -79,9 +81,20 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
       alert("Por favor ingresa tu nombre de pedido.");
       return;
     }
+    const tableParam = new URLSearchParams(window.location.search).get('mesa');
+    
+    if (method === 'domicilio' && !address) {
+      alert("Por favor ingresa la dirección de entrega.");
+      return;
+    }
+    if (method === 'mesa' && !tableParam && !tableNumber) {
+      alert("Por favor ingresa el número de tu mesa.");
+      return;
+    }
+
+    const finalLocation = method === 'mesa' ? (tableParam || tableNumber) : (method === 'domicilio' ? address : 'Para Recoger');
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     const tenantSlug = window.location.pathname.split('/t/')[1]?.split('?')[0]?.split('/')[0] || '';
-    const tableParam = new URLSearchParams(window.location.search).get('mesa');
     
     // 1. Send to Live Kitchen (API)
     try {
@@ -93,7 +106,7 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
           total_price: total,
           customer_name: customerName,
           phone: "0000",
-          table_number: tableParam || "General",
+          table_number: finalLocation,
           delivery_method: method,
           payment_method: payment,
           branch_id: branch?.id
@@ -105,7 +118,8 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
 
     // 2. Open WhatsApp
     const waNumber = branch?.whatsapp_number || config?.whatsapp_number || '573000000000';
-    const waNameLine = `👤 Cliente: *${customerName}*\n📍 Mesa/Ref: *${tableParam || 'N/A'}*\n🏛️ Sede: *${branch?.name || 'Central'}*\n\n`;
+    const locationLabel = method === 'domicilio' ? 'Dirección' : method === 'mesa' ? 'Mesa' : 'Recogida';
+    const waNameLine = `👤 Cliente: *${customerName}*\n📍 ${locationLabel}: *${finalLocation}*\n🏛️ Sede: *${branch?.name || 'Central'}*\n\n`;
     const msg = formatWhatsAppMessage(cart, total, method, payment, config?.name);
     sendToWhatsApp(waNumber, waNameLine + msg);
     
@@ -163,14 +177,36 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
         {/* Customer Info */}
         <section className="mb-6">
           <label className="text-[10px] text-white/30 uppercase tracking-[0.2em] block mb-4 font-semibold">Tus Datos</label>
-          <input 
-            type="text" 
-            placeholder="¿A nombre de quién hacemos el pedido?" 
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            required
-            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/30 text-white"
-          />
+          <div className="space-y-3">
+            <input 
+              type="text" 
+              placeholder="¿A nombre de quién hacemos el pedido?" 
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              required
+              className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/30 text-white"
+            />
+            {method === 'domicilio' && (
+              <input 
+                type="text" 
+                placeholder="Dirección exacta de entrega" 
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                required
+                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/30 text-white"
+              />
+            )}
+            {method === 'mesa' && !new URLSearchParams(window.location.search).get('mesa') && (
+              <input 
+                type="text" 
+                placeholder="Número de mesa" 
+                value={tableNumber}
+                onChange={(e) => setTableNumber(e.target.value)}
+                required
+                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/30 text-white"
+              />
+            )}
+          </div>
         </section>
 
         {/* Items list */}
