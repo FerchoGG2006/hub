@@ -94,7 +94,8 @@ export const MenuEngine = ({ config }) => {
           startPage: 0,
           showCover: true,
           mobileScrollSupport: false,
-          direction: 'rtl'
+          showPageCorners: false,
+          direction: 'ltr'
         });
 
         // Global exposing for reset on order completion
@@ -210,11 +211,11 @@ export const MenuEngine = ({ config }) => {
             return (
               <div key={cat} className="page-item bg-[#0a0a0a] text-white overflow-hidden" data-density="soft">
                 <div className="page-content h-full flex flex-col p-7 relative bg-[#0a0a0a]">
-                  {/* 3D SPINE RELIEF (inverted for RTL) */}
-                  <div className="absolute right-0 top-0 bottom-0 w-[40px] z-30 pointer-events-none flex flex-row-reverse">
-                    <div className="w-[12px] bg-gradient-to-l from-black/90 to-transparent" />
+                  {/* 3D SPINE RELIEF (LTR - Spine on left) */}
+                  <div className="absolute left-0 top-0 bottom-0 w-[40px] z-30 pointer-events-none flex flex-row">
+                    <div className="w-[12px] bg-gradient-to-r from-black/90 to-transparent" />
                     <div className="w-[1px] h-full bg-white/5" />
-                    <div className="w-[27px] bg-gradient-to-l from-black/40 to-transparent opacity-50" />
+                    <div className="w-[27px] bg-gradient-to-r from-black/40 to-transparent opacity-50" />
                   </div>
 
                   <div className="mb-6 relative z-20 pl-4">
