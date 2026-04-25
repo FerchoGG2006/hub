@@ -23,7 +23,10 @@ export const ProductCell = ({ item, onAdd, onClick }) => {
     <div className="relative flex flex-row bg-white/[0.04] rounded-[1.4rem] border border-white/5 overflow-hidden group active:scale-[0.98] transition-all">
       {/* 📸 ZONA FOTO */}
       <div 
-        onClick={onClick}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (onClick) onClick(e);
+        }}
         className="relative w-[85px] flex-shrink-0 overflow-hidden bg-zinc-900 border-r border-white/5 cursor-pointer"
       >
         {item.image_url || item.image ? (
