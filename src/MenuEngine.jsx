@@ -92,7 +92,7 @@ export const MenuEngine = ({ config }) => {
           flippingTime: 1200,
           usePortrait: true,
           startPage: 0,
-          showCover: true,
+          showCover: false,
           mobileScrollSupport: false,
           showPageCorners: false,
           direction: 'ltr'
