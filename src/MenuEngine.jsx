@@ -90,7 +90,7 @@ export const MenuEngine = ({ config }) => {
           maxHeight: 850,
           maxShadowOpacity: 0.6,
           showCover: false,
-          mobileScrollSupport: true,
+          mobileScrollSupport: false,
           usePortrait: true,
           flippingTime: 1200,
           swipeDistance: 12,
