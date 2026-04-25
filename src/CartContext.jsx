@@ -1,35 +1,67 @@
-import React, { createContext, useState, useContext, useCallback } from 'react';
+import React, { createContext, useState, useCallback } from 'react';
 
-const CartContext = createContext();
+export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
 
   const addToCart = useCallback((product) => {
     setCart((prev) => {
-      const existing = prev.find(i => i.id === product.id);
-      if (existing) return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
-      return [...prev, { ...product, qty: 1 }];
+      const instanceId = `${product.id}-${Date.now()}`;
+      return [...prev, { 
+        ...product, 
+        instanceId, 
+        qty: 1,
+        customizations: {
+          removed: [],
+          note: ""
+        },
+        baseIngredients: product.baseIngredients || ["Sal", "Pimienta"]
+      }];
     });
     if (navigator.vibrate) navigator.vibrate(15);
   }, []);
 
-  const removeOne = useCallback((id) => {
-    setCart((prev) => prev.map(i => i.id === id ? { ...i, qty: i.qty - 1 } : i).filter(i => i.qty > 0));
+  const updateCustomization = useCallback((instanceId, customizations) => {
+    setCart((prev) => prev.map(i => 
+      i.instanceId === instanceId ? { ...i, customizations } : i
+    ));
+  }, []);
+
+  const removeOne = useCallback((instanceId) => {
+    setCart((prev) => prev.filter(i => i.instanceId !== instanceId));
+  }, []);
+
+  const updateQty = useCallback((instanceId, delta) => {
+    setCart((prev) => prev.map(i => 
+      i.instanceId === instanceId ? { ...i, qty: Math.max(0, i.qty + delta) } : i
+    ).filter(i => i.qty > 0));
   }, []);
 
   const clearCart = useCallback(() => setCart([]), []);
 
-  const parsePrice = (price) => parseInt(price.replace('$', '').replace('k', '')) * 1000;
+  const parsePrice = (price) => {
+    if (!price) return 0;
+    return parseInt(price.toString().replace('$', '').replace('k', '').replace('.', '')) * 1000;
+  };
 
   const totalItems = cart.reduce((acc, i) => acc + i.qty, 0);
   const totalPrice = cart.reduce((acc, i) => acc + parsePrice(i.price) * i.qty, 0);
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeOne, clearCart, totalItems, totalPrice, total: totalPrice, parsePrice }}>
+    <CartContext.Provider value={{ 
+      cart, 
+      addToCart, 
+      updateQty, 
+      removeOne, 
+      updateCustomization,
+      clearCart, 
+      totalItems, 
+      totalPrice, 
+      total: totalPrice, 
+      parsePrice 
+    }}>
       {children}
     </CartContext.Provider>
   );
 };
-
-export const useCart = () => useContext(CartContext);

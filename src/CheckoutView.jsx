@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCart } from './CartContext';
+import { useCart } from './useCart';
 import { formatWhatsAppMessage, sendToWhatsApp } from './CheckoutLogic';
+import { ProductCustomizer } from './ProductCustomizer';
 
 export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
-  const { cart, total, clearCart, addToCart, removeOne } = useCart();
+  const { cart, total, clearCart, updateQty, updateCustomization } = useCart();
   const [method,  setMethod]  = useState('mesa');      // mesa | recoger | domicilio
   const [payment, setPayment] = useState('efectivo');  // efectivo | transferencia
   const [done, setDone]       = useState(false);
   const [customerName, setCustomerName] = useState('');
+  const [editingItem, setEditingItem] = useState(null);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('checkout-open');
+    } else {
+      document.body.classList.remove('checkout-open');
+    }
+    return () => document.body.classList.remove('checkout-open');
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -42,7 +53,15 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
         </p>
         <motion.button
           whileTap={{ scale: 0.93 }}
-          onClick={() => { setDone(false); onClose(); }}
+          onClick={() => { 
+            setDone(false); 
+            onClose();
+            // Reset PageFlip to page 0 if possible
+            if (window.pflipInstance) {
+              // eslint-disable-next-line no-unused-vars
+              try { window.pflipInstance.turnToPage(0); } catch (_e) { /* ignore if instance is busy */ }
+            }
+          }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
@@ -92,6 +111,12 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
     
     clearCart();
     setDone(true);
+    
+    // Reset PageFlip
+    if (window.pflipInstance) {
+      // eslint-disable-next-line no-unused-vars
+      try { window.pflipInstance.turnToPage(0); } catch (_e) { /* ignore if instance is busy */ }
+    }
   };
 
   return (
@@ -103,6 +128,16 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
       className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-3xl flex flex-col"
       style={{ touchAction: 'auto' }}
     >
+      {/* ── Customizer Modal ── */}
+      {editingItem && (
+        <ProductCustomizer 
+          isOpen={!!editingItem} 
+          item={editingItem} 
+          onClose={() => setEditingItem(null)} 
+          onSave={(customs) => updateCustomization(editingItem.instanceId, customs)}
+        />
+      )}
+
       {/* ── Header ── */}
       <header className="flex justify-between items-center px-6 pt-6 pb-4 flex-shrink-0"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
@@ -140,18 +175,42 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
 
         {/* Items list */}
         <section>
-          <p className="text-[10px] text-white/30 uppercase tracking-[0.25em] mb-4 font-semibold">Resumen de tu Orden</p>
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-[10px] text-white/30 uppercase tracking-[0.25em] font-semibold">Resumen de tu Orden</p>
+            <p className="text-[9px] text-amber-500/40 uppercase font-black tracking-widest">Toca un plato para personalizar</p>
+          </div>
           {cart.map(item => (
             <div
-              key={item.id}
-              className="flex items-center justify-between py-3"
+              key={item.instanceId}
+              className="flex items-center justify-between py-4 group"
               style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
             >
-              <div className="flex flex-col">
-                <span className="text-[11px] text-white/90 font-black tracking-wide uppercase mb-0.5">
-                  {item.name}
-                </span>
-                <span className="text-[10px] font-bold text-amber-500/80">
+              <div 
+                className="flex flex-col flex-1 cursor-pointer active:opacity-60 transition-opacity"
+                onClick={() => setEditingItem(item)}
+              >
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[11px] text-white/90 font-black tracking-wide uppercase">
+                    {item.name}
+                  </span>
+                  <span className="text-[10px] bg-white/5 text-white/40 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-widest">Editar</span>
+                </div>
+                
+                {/* Customization Badges */}
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {item.customizations?.removed?.length > 0 && (
+                    <span className="text-[8px] font-black uppercase text-red-400/80 tracking-widest">
+                      Sin: {item.customizations.removed.join(', ')}
+                    </span>
+                  )}
+                  {item.customizations?.note && (
+                    <span className="text-[8px] font-black uppercase text-amber-500/80 tracking-widest block w-full truncate italic">
+                      " {item.customizations.note} "
+                    </span>
+                  )}
+                </div>
+
+                <span className="text-[10px] font-bold text-amber-500/80 mt-1">
                   {item.price}
                 </span>
               </div>
@@ -159,14 +218,14 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
               {/* Product Quantity Modifiers */}
               <div className="flex items-center bg-white/[0.04] rounded-full border border-white/5 px-1 py-1 gap-1">
                  <button 
-                    onClick={() => removeOne(item.id)} 
+                    onClick={() => updateQty(item.instanceId, -1)} 
                     className="w-7 h-7 flex items-center justify-center rounded-full text-white/40 hover:bg-white/10 hover:text-white transition-colors"
                  >
                    <span className="font-bold text-lg leading-none mt-[-2px]">&minus;</span>
                  </button>
                  <span className="text-[11px] font-black text-white w-4 text-center">{item.qty}</span>
                  <button 
-                    onClick={() => addToCart(item)} 
+                    onClick={() => updateQty(item.instanceId, 1)} 
                     className="w-7 h-7 flex items-center justify-center rounded-full text-amber-500 hover:bg-amber-500/20 transition-colors"
                  >
                    <span className="font-bold text-lg leading-none mt-[-2px]">+</span>

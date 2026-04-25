@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCart } from './CartContext';
+import { useCart } from './useCart';
 
 const DELIVERY_OPTIONS = [
   { id: 'mesa',     label: 'En Mesa',  icon: '🪑' },

@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageFlip } from 'page-flip';
 import { MENU_DATA as STATIC_MENU, CATEGORY_META } from './MenuData';
-import { useCart } from './CartContext';
+import { useCart } from './useCart';
 import { ProductCell } from './ProductCell';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -81,24 +81,24 @@ export const MenuEngine = ({ config }) => {
         if (pflip.current) pflip.current.destroy();
 
         pflip.current = new PageFlip(bookRef.current, {
-          width: 400,
-          height: 700,
-          size: 'stretch',
-          minWidth: 280,
-          maxWidth: 450,
-          minHeight: 480,
-          maxHeight: 850,
-          maxShadowOpacity: 0.6,
-          showCover: false,
-          mobileScrollSupport: true,
-          usePortrait: true,
+          width: 550,
+          height: 800,
+          size: "stretch",
+          minWidth: 315,
+          maxWidth: 1000,
+          minHeight: 420,
+          maxHeight: 1350,
+          drawShadow: true,
           flippingTime: 1200,
-          swipeDistance: 12,
-          showPageCorners: true,
-          disableFlipByClick: true,
-          autoSize: true,
+          usePortrait: true,
+          startPage: 0,
+          showCover: true,
+          mobileScrollSupport: false,
           direction: 'rtl'
         });
+
+        // Global exposing for reset on order completion
+        window.pflipInstance = pflip.current;
 
         const pages = document.querySelectorAll('.page-item');
         if (pages.length > 0) {
@@ -196,7 +196,14 @@ export const MenuEngine = ({ config }) => {
 
       {/* ── THE BOOK ── */}
       <div className="relative w-[94vw] max-w-[420px] aspect-[4/7] shadow-[0_60px_150px_-30px_rgba(0,0,0,1)] rounded-[2.8rem] overflow-hidden">
-        <div ref={bookRef} className="w-full h-full" style={{ touchAction: 'none' }}>
+        <div 
+          ref={bookRef} 
+          className="w-full h-full" 
+          style={{ 
+            touchAction: 'none',
+            pointerEvents: document.body.classList.contains('checkout-open') ? 'none' : 'auto'
+          }}
+        >
           {categories.map((cat, pageIdx) => {
             const items = allMenuData[cat] || [];
             const meta = CATEGORY_META[cat] || { accent: '#fff', icon: '🍽️', label: cat };
