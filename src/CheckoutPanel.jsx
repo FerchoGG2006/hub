@@ -1,7 +1,7 @@
 import { useState } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from './useCart';
-
 const DELIVERY_OPTIONS = [
   { id: 'mesa',     label: 'En Mesa',  icon: '🪑' },
   { id: 'recoger',  label: 'Recoger',  icon: '🏃' },
@@ -33,10 +33,18 @@ const PillBtn = ({ active, onClick, icon, label, accent = '#f59e0b' }) => (
 
 export const CheckoutPanel = ({ onClose }) => {
   const { cart, totalPrice, clearCart, parsePrice } = useCart();
-  const [delivery,  setDelivery]  = useState('mesa');
+
+  // URL parsing to detect if scanned from a table QR
+  const [urlMesa] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('mesa') || params.get('table');
+  });
+  const isQrTable = !!urlMesa;
+
+  const [delivery,  setDelivery]  = useState(isQrTable ? 'mesa' : 'domicilio');
   const [payment,   setPayment]   = useState('efectivo');
   const [receipt,   setReceipt]   = useState(null);
-  const [tableNum,  setTableNum]  = useState('');
+  const [tableNum,  setTableNum]  = useState(urlMesa || '');
   const [sending,   setSending]   = useState(false);
   const [sent,      setSent]      = useState(false);
 
@@ -182,14 +190,14 @@ export const CheckoutPanel = ({ onClose }) => {
         {/* ── Delivery method ── */}
         <section>
           <p className="text-[10px] text-white/35 uppercase tracking-[0.3em] mb-3 font-semibold">
-            ¿Dónde recibes?
+            {isQrTable ? "Mesa Asignada" : "¿Dónde recibes?"}
           </p>
-          <div className="grid grid-cols-3 gap-2">
-            {DELIVERY_OPTIONS.map(opt => (
+          <div className={`grid ${isQrTable ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+            {(isQrTable ? DELIVERY_OPTIONS.filter(o => o.id === 'mesa') : DELIVERY_OPTIONS.filter(o => o.id !== 'mesa')).map(opt => (
               <PillBtn
                 key={opt.id}
                 active={delivery === opt.id}
-                onClick={() => setDelivery(opt.id)}
+                onClick={() => !isQrTable && setDelivery(opt.id)}
                 icon={opt.icon}
                 label={opt.label}
               />
@@ -205,11 +213,12 @@ export const CheckoutPanel = ({ onClose }) => {
                 className="mt-3 overflow-hidden"
               >
                 <input
-                  type="number"
+                  type="text"
                   placeholder="Número de mesa"
                   value={tableNum}
+                  disabled={isQrTable}
                   onChange={e => setTableNum(e.target.value)}
-                  className="w-full py-3 px-4 rounded-xl text-sm text-white placeholder-white/25 outline-none"
+                  className={`w-full py-3 px-4 rounded-xl text-sm text-white placeholder-white/25 outline-none ${isQrTable ? 'opacity-50 cursor-not-allowed' : ''}`}
                   style={{
                     background: 'rgba(255,255,255,0.05)',
                     border: '1px solid rgba(255,255,255,0.1)',
