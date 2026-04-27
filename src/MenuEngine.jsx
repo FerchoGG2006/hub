@@ -94,7 +94,7 @@ export const MenuEngine = ({ config }) => {
           usePortrait: true,
           flippingTime: 1200,
           swipeDistance: 12,
-          showPageCorners: false,
+          showPageCorners: true,
           disableFlipByClick: true,
           autoSize: true,
           direction: 'rtl'
