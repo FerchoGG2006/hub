@@ -12,7 +12,7 @@ def extract_menu_from_image(image_bytes: bytes) -> list:
         return []
 
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
     
     try:
         image = Image.open(io.BytesIO(image_bytes))
@@ -62,7 +62,7 @@ def enhance_copywriting(name: str, price: str, existing_desc: str) -> dict:
         return {"name": name, "desc": existing_desc, "price": price, "emoji": "🍽️"}
 
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
     prompt = f"""
     Eres un experto copywriter gastronómico. Responde estrictamente con un JSON válido.
     Mejora este plato para hacerlo sumamente apetitoso, vendedor y persuasivo.
