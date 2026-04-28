@@ -9,6 +9,7 @@ import { ProductCell } from './ProductCell';
 import { PaymentGatewayModal } from './PaymentGatewayModal';
 import { KanbanBoard } from './KanbanBoard';
 import { MarketingManager } from './MarketingManager';
+import { InstagramAutopilot } from './InstagramAutopilot';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -1062,10 +1063,10 @@ export const AdminDashboard = () => {
           <img src="/logo.png" alt="HUB" className="h-5 lg:h-6 object-contain" style={{ filter: 'brightness(1.5)', mixBlendMode: 'screen' }} />
         </div>
         <div className="flex gap-8 flex-shrink-0 whitespace-nowrap pr-12">
-          {['kanban', 'inventory', 'stats', 'sedes', 'qr', 'marketing', 'settings', 'billing'].map(m => (
+          {['kanban', 'inventory', 'stats', 'sedes', 'qr', 'marketing', 'autopilot', 'settings', 'billing'].map(m => (
             <button key={m} onClick={() => setView(m)}
               className={`text-[10px] font-bold uppercase tracking-[0.22em] transition-all relative py-2 ${view === m ? 'text-amber-500' : 'text-white/30 hover:text-white/80'}`}>
-              {m === 'kanban' ? 'Pedidos Live' : m === 'inventory' ? 'Suministros' : m === 'stats' ? 'Monitor' : m === 'sedes' ? 'Sedes' : m === 'qr' ? 'Punto QR' : m === 'marketing' ? 'Marketing AI' : m === 'settings' ? 'Branding' : 'Billing'}
+              {m === 'kanban' ? 'Pedidos Live' : m === 'inventory' ? 'Suministros' : m === 'stats' ? 'Monitor' : m === 'sedes' ? 'Sedes' : m === 'qr' ? 'Punto QR' : m === 'marketing' ? 'Marketing AI' : m === 'autopilot' ? 'IG Autopilot' : m === 'settings' ? 'Branding' : 'Billing'}
               {view === m && (
                 <motion.div 
                   layoutId="hud-nav" 
@@ -1090,6 +1091,8 @@ export const AdminDashboard = () => {
             <QRTerminal key="qr" />
           ) : view === 'marketing' ? (
             <MarketingManager key="marketing" tenantSlug={tenantSlug} />
+          ) : view === 'autopilot' ? (
+            <InstagramAutopilot key="autopilot" />
           ) : view === 'settings' ? (
             <BrandingSettings key="settings" />
           ) : (

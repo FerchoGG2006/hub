@@ -586,3 +586,79 @@ def validate_coupon(slug: str, code: str, db: Session = Depends(get_db)):
     cp = db.query(models.Coupon).filter_by(tenant_id=t.id, code=code.upper(), is_active=True).first()
     if not cp: raise HTTPException(status_code=404, detail="Cupón inválido")
     return {"status": "ok", "discount": cp.discount_percent}
+
+# ════════════════ INSTAGRAM AUTOPILOT (MCP) ════════════════
+
+class InstagramSettingsUpdate(BaseModel):
+    ig_account_id: str
+    short_token: str
+    opening_time: str
+    closing_time: str
+    branch_id: int
+
+@app.post("/api/admin/instagram/connect")
+def connect_instagram(req: InstagramSettingsUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    import requests
+    import os
+    url = "https://graph.facebook.com/v19.0/oauth/access_token"
+    params = {
+        'grant_type': 'fb_exchange_token',
+        'client_id': os.getenv("FB_CLIENT_ID", "dummy_client"),
+        'client_secret': os.getenv("FB_CLIENT_SECRET", "dummy_secret"),
+        'fb_exchange_token': req.short_token
+    }
+    response = requests.get(url, params=params)
+    data = response.json()
+    long_token = data.get('access_token', req.short_token) # Fallback
+
+    branch = db.query(models.Branch).filter(models.Branch.id == req.branch_id, models.Branch.tenant_id == current_user.tenant_id).first()
+    if not branch:
+        raise HTTPException(status_code=404, detail="Branch no encontrada")
+        
+    branch.ig_account_id = req.ig_account_id
+    branch.ig_token = long_token
+    branch.opening_time = req.opening_time
+    branch.closing_time = req.closing_time
+    db.commit()
+    return {"status": "ok", "message": "Piloto Automático Activado"}
+
+# Background Scheduler
+from apscheduler.schedulers.background import BackgroundScheduler
+import datetime
+import pytz
+import subprocess
+import sys
+
+def check_instagram_schedules():
+    db = next(get_db())
+    now = datetime.datetime.now(pytz.timezone('America/Bogota'))
+    current_time = now.strftime("%H:%M")
+    
+    branches = db.query(models.Branch).filter(models.Branch.ig_token != None).all()
+    for b in branches:
+        status = None
+        if b.opening_time == current_time:
+            status = "OPEN"
+        elif b.closing_time == current_time:
+            status = "CLOSED"
+            
+        if status:
+            try:
+                # Mocking MCP Call directly logic for simplicity, could also be a subprocess call to MCP Client
+                import requests
+                store_name = f"{b.tenant.name} {b.name}"
+                slug = b.tenant.slug
+                if status == "OPEN":
+                    bio = f"✅ ¡Abiertos en {store_name}! \n🚀 Pide aquí: hub.com/{slug} \n👇"
+                else:
+                    bio = f"💤 {store_name} está cerrado por ahora. \n📅 Mira el menú y programa: hub.com/{slug}"
+
+                url = f"https://graph.facebook.com/v19.0/{b.ig_account_id}"
+                payload = {'biography': bio, 'access_token': b.ig_token}
+                requests.post(url, data=payload)
+            except Exception as e:
+                print(f"Error MCP Autopilot: {e}")
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(check_instagram_schedules, 'interval', minutes=1)
+scheduler.start()

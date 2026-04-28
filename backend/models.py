@@ -46,6 +46,13 @@ class Branch(Base):
     whatsapp_number = Column(String(20))
     address = Column(String(255))
     is_active = Column(Boolean, default=True)
+    
+    # Instagram Autopilot
+    ig_account_id = Column(String(100), nullable=True)
+    ig_token = Column(String(255), nullable=True)
+    opening_time = Column(String(5), nullable=True) # "HH:MM"
+    closing_time = Column(String(5), nullable=True) # "HH:MM"
+    timezone = Column(String(50), default="America/Bogota")
 
     tenant = relationship("Tenant", back_populates="branches")
     orders = relationship("Order", back_populates="branch")
