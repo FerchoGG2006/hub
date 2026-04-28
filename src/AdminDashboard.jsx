@@ -607,7 +607,7 @@ const BrandingSettings = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
         {/* Form Column */}
-        <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-6 order-1">
+        <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-6 order-2 lg:order-1">
           <div className="bg-white/[0.03] p-8 rounded-[2.5rem] border border-white/5 space-y-8">
             
             <div className="flex flex-col gap-4">
@@ -676,20 +676,15 @@ const BrandingSettings = () => {
             </div>
           </div>
 
-          <div className="fixed bottom-6 inset-x-6 z-[100] lg:relative lg:bottom-0 lg:inset-x-0 lg:z-0">
-            <button type="submit" disabled={loading} className="w-full py-5 text-[11px] uppercase tracking-[0.3em] font-black text-black rounded-[2rem] hover:brightness-110 hover:scale-[1.01] transition-all shadow-[0_20px_50px_rgba(245,158,11,0.3)] bg-gradient-to-r from-amber-500 to-amber-600 border border-white/20">
-              {loading ? 'Sincronizando...' : 'Aplicar Cambios Globalmente'}
-            </button>
-          </div>
+          <button type="submit" disabled={loading} className="w-full py-5 text-[11px] uppercase tracking-[0.3em] font-black text-black rounded-[2rem] hover:brightness-110 hover:scale-[1.01] transition-all shadow-[0_10px_30px_rgba(245,158,11,0.2)]" style={{ background: 'linear-gradient(to right, #f59e0b, #fbbf24)' }}>
+            {loading ? 'Aplicando...' : 'Actualizar Marca Globalmente'}
+          </button>
         </form>
 
         {/* Mobile Preview Column */}
-        <div className="lg:col-span-2 order-2 space-y-6 lg:sticky lg:top-8">
-            <div className="flex items-center justify-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <p className="text-[10px] uppercase tracking-[0.4em] font-black text-white/40">Simulador Live</p>
-            </div>
-            <div className="flex justify-center relative scale-90 sm:scale-100 origin-top transition-transform duration-500">
+        <div className="lg:col-span-2 order-1 lg:order-2 space-y-6 sticky top-8">
+            <p className="text-[10px] uppercase tracking-[0.4em] font-black text-white/20 text-center">Simulador Live</p>
+            <div className="flex justify-center relative">
                 <div className="w-[280px] h-[580px] bg-black border-[10px] border-zinc-900 rounded-[3.5rem] overflow-hidden relative shadow-2xl">
                     <div className="absolute top-0 inset-x-0 h-6 bg-zinc-900 rounded-b-3xl w-1/3 mx-auto z-20"></div>
                     
