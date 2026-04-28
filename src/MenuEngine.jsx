@@ -177,28 +177,36 @@ export const MenuEngine = ({ config }) => {
 
   if (!allMenuData) return <LoadingSkeleton />;
 
+  const mainBranch = config.branches?.[0] || {};
+
   return (
     <div className="perspective-container flex flex-col items-center justify-center bg-black overflow-hidden py-10">
+      {/* ── CINEMATIC AMBIENCE ── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-[10%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-amber-500/5 blur-[120px]" />
+        <div className="absolute -bottom-[10%] -right-[10%] w-[60vw] h-[60vw] rounded-full bg-white/5 blur-[120px]" />
+      </div>
+
       {/* ── TOP CATEGORY BAR ── */}
-      <div className="fixed top-4 left-0 right-0 z-[200] pointer-events-none">
+      <div className="fixed top-6 left-0 right-0 z-[200] pointer-events-none">
         <div className="flex justify-center px-4">
-          <div className="flex gap-1.5 overflow-x-auto no-scrollbar pointer-events-auto px-4 py-2 rounded-full bg-black/60 backdrop-blur-3xl border border-white/10 shadow-2xl max-w-full">
+          <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="flex gap-1.5 overflow-x-auto no-scrollbar pointer-events-auto px-4 py-2.5 rounded-full bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] max-w-full">
             {categories.map((c, i) => {
               const m = CATEGORY_META[c] || { icon: '🍽️', label: c };
               const active = i === currentPage;
               return (
-                <button key={c} onClick={() => goToPage(i)} className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all duration-500 ${active ? 'bg-white/10' : ''}`}>
-                  <span className="text-sm" style={{ opacity: active ? 1 : 0.4 }}>{m.icon}</span>
-                  {active && <span className="text-[8px] font-black uppercase tracking-widest text-white">{m.label}</span>}
+                <button key={c} onClick={() => goToPage(i)} className={`flex items-center gap-2.5 px-3.5 py-1.5 rounded-full transition-all duration-500 ${active ? 'bg-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'hover:bg-white/5'}`}>
+                  <span className="text-sm transition-transform duration-500" style={{ opacity: active ? 1 : 0.4, transform: active ? 'scale(1.1)' : 'scale(1)' }}>{m.icon}</span>
+                  {active && <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white whitespace-nowrap">{m.label}</span>}
                 </button>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </div>
 
       {/* ── THE BOOK ── */}
-      <div className="relative w-[94vw] max-w-[420px] aspect-[4/7] shadow-[0_60px_150px_-30px_rgba(0,0,0,1)] rounded-[2.8rem] overflow-hidden">
+      <div className="relative w-[92vw] max-w-[420px] aspect-[4/7] shadow-[0_80px_150px_-40px_rgba(0,0,0,1)] rounded-[3rem] overflow-hidden group">
         <div 
           ref={bookRef} 
           className="w-full h-full" 
@@ -211,28 +219,33 @@ export const MenuEngine = ({ config }) => {
             const items = allMenuData[cat] || [];
             const meta = CATEGORY_META[cat] || { accent: '#fff', icon: '🍽️', label: cat };
             return (
-              <div key={cat} className="page-item bg-[#0a0a0a] text-white overflow-hidden" data-density="soft">
-                <div className="page-content h-full flex flex-col p-7 relative bg-[#0a0a0a]">
-                  {/* 3D SPINE RELIEF (inverted for RTL) */}
-                  <div className="absolute right-0 top-0 bottom-0 w-[40px] z-30 pointer-events-none flex flex-row-reverse">
-                    <div className="w-[12px] bg-gradient-to-l from-black/90 to-transparent" />
-                    <div className="w-[1px] h-full bg-white/5" />
-                    <div className="w-[27px] bg-gradient-to-l from-black/40 to-transparent opacity-50" />
+              <div key={cat} className="page-item bg-[#050505] text-white overflow-hidden" data-density="soft">
+                <div className="page-content h-full flex flex-col p-8 relative bg-[#050505]">
+                  {/* REALISTIC SPINE RELIEF (High-Fidelity) */}
+                  <div className="absolute right-0 top-0 bottom-0 w-[45px] z-30 pointer-events-none flex flex-row-reverse">
+                    <div className="w-[15px] bg-gradient-to-l from-black/95 via-black/80 to-transparent" />
+                    <div className="w-[1px] h-full bg-white/10 opacity-30 shadow-[0_0_10px_rgba(255,255,255,0.1)]" />
+                    <div className="w-[29px] bg-gradient-to-l from-black/40 to-transparent opacity-40" />
                   </div>
 
-                  <div className="mb-6 relative z-20 pl-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-xl">{meta.icon}</span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em]" style={{ color: meta.accent }}>{meta.label}</span>
-                      </div>
-                      <span className="text-white/10 font-mono text-[10px]">{String(pageIdx + 1).padStart(2, '0')}</span>
+                  {/* PAPER GRAIN OVERLAY */}
+                  <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/carbon-fibre.png")' }} />
+
+                  <div className="mb-8 relative z-20 pl-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 shadow-lg">
+                            <span className="text-lg">{meta.icon}</span>
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-[0.5em] opacity-40" style={{ color: meta.accent }}>{meta.label}</span>
+                      </motion.div>
+                      <span className="text-white/5 font-mono text-[12px] italic">{String(pageIdx + 1).padStart(2, '0')}</span>
                     </div>
-                    <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-2 leading-none break-words">{cat}</h2>
-                    <div className="h-0.5 w-16 rounded-full" style={{ backgroundColor: meta.accent }} />
+                    <h2 className="text-4xl font-black uppercase italic tracking-tighter text-white mb-3 leading-[0.8] break-words">{cat}</h2>
+                    <motion.div initial={{ width: 0 }} animate={{ width: 64 }} className="h-1 rounded-full" style={{ backgroundColor: meta.accent }} />
                   </div>
 
-                  <div className="flex-1 grid grid-cols-1 gap-3 content-start overflow-y-auto no-scrollbar pb-20 px-1 relative z-20">
+                  <div className="flex-1 grid grid-cols-1 gap-4 content-start overflow-y-auto no-scrollbar pb-32 px-1 relative z-20">
                     {items.map((item, idx) => (
                       <ProductCell
                         key={item.id} item={item} index={idx} accent={meta.accent}
@@ -247,25 +260,50 @@ export const MenuEngine = ({ config }) => {
         </div>
       </div>
 
+      {/* ── FLOATING SOCIAL BAR (Wow Moment) ── */}
+      <div className="fixed bottom-24 left-0 right-0 z-[200] pointer-events-none px-6">
+        <div className="flex justify-center">
+            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }} className="flex gap-6 items-center pointer-events-auto bg-black/40 backdrop-blur-3xl border border-white/10 py-3.5 px-8 rounded-full shadow-[0_25px_50px_rgba(0,0,0,0.6)]">
+                {config.whatsapp_number && (
+                    <a href={`https://wa.me/${config.whatsapp_number}`} target="_blank" rel="noreferrer" className="text-xl hover:scale-110 transition-transform active:scale-90">💬</a>
+                )}
+                {mainBranch.ig_username && (
+                    <a href={`https://instagram.com/${mainBranch.ig_username}`} target="_blank" rel="noreferrer" className="relative group">
+                        <div className="absolute -inset-2 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-full opacity-0 group-hover:opacity-20 transition-opacity blur-sm" />
+                        <span className="text-xl relative z-10 hover:scale-110 transition-transform block active:scale-90">📸</span>
+                    </a>
+                )}
+                {mainBranch.tt_username && (
+                    <a href={`https://tiktok.com/@${mainBranch.tt_username}`} target="_blank" rel="noreferrer" className="text-xl hover:scale-110 transition-transform active:scale-90">🎵</a>
+                )}
+            </motion.div>
+        </div>
+      </div>
+
 
 
       {/* ── CINEMATIC PRODUCT MODAL ── */}
       <AnimatePresence>
         {selectedProduct && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-6" onClick={() => setSelectedProduct(null)}>
-            <motion.div initial={{ scale: 0.9, y: 50, rotateX: 15 }} animate={{ scale: 1, y: 0, rotateX: 0 }} exit={{ scale: 0.8, y: 50, opacity: 0 }} className="w-full max-w-sm bg-[#050505] rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <motion.div initial={{ scale: 0.9, y: 50, rotateX: 15 }} animate={{ scale: 1, y: 0, rotateX: 0 }} exit={{ scale: 0.8, y: 50, opacity: 0 }} className="w-full max-w-sm bg-[#050505] rounded-[3.5rem] border border-white/10 overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,1)]" onClick={e => e.stopPropagation()}>
               <div className="relative aspect-square">
                 <img src={selectedProduct.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800'} className="w-full h-full object-cover opacity-80" alt={selectedProduct.name} />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent" />
-                <button onClick={() => setSelectedProduct(null)} className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/50 backdrop-blur-xl flex items-center justify-center text-white border border-white/10">✕</button>
+                <button onClick={() => setSelectedProduct(null)} className="absolute top-6 right-6 w-12 h-12 rounded-full bg-black/50 backdrop-blur-xl flex items-center justify-center text-white border border-white/10 hover:bg-white/10 transition-colors">✕</button>
               </div>
-              <div className="px-8 pb-10 -mt-10 relative z-10 text-center">
-                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-amber-500 mb-2 block">Chef Selection</span>
-                <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white mb-4 leading-[0.9]">{selectedProduct.name}</h3>
-                <p className="text-white/40 text-xs italic font-light leading-relaxed mb-8">{selectedProduct.description || 'Una experiencia gourmet única.'}</p>
-                <div className="flex flex-col gap-3">
-                  <span className="text-2xl font-black text-white">${selectedProduct.price}</span>
-                  <button onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }} className="w-full py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-95 transition-all">Añadir</button>
+              <div className="px-10 pb-12 -mt-12 relative z-10 text-center">
+                <div className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 mb-4">
+                    <span className="text-[9px] font-black uppercase tracking-[0.4em] text-amber-500">Chef Selection</span>
+                </div>
+                <h3 className="text-4xl font-black italic uppercase tracking-tighter text-white mb-4 leading-[0.8]">{selectedProduct.name}</h3>
+                <p className="text-white/30 text-xs italic font-light leading-relaxed mb-10">{selectedProduct.description || 'Una experiencia gourmet diseñada para elevar tus sentidos.'}</p>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-white/20 text-sm">$</span>
+                    <span className="text-4xl font-black text-white">{selectedProduct.price}</span>
+                  </div>
+                  <button onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }} className="w-full py-5 bg-white text-black rounded-[2rem] font-black uppercase text-[11px] tracking-[0.3em] shadow-[0_20px_40px_rgba(255,255,255,0.2)] active:scale-95 transition-all hover:brightness-110">✦ Añadir a la Orden</button>
                 </div>
               </div>
             </motion.div>

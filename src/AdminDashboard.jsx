@@ -10,6 +10,8 @@ import { PaymentGatewayModal } from './PaymentGatewayModal';
 import { KanbanBoard } from './KanbanBoard';
 import { MarketingManager } from './MarketingManager';
 import { InstagramAutopilot } from './InstagramAutopilot';
+import { OnboardingTour } from './OnboardingTour';
+import { PhoneInput } from './PhoneInput';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -509,28 +511,70 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
 const BrandingSettings = () => {
   const { tenantSlug } = useParams();
   const [loading, setLoading] = useState(false);
+  const [igStatus, setIgStatus] = useState(null);
+  const [ttStatus, setTtStatus] = useState({ is_linked: false, username: '' });
   const [formData, setFormData] = useState({
     brand_color: '#f59e0b',
     whatsapp_number: '',
-    instagram_url: '',
     tiktok_url: '',
-    maps_url: '',
   });
 
   useEffect(() => {
+    const token = localStorage.getItem('hub_token');
+    
+    // Fetch Settings
     fetch(`${API_URL}/api/v1/tenant/${tenantSlug}`)
       .then(r => r.json())
       .then(d => {
         setFormData({
           brand_color: d.brand_color || '#f59e0b',
           whatsapp_number: d.whatsapp_number || '',
-          instagram_url: d.instagram_url || '',
-          tiktok_url: d.tiktok_url || '',
-          maps_url: d.maps_url || ''
+          tiktok_url: d.tiktok_url || ''
         });
+        const mainBranch = d.branches?.[0];
+        if (mainBranch) {
+            setTtStatus({ 
+              is_linked: mainBranch.is_tt_linked, 
+              username: mainBranch.tt_username,
+              profile_picture: mainBranch.tt_profile_picture
+            });
+        }
       })
       .catch(e => console.warn(e));
+
+    // Fetch IG Status
+    fetch(`${API_URL}/api/admin/instagram/status`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(r => r.json())
+    .then(d => setIgStatus(d))
+    .catch(() => setIgStatus(null));
   }, [tenantSlug]);
+
+  const handleConnectTikTok = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('hub_token');
+      const res = await fetch(`${API_URL}/api/admin/tiktok/setup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ branch_id: 1 })
+      });
+      const data = await res.json();
+      if (res.ok) {
+          setTtStatus({ 
+            is_linked: true, 
+            username: data.tt_username,
+            profile_picture: data.tt_profile_picture 
+          });
+          alert("¡TikTok vinculado con éxito!");
+      }
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -546,7 +590,7 @@ const BrandingSettings = () => {
         body: JSON.stringify(formData)
       });
       if (!res.ok) throw new Error("Guardado falló");
-      alert("Marca actualizada con éxito. Cambios lanzados vía Live-Socket.");
+      alert("Marca actualizada con éxito.");
     } catch (err) {
       alert(err.message);
     } finally {
@@ -555,56 +599,144 @@ const BrandingSettings = () => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 max-w-6xl mx-auto">
       <header className="mb-8 border-b border-white/10 pb-6">
-        <h2 className="text-3xl font-light text-white mb-2 tracking-tight">Cero <span className="text-amber-500 font-serif italic">Soporte</span></h2>
-        <p className="text-[10px] uppercase tracking-widest text-white/40">Autogestión de Settings Corporativos</p>
+        <h2 className="text-3xl font-light text-white mb-2 tracking-tight">Branding <span className="text-amber-500 font-serif italic">& Estilo</span></h2>
+        <p className="text-[10px] uppercase tracking-widest text-white/40">Personaliza la experiencia visual de tus clientes</p>
       </header>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white/[0.03] p-6 rounded-3xl border border-white/5 space-y-6">
-          <div className="flex flex-col gap-2">
-             <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-500">Color Primario (Tema de Interfaz)</label>
-             <div className="flex items-center gap-4">
-               <div className="relative group overflow-hidden w-12 h-12 rounded-full border-2 border-white/10 shadow-lg transition-transform hover:scale-110 active:scale-95 ring-offset-2 ring-offset-[#020202] focus-within:ring-2 ring-amber-500">
-                 <input 
-                    type="color" 
-                    value={formData.brand_color} 
-                    onChange={(e) => setFormData({...formData, brand_color: e.target.value})} 
-                    className="absolute inset-0 w-[150%] h-[150%] -top-[25%] -left-[25%] cursor-pointer bg-transparent border-none p-0 outline-none"
-                 />
-                 <div className="absolute inset-0 pointer-events-none rounded-full shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"></div>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
+        {/* Form Column */}
+        <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-6 order-1">
+          <div className="bg-white/[0.03] p-8 rounded-[2.5rem] border border-white/5 space-y-8">
+            
+            <div className="flex flex-col gap-4">
+               <div className="flex justify-between items-center">
+                 <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-500">Color de Marca (Interfaz)</label>
+                 <span className="text-[10px] font-mono text-white/30">{formData.brand_color.toUpperCase()}</span>
                </div>
-               <span className="text-[10px] font-mono text-white/50 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">{formData.brand_color.toUpperCase()}</span>
-             </div>
-          </div>
-          
-          <div className="flex flex-col gap-2">
-             <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50">Línea WhatsApp de Pedidos</label>
-             <input type="text" value={formData.whatsapp_number} onChange={(e) => setFormData({...formData, whatsapp_number: e.target.value})} className="bg-black/50 border border-white/10 rounded-2xl py-3 px-4 text-xs focus:border-amber-500 outline-none" placeholder="ej: 573000000000" />
+               <div className="flex items-center gap-6 p-4 bg-black/40 rounded-2xl border border-white/5">
+                 <div className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl">
+                   <input 
+                      type="color" 
+                      value={formData.brand_color} 
+                      onChange={(e) => setFormData({...formData, brand_color: e.target.value})} 
+                      className="absolute inset-0 w-[200%] h-[200%] -top-[50%] -left-[50%] cursor-pointer bg-transparent border-none p-0 outline-none"
+                   />
+                 </div>
+                 <div className="flex-1">
+                    <p className="text-[10px] text-white/50 mb-1">Color de Acento</p>
+                    <p className="text-xs text-white/80">Este color definirá el acento de botones e iconos en tu menú digital.</p>
+                 </div>
+               </div>
+            </div>
+            
+            <div className="space-y-8">
+                <div className="flex flex-col gap-2">
+                   <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50">WhatsApp de Pedidos</label>
+                   <PhoneInput 
+                     value={formData.whatsapp_number} 
+                     onChange={(val) => setFormData({...formData, whatsapp_number: val})} 
+                     placeholder="Número de WhatsApp"
+                   />
+                </div>
+
+               <div className="grid grid-cols-2 gap-6">
+                 <div className="flex flex-col gap-2">
+                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50">Instagram (Vía Autopilot)</label>
+                    {igStatus?.is_linked ? (
+                      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl py-4 px-4 flex items-center gap-3">
+                        <img src={igStatus.ig_profile_picture} className="w-6 h-6 rounded-full border border-emerald-500/30" alt="" />
+                        <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest truncate">@{igStatus.ig_username}</span>
+                      </div>
+                    ) : (
+                      <div className="bg-white/5 border border-dashed border-white/10 rounded-2xl py-4 px-4 flex items-center justify-center">
+                        <span className="text-[9px] text-white/30 uppercase tracking-widest font-bold">Desvinculado</span>
+                      </div>
+                    )}
+                 </div>
+                 <div className="flex flex-col gap-2">
+                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50">TikTok (Wow Connect)</label>
+                    {ttStatus.is_linked ? (
+                      <div className="bg-[#fe2c55]/10 border border-[#fe2c55]/20 rounded-2xl py-4 px-4 flex items-center gap-3">
+                        {ttStatus.profile_picture ? (
+                           <img src={ttStatus.profile_picture} className="w-6 h-6 rounded-full border border-[#fe2c55]/30" alt="" />
+                        ) : (
+                           <span className="text-lg">🎵</span>
+                        )}
+                        <span className="text-[10px] text-[#fe2c55] font-black uppercase tracking-widest truncate">@{ttStatus.username}</span>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={handleConnectTikTok} className="bg-white/5 border border-white/10 rounded-2xl py-4 px-4 flex items-center justify-center gap-2 hover:bg-white/10 transition-colors">
+                        <span className="text-[9px] text-white uppercase tracking-widest font-black">Conectar TikTok</span>
+                      </button>
+                    )}
+                 </div>
+               </div>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-             <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50">Google Maps URL</label>
-             <input type="text" value={formData.maps_url} onChange={(e) => setFormData({...formData, maps_url: e.target.value})} className="bg-black/50 border border-white/10 rounded-2xl py-3 px-4 text-xs focus:border-amber-500 outline-none" placeholder="https://maps.google.com/..." />
+          <div className="fixed bottom-6 inset-x-6 z-[100] lg:relative lg:bottom-0 lg:inset-x-0 lg:z-0">
+            <button type="submit" disabled={loading} className="w-full py-5 text-[11px] uppercase tracking-[0.3em] font-black text-black rounded-[2rem] hover:brightness-110 hover:scale-[1.01] transition-all shadow-[0_20px_50px_rgba(245,158,11,0.3)] bg-gradient-to-r from-amber-500 to-amber-600 border border-white/20">
+              {loading ? 'Sincronizando...' : 'Aplicar Cambios Globalmente'}
+            </button>
           </div>
+        </form>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-               <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50">Instagram</label>
-               <input type="text" value={formData.instagram_url} onChange={(e) => setFormData({...formData, instagram_url: e.target.value})} className="bg-black/50 border border-white/10 rounded-2xl py-3 px-4 text-xs focus:border-amber-500 outline-none" placeholder="@usuario" />
+        {/* Mobile Preview Column */}
+        <div className="lg:col-span-2 order-2 space-y-6 lg:sticky lg:top-8">
+            <div className="flex items-center justify-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <p className="text-[10px] uppercase tracking-[0.4em] font-black text-white/40">Simulador Live</p>
             </div>
-            <div className="flex flex-col gap-2">
-               <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50">TikTok</label>
-               <input type="text" value={formData.tiktok_url} onChange={(e) => setFormData({...formData, tiktok_url: e.target.value})} className="bg-black/50 border border-white/10 rounded-2xl py-3 px-4 text-xs focus:border-amber-500 outline-none" placeholder="@usuario" />
+            <div className="flex justify-center relative scale-90 sm:scale-100 origin-top transition-transform duration-500">
+                <div className="w-[280px] h-[580px] bg-black border-[10px] border-zinc-900 rounded-[3.5rem] overflow-hidden relative shadow-2xl">
+                    <div className="absolute top-0 inset-x-0 h-6 bg-zinc-900 rounded-b-3xl w-1/3 mx-auto z-20"></div>
+                    
+                    <div className="h-full bg-[#050505] flex flex-col pt-12 relative">
+                        {/* Page Flip Mockup */}
+                        <div className="absolute inset-y-0 right-0 w-[12px] bg-gradient-to-l from-black/90 to-transparent z-10" />
+                        
+                        <div className="px-6 mb-8 relative z-0">
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="text-xl">🍽️</span>
+                                <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/40">Entradas</span>
+                            </div>
+                            <h4 className="text-3xl font-black italic uppercase tracking-tighter text-white mb-2 leading-[0.8]">{tenantSlug}</h4>
+                            <div className="h-1.5 w-16 rounded-full" style={{ backgroundColor: formData.brand_color }} />
+                        </div>
+
+                        <div className="flex-1 px-6 space-y-5 relative z-0">
+                            {[1,2,3].map(i => (
+                                <div key={i} className="bg-white/[0.02] rounded-2xl border border-white/5 p-4 flex gap-4">
+                                    <div className="w-12 h-12 bg-white/5 rounded-xl flex-shrink-0" />
+                                    <div className="flex-1 space-y-2">
+                                        <div className="h-2 w-2/3 bg-white/10 rounded-lg" />
+                                        <div className="h-1.5 w-1/3 bg-white/5 rounded-lg" />
+                                        <div className="h-2 w-10 bg-white/10 rounded-lg mt-1" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Floating Buttons Mockup */}
+                        <div className="p-8 absolute bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/80 to-transparent">
+                            <div className="flex justify-center gap-6 py-4 px-6 bg-white/[0.03] rounded-[2rem] border border-white/10 backdrop-blur-3xl">
+                                <span className={formData.whatsapp_number ? 'opacity-100' : 'opacity-10'}>💬</span>
+                                <span className={igStatus?.is_linked ? 'opacity-100' : 'opacity-10'}>📸</span>
+                                <span className={ttStatus.is_linked ? 'opacity-100' : 'opacity-10'}>🎵</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Visual Hint */}
+                <motion.div animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute -right-8 top-1/2 bg-amber-500 text-black text-[9px] font-black uppercase px-2 py-1 rounded shadow-lg transform rotate-90 origin-right">
+                    Carta Interactiva
+                </motion.div>
             </div>
-          </div>
         </div>
-
-        <button type="submit" disabled={loading} className="w-full py-4 text-[10px] uppercase tracking-widest font-black text-black rounded-[2rem] hover:brightness-110 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.2)]" style={{ background: '#f59e0b' }}>
-          {loading ? 'Aplicando...' : 'Desplegar Globalmente'}
-        </button>
-      </form>
+      </div>
     </motion.div>
   );
 };
@@ -968,7 +1100,11 @@ function SedesView({ branches }) {
                   </div>
                   <div>
                     <label className="text-[9px] uppercase tracking-widest text-white/40 mb-2 block font-bold">WhatsApp Operativo</label>
-                    <input type="text" placeholder="573..." className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-amber-500" value={newBranch.whatsapp_number} onChange={e => setNewBranch({...newBranch, whatsapp_number: e.target.value})} />
+                    <PhoneInput 
+                      value={newBranch.whatsapp_number} 
+                      onChange={(val) => setNewBranch({...newBranch, whatsapp_number: val})} 
+                      placeholder="Número de pedidos"
+                    />
                   </div>
                   <div className="flex gap-3 pt-4">
                     <button onClick={() => setIsAdding(false)} className="flex-1 py-4 rounded-2xl text-[10px] font-black uppercase text-white/40 border border-white/10">Cancelar</button>
@@ -992,6 +1128,21 @@ export const AdminDashboard = () => {
   const [branches, setBranches] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const hasSeen = localStorage.getItem(`hub_onboarding_${tenantSlug}`);
+      if (!hasSeen) {
+        setShowOnboarding(true);
+      }
+    }
+  }, [isAuthenticated, tenantSlug]);
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem(`hub_onboarding_${tenantSlug}`, 'true');
+    setShowOnboarding(false);
+  };
 
   const fetchProducts = useCallback(async () => {
     if (!tenantSlug) return;
@@ -1080,9 +1231,10 @@ export const AdminDashboard = () => {
 
       <main className="pt-24 pb-12 px-5 max-w-7xl w-full mx-auto">
         <AnimatePresence mode="wait">
-          {view === 'sedes' && <SedesView branches={branches} tenantSlug={tenantSlug} />}
           {view === 'kanban' ? (
             <KanbanBoard key="kanban" tenantSlug={tenantSlug} />
+          ) : view === 'sedes' ? (
+            <SedesView key="sedes" branches={branches} tenantSlug={tenantSlug} />
           ) : view === 'inventory' ? (
             <InventoryManager key="inv" products={products} toggleProduct={toggleProduct} onLogout={() => setIsAuthenticated(false)} />
           ) : view === 'stats' ? (
@@ -1122,6 +1274,7 @@ export const AdminDashboard = () => {
       <AnimatePresence>
         {showAddModal && <AddProductModal onClose={() => setShowAddModal(false)} onProductAdded={fetchProducts} />}
         {showAIModal && <AIIngestModal onClose={() => setShowAIModal(false)} onSuccess={fetchProducts} />}
+        {showOnboarding && <OnboardingTour onComplete={handleOnboardingComplete} />}
       </AnimatePresence>
     </motion.div>
   );

@@ -105,13 +105,21 @@ def get_tenant_config(slug: str, db: Session = Depends(get_db)):
         "whatsapp_message": tenant.whatsapp_message,
         "subscription_status": tenant.subscription_status,
         "valid_until": tenant.valid_until.isoformat() if tenant.valid_until else None,
+        "instagram_url": tenant.instagram_url,
+        "tiktok_url": tenant.tiktok_url,
         "branches": [
             {
                 "id": b.id,
                 "name": b.name,
                 "slug": b.slug,
                 "whatsapp_number": b.whatsapp_number,
-                "address": b.address
+                "address": b.address,
+                "ig_username": b.ig_username,
+                "ig_profile_picture": b.ig_profile_picture,
+                "autopilot_active": b.autopilot_active,
+                "tt_username": b.tt_username,
+                "tt_profile_picture": b.tt_profile_picture,
+                "is_tt_linked": bool(b.tt_token)
             } for b in tenant.branches if b.is_active
         ]
     }
@@ -589,38 +597,107 @@ def validate_coupon(slug: str, code: str, db: Session = Depends(get_db)):
 
 # ════════════════ INSTAGRAM AUTOPILOT (MCP) ════════════════
 
-class InstagramSettingsUpdate(BaseModel):
-    ig_account_id: str
-    short_token: str
+@app.get("/api/admin/instagram/status")
+def get_instagram_status(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    branches = db.query(models.Branch).filter(models.Branch.tenant_id == current_user.tenant_id, models.Branch.is_active == True).all()
+    
+    return {
+        "branches": [
+            {
+                "id": b.id,
+                "name": b.name,
+                "ig_username": b.ig_username,
+                "ig_profile_picture": b.ig_profile_picture,
+                "autopilot_active": b.autopilot_active,
+                "opening_time": b.opening_time or "11:00",
+                "closing_time": b.closing_time or "22:00",
+                "is_linked": bool(b.ig_token)
+            } for b in branches
+        ]
+    }
+
+class AutopilotToggleRequest(BaseModel):
+    active: bool
     opening_time: str
     closing_time: str
-    branch_id: int
+    branch_id: int = 1
 
-@app.post("/api/admin/instagram/connect")
-def connect_instagram(req: InstagramSettingsUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    import requests
-    import os
-    url = "https://graph.facebook.com/v19.0/oauth/access_token"
-    params = {
-        'grant_type': 'fb_exchange_token',
-        'client_id': os.getenv("FB_CLIENT_ID", "dummy_client"),
-        'client_secret': os.getenv("FB_CLIENT_SECRET", "dummy_secret"),
-        'fb_exchange_token': req.short_token
-    }
-    response = requests.get(url, params=params)
-    data = response.json()
-    long_token = data.get('access_token', req.short_token) # Fallback
-
+@app.post("/api/admin/instagram/toggle")
+def toggle_autopilot(req: AutopilotToggleRequest, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     branch = db.query(models.Branch).filter(models.Branch.id == req.branch_id, models.Branch.tenant_id == current_user.tenant_id).first()
-    if not branch:
-        raise HTTPException(status_code=404, detail="Branch no encontrada")
-        
-    branch.ig_account_id = req.ig_account_id
-    branch.ig_token = long_token
+    if not branch: raise HTTPException(status_code=404)
+    
+    branch.autopilot_active = req.active
     branch.opening_time = req.opening_time
     branch.closing_time = req.closing_time
     db.commit()
-    return {"status": "ok", "message": "Piloto Automático Activado"}
+    return {"status": "ok"}
+
+@app.post("/api/admin/instagram/setup-autopilot")
+def setup_instagram_autopilot(req: dict, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    import requests
+    import os
+    short_token = req.get('shortToken')
+    branch_id = req.get('branch_id', 1)
+
+    try:
+        # 1. Exchange for Long-Lived Token
+        url_token = "https://graph.facebook.com/v19.0/oauth/access_token"
+        params_token = {
+            'grant_type': 'fb_exchange_token',
+            'client_id': os.getenv("FB_CLIENT_ID", "dummy_id"),
+            'client_secret': os.getenv("FB_CLIENT_SECRET", "dummy_secret"),
+            'fb_exchange_token': short_token
+        }
+        res_token = requests.get(url_token, params=params_token).json()
+        long_token = res_token.get('access_token', short_token)
+
+        # 2. Discover Facebook Pages
+        res_pages = requests.get(f"https://graph.facebook.com/v19.0/me/accounts?access_token={long_token}").json()
+        pages = res_pages.get('data', [])
+        if not pages:
+            raise HTTPException(status_code=400, detail="No se encontraron páginas de Facebook vinculadas.")
+        
+        first_page_id = pages[0]['id']
+
+        # 3. Discover Instagram Business Account linked to the page
+        res_ig = requests.get(f"https://graph.facebook.com/v19.0/{first_page_id}?fields=instagram_business_account{{id,username,name,profile_picture_url}}&access_token={long_token}").json()
+        ig_business = res_ig.get('instagram_business_account')
+        
+        if not ig_business:
+            raise HTTPException(status_code=400, detail="Esta página de Facebook no tiene una cuenta de Instagram Business vinculada.")
+
+        # 4. Save to DB
+        branch = db.query(models.Branch).filter(models.Branch.id == branch_id, models.Branch.tenant_id == current_user.tenant_id).first()
+        branch.ig_account_id = ig_business['id']
+        branch.ig_token = long_token
+        branch.ig_username = ig_business.get('username')
+        branch.ig_profile_picture = ig_business.get('profile_picture_url')
+        branch.autopilot_active = True
+        
+        db.commit()
+        return {"status": "ok", "ig_username": branch.ig_username}
+
+    except Exception as e:
+        print(f"Error setup autopilot: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/admin/tiktok/setup")
+def setup_tiktok_integration(req: dict, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    # Simulated TikTok Auth Discovery Flow
+    branch_id = req.get('branch_id', 1)
+    branch = db.query(models.Branch).filter(models.Branch.id == branch_id, models.Branch.tenant_id == current_user.tenant_id).first()
+    if not branch: raise HTTPException(status_code=404)
+    
+    branch.tt_token = "tt_premium_token_wow_" + str(branch.id)
+    branch.tt_username = branch.tenant.slug + "_official"
+    branch.tt_profile_picture = f"https://api.dicebear.com/7.x/avataaars/svg?seed={branch.tt_username}"
+    db.commit()
+    return {
+        "status": "ok", 
+        "tt_username": branch.tt_username,
+        "tt_profile_picture": branch.tt_profile_picture
+    }
 
 # Background Scheduler
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -634,7 +711,7 @@ def check_instagram_schedules():
     now = datetime.datetime.now(pytz.timezone('America/Bogota'))
     current_time = now.strftime("%H:%M")
     
-    branches = db.query(models.Branch).filter(models.Branch.ig_token != None).all()
+    branches = db.query(models.Branch).filter(models.Branch.autopilot_active == True, models.Branch.ig_token != None).all()
     for b in branches:
         status = None
         if b.opening_time == current_time:
@@ -644,7 +721,6 @@ def check_instagram_schedules():
             
         if status:
             try:
-                # Mocking MCP Call directly logic for simplicity, could also be a subprocess call to MCP Client
                 import requests
                 store_name = f"{b.tenant.name} {b.name}"
                 slug = b.tenant.slug

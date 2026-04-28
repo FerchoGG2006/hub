@@ -50,9 +50,18 @@ class Branch(Base):
     # Instagram Autopilot
     ig_account_id = Column(String(100), nullable=True)
     ig_token = Column(String(255), nullable=True)
+    ig_username = Column(String(100), nullable=True)
+    ig_profile_picture = Column(Text, nullable=True)
+    autopilot_active = Column(Boolean, default=False)
     opening_time = Column(String(5), nullable=True) # "HH:MM"
     closing_time = Column(String(5), nullable=True) # "HH:MM"
     timezone = Column(String(50), default="America/Bogota")
+
+    # TikTok Integration
+    tt_account_id = Column(String(100), nullable=True)
+    tt_token = Column(String(255), nullable=True)
+    tt_username = Column(String(100), nullable=True)
+    tt_profile_picture = Column(String(500), nullable=True)
 
     tenant = relationship("Tenant", back_populates="branches")
     orders = relationship("Order", back_populates="branch")
