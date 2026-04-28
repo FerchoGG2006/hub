@@ -578,8 +578,14 @@ def generate_ai_campaign(req: AIMarketingRequest, db: Session = Depends(get_db),
         data = json.loads(text)
         
         # Guardar cupon en DB
+        tid = current_user.tenant_id
+        if not tid:
+            # Fallback to first tenant for SuperAdmin testing if no tenant is linked
+            t = db.query(models.Tenant).first()
+            tid = t.id if t else None
+
         nuevo_cupon = models.Coupon(
-            tenant_id=current_user.tenant_id,
+            tenant_id=tid,
             code=data['coupon_code'],
             discount_percent=int(data['discount_percent'])
         )
