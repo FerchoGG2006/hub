@@ -122,12 +122,6 @@ export const MenuEngine = ({ config }) => {
   /* ── NAVIGATION ── */
   const categories = allMenuData ? Object.keys(allMenuData) : [];
 
-  const goToPage = (idx) => {
-    if (pflip.current && idx >= 0 && idx < categories.length) {
-      pflip.current.turnToPage(idx);
-      if (navigator.vibrate) navigator.vibrate(10);
-    }
-  };
 
   /* ── SWIPE-BACK: Native DOM listeners in capture phase ── */
   const pageRef = useRef(0);
@@ -187,23 +181,6 @@ export const MenuEngine = ({ config }) => {
         <div className="absolute -bottom-[10%] -right-[10%] w-[60vw] h-[60vw] rounded-full bg-white/5 blur-[120px]" />
       </div>
 
-      {/* ── TOP CATEGORY BAR ── */}
-      <div className="fixed top-6 left-0 right-0 z-[200] pointer-events-none">
-        <div className="flex justify-center px-4">
-          <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="flex gap-1.5 overflow-x-auto no-scrollbar pointer-events-auto px-4 py-2.5 rounded-full bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] max-w-full">
-            {categories.map((c, i) => {
-              const m = CATEGORY_META[c] || { icon: '🍽️', label: c };
-              const active = i === currentPage;
-              return (
-                <button key={c} onClick={() => goToPage(i)} className={`flex items-center gap-2.5 px-3.5 py-1.5 rounded-full transition-all duration-500 ${active ? 'bg-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'hover:bg-white/5'}`}>
-                  <span className="text-sm transition-transform duration-500" style={{ opacity: active ? 1 : 0.4, transform: active ? 'scale(1.1)' : 'scale(1)' }}>{m.icon}</span>
-                  {active && <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white whitespace-nowrap">{m.label}</span>}
-                </button>
-              );
-            })}
-          </motion.div>
-        </div>
-      </div>
 
       {/* ── THE BOOK ── */}
       <div className="relative w-[92vw] max-w-[420px] aspect-[4/7] shadow-[0_80px_150px_-40px_rgba(0,0,0,1)] rounded-[3rem] overflow-hidden group">
