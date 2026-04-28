@@ -15,6 +15,9 @@ from utils.gemini_extractor import extract_menu_from_image
 import auth
 
 load_dotenv()
+import google.generativeai as genai
+if os.getenv("GEMINI_API_KEY"):
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Crear tablas si no existen
 models.Base.metadata.create_all(bind=engine)
@@ -567,7 +570,7 @@ class AIMarketingRequest(BaseModel):
 @app.post("/api/admin/marketing/ai")
 def generate_ai_campaign(req: AIMarketingRequest, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     import google.generativeai as genai
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    model = genai.GenerativeModel('gemini-flash-latest')
     prompt = f"Eres un experto en marketing gastronómico. El restaurante quiere: '{req.goal}'. Redacta 1 SMS corto persuasivo, 1 Asunto de Email llamativo, y crea un Código de Cupón de descuento de un solo texto (ej: HAMBUR30) y el Porcentaje sugerido. Responde en JSON estricto con claves: sms_text, email_subject, coupon_code, discount_percent."
     try:
         response = model.generate_content(prompt)

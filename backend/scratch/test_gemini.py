@@ -9,7 +9,7 @@ print(f"Key found: {bool(key)}")
 if key:
     print(f"Key prefix: {key[:8]}...")
     genai.configure(api_key=key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-flash-latest')
     try:
         response = model.generate_content("Hola, dime 'OK' si recibes esto.")
         print(f"Response: {response.text.strip()}")

@@ -8,8 +8,8 @@ services:
     envVars:
       - key: DATABASE_URL
         value: postgresql://neondb_owner:npg_oZXsypkIR20u@ep-snowy-salad-ama4nvfw-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
-      - key: GOOGLE_API_KEY
-        value: AIzaSyBUI4qYnHwRKxFrgbSR2yB86CPYaLLemqw
+      - key: GEMINI_API_KEY
+        value: AIzaSyAF4jl-4aMZK9pk5uOcRJ95PWOyQTz8JY8
       - key: JWT_SECRET
         value: 9e59f1ae-52d0-434d-848f-572c3a051503
       - key: FRONTEND_URL
