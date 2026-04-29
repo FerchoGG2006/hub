@@ -14,6 +14,12 @@ services:
         value: 9e59f1ae-52d0-434d-848f-572c3a051503
       - key: FRONTEND_URL
         value: https://hub-frontend-bbaa.onrender.com
+      - key: FB_CLIENT_ID
+        value: 1975318246711677
+      - key: FB_CLIENT_SECRET
+        value: 2be64dd59233f0a37d88c7026bc6a142
+      - key: META_VERIFY_TOKEN
+        value: hub_secret_token_2026
 
   # ─── FRONTEND (React + Vite served via Node) ───
   - type: web
@@ -24,3 +30,5 @@ services:
     envVars:
       - key: VITE_API_URL
         value: https://hub-api-2lql.onrender.com
+      - key: VITE_FB_APP_ID
+        value: 1975318246711677
