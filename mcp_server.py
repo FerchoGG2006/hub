@@ -11,17 +11,25 @@ logger = logging.getLogger("hub-mcp")
 mcp = FastMCP("HubSocialAutopilot")
 
 @mcp.tool()
-def update_instagram_bio(account_id: str, access_token: str, status_message: str) -> str:
+def update_instagram_bio(account_id: str, access_token: str = None, status_message: str = "OPEN") -> str:
     """
     Updates the Instagram Business Account biography (bio).
     
     Args:
         account_id: The Instagram Business Account ID.
-        access_token: The long-lived access token from Meta.
+        access_token: Optional. The long-lived access token. If not provided, uses META_ACCESS_TOKEN from .env.
         status_message: The text to set as the biography.
     """
+    import os
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(__file__), "backend", ".env"))
+    
+    token = access_token or os.getenv("META_ACCESS_TOKEN")
+    if not token:
+        return "Error: No access token provided and META_ACCESS_TOKEN not found in .env"
+
     url = f"https://graph.facebook.com/v19.0/{account_id}"
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = {"Authorization": f"Bearer {token}"}
     payload = {"biography": status_message}
     
     logger.info(f"Updating Instagram Bio for account {account_id}")
@@ -78,6 +86,69 @@ def update_tiktok_bio(account_id: str, access_token: str, status_message: str) -
 def get_hub_status() -> str:
     """Returns the current status of the MCP server."""
     return "HUB Social Autopilot MCP Server is running and ready to accept commands."
+
+@mcp.tool()
+def sync_hub_instagram(tenant_slug: str, force_status: str = None) -> str:
+    """
+    Sincroniza la bio de Instagram de un restaurante del HUB.
+    
+    Args:
+        tenant_slug: El slug del restaurante (ej: 'la-rivera').
+        force_status: Opcional. Forzar estado 'OPEN' o 'CLOSED'. Si es None, usa el horario actual.
+    """
+    import os
+    import sys
+    from dotenv import load_dotenv
+    
+    # Asegurar que podemos importar desde backend
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    backend_dir = os.path.join(current_dir, "backend")
+    if backend_dir not in sys.path:
+        sys.path.append(backend_dir)
+        
+    load_dotenv(os.path.join(backend_dir, ".env"))
+    
+    try:
+        from database import SessionLocal
+        import models
+        import datetime
+        import pytz
+        
+        db = SessionLocal()
+        tenant = db.query(models.Tenant).filter(models.Tenant.slug == tenant_slug).first()
+        if not tenant:
+            return f"Error: No se encontró el restaurante '{tenant_slug}'"
+            
+        results = []
+        now = datetime.datetime.now(pytz.timezone('America/Bogota'))
+        current_time = now.strftime("%H:%M")
+        
+        for b in tenant.branches:
+            if not b.ig_token or not b.ig_account_id:
+                results.append(f"Sede {b.name}: Sin vincular.")
+                continue
+                
+            status = force_status
+            if not status:
+                if b.opening_time <= current_time <= b.closing_time:
+                    status = "OPEN"
+                else:
+                    status = "CLOSED"
+            
+            store_name = f"{tenant.name} {b.name}"
+            if status == "OPEN":
+                bio = f"✅ ¡Abiertos en {store_name}! \n🚀 Pide aquí: hub.com/{tenant_slug} \n👇"
+            else:
+                bio = f"💤 {store_name} está cerrado por ahora. \n📅 Mira el menú y programa: hub.com/{tenant_slug}"
+
+            res = update_instagram_bio(b.ig_account_id, b.ig_token, bio)
+            results.append(f"Sede {b.name}: {res}")
+            
+        db.close()
+        return "\n".join(results)
+        
+    except Exception as e:
+        return f"Error crítico en el MCP Hub: {str(e)}"
 
 if __name__ == "__main__":
     # Start the server using stdio transport (standard for MCP)

@@ -10,6 +10,7 @@ import { AdminDashboard } from './AdminDashboard';
 import { SuperAdmin } from './SuperAdmin';
 import { LandingPage } from './LandingPage';
 import { BranchPicker } from './BranchPicker';
+import { PrivacyPolicy } from './PrivacyPolicy';
 
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
@@ -145,6 +146,7 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/superadmin" element={<SuperAdmin />} />
         <Route path="/admin/:tenantSlug" element={<AdminDashboard />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/t/:tenantSlug" element={<HubLoader />} />
         <Route path="/:tenantSlug" element={<HubLoader />} />
       </Routes>

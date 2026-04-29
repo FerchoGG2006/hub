@@ -1,7 +1,7 @@
 import json
 import os
 import datetime
-from fastapi import FastAPI, Depends, HTTPException, File, UploadFile, Form, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile, Form, WebSocket, WebSocketDisconnect, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -733,6 +733,42 @@ def setup_tiktok_integration(req: dict, db: Session = Depends(get_db), current_u
         "status": "ok", 
         "tt_username": branch.tt_username,
         "tt_profile_picture": branch.tt_profile_picture
+    }
+
+# ════════════════ META WEBHOOKS & EXTRAS ════════════════
+@app.get("/api/v1/meta/webhook")
+def verify_meta_webhook(hub_mode: str = Query(None, alias="hub.mode"), 
+                       hub_challenge: str = Query(None, alias="hub.challenge"), 
+                       hub_verify_token: str = Query(None, alias="hub.verify_token")):
+    """
+    Verificación del Webhook requerida por Meta.
+    El token de verificación debe coincidir con META_VERIFY_TOKEN en .env.
+    """
+    if hub_mode == "subscribe" and hub_verify_token == os.getenv("META_VERIFY_TOKEN"):
+        print("✅ Meta Webhook verificado correctamente.")
+        return int(hub_challenge)
+    return "Verification failed"
+
+@app.post("/api/v1/meta/webhook")
+async def receive_meta_webhook(request: Request):
+    """Recibe notificaciones en tiempo real de Instagram/Facebook."""
+    data = await request.json()
+    # Aquí puedes manejar eventos como menciones, comentarios o cambios en el perfil
+    print(f"📡 Meta Webhook recibido: {json.dumps(data, indent=2)}")
+    return {"status": "received"}
+
+@app.get("/api/v1/admin/meta/test")
+def test_meta_config():
+    """Prueba rápida para ver si las credenciales de Meta están cargadas."""
+    app_id = os.getenv("FB_CLIENT_ID")
+    app_secret = os.getenv("FB_CLIENT_SECRET")
+    verify_token = os.getenv("META_VERIFY_TOKEN")
+    
+    return {
+        "app_id_present": bool(app_id and app_id != "TU_APP_ID_AQUI"),
+        "app_secret_present": bool(app_secret and app_secret != "TU_APP_SECRET_AQUI"),
+        "verify_token_present": bool(verify_token),
+        "callback_url": f"{os.getenv('FRONTEND_URL')}/api/v1/meta/webhook"
     }
 
 # Background Scheduler
