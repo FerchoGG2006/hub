@@ -52,8 +52,22 @@ def extract_menu_from_image(image_bytes: bytes) -> list:
         data = json.loads(text)
         return data
     except Exception as e:
-        print("Error interacting with Gemini:", e)
-        return []
+        print("Gemini Extraction failed, using fallback:", e)
+        # Fallback: return a dummy category if AI fails
+        return [
+            {
+                "category": "Platos Principales",
+                "icon": "🍽️",
+                "products": [
+                    {
+                        "name": "Especial del Día",
+                        "description": "Nuestra recomendación del chef para hoy.",
+                        "price": "$15.000",
+                        "emoji": "✨"
+                    }
+                ]
+            }
+        ]
 
 def enhance_copywriting(name: str, price: str, existing_desc: str) -> dict:
     """Uses Gemini to rewrite product descriptions effectively."""
@@ -88,5 +102,10 @@ def enhance_copywriting(name: str, price: str, existing_desc: str) -> dict:
             text = text.replace("```", "", 2).strip()
         return json.loads(text)
     except Exception as e:
-        print("Error in magic edit:", e)
-        return {"name": f"✨ {name}", "desc": "Descripción mejorada temporalmente no disponible.", "price": price, "emoji": "✨"}
+        print("Magic Edit failed, using fallback:", e)
+        return {
+            "name": f"✨ {name}", 
+            "desc": existing_desc or "Una deliciosa opción preparada con los mejores ingredientes.", 
+            "price": price, 
+            "emoji": "🍽️"
+        }

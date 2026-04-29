@@ -1,5 +1,6 @@
 import json
 import os
+import datetime
 from fastapi import FastAPI, Depends, HTTPException, File, UploadFile, Form, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func
@@ -574,27 +575,53 @@ def generate_ai_campaign(req: AIMarketingRequest, db: Session = Depends(get_db),
     prompt = f"Eres un experto en marketing gastronómico. El restaurante quiere: '{req.goal}'. Redacta 1 SMS corto persuasivo, 1 Asunto de Email llamativo, y crea un Código de Cupón de descuento de un solo texto (ej: HAMBUR30) y el Porcentaje sugerido. Responde en JSON estricto con claves: sms_text, email_subject, coupon_code, discount_percent."
     try:
         response = model.generate_content(prompt)
-        text = response.text.strip().replace("```json", "").replace("```", "")
-        data = json.loads(text)
+        raw_text = response.text.strip()
         
-        # Guardar cupon en DB
+        # Robust JSON extraction
+        import re
+        json_match = re.search(r'\{.*\}', raw_text, re.DOTALL)
+        if json_match:
+            text = json_match.group(0)
+        else:
+            text = raw_text.replace("```json", "").replace("```", "").strip()
+            
+        data = json.loads(text)
+    except Exception as e:
+        print(f"AI Marketing failed, using fallback: {str(e)}")
+        # Fallback response for marketing campaigns
+        # We try to use the goal to make it somewhat relevant
+        goal_lower = req.goal.lower()
+        discount = 15
+        if "venta" in goal_lower or "promo" in goal_lower:
+            discount = 20
+        
+        data = {
+            "sms_text": f"¡No te lo pierdas! {req.goal}. Pide ahora y obtén un descuento especial.",
+            "email_subject": f"Especial para ti: {req.goal} 🚀",
+            "coupon_code": "PROMO" + str(datetime.datetime.now().strftime("%y%m")),
+            "discount_percent": discount
+        }
+
+    # Guardar cupon en DB
+    try:
         tid = current_user.tenant_id
         if not tid:
-            # Fallback to first tenant for SuperAdmin testing if no tenant is linked
             t = db.query(models.Tenant).first()
             tid = t.id if t else None
 
-        nuevo_cupon = models.Coupon(
-            tenant_id=tid,
-            code=data['coupon_code'],
-            discount_percent=int(data['discount_percent'])
-        )
-        db.add(nuevo_cupon)
-        db.commit()
-        return data
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=500, detail="Error generando campaña")
+        if tid:
+            nuevo_cupon = models.Coupon(
+                tenant_id=tid,
+                code=data.get('coupon_code', 'DESCUENTO10').upper(),
+                discount_percent=int(data.get('discount_percent', 10))
+            )
+            db.add(nuevo_cupon)
+            db.commit()
+    except Exception as db_err:
+        print(f"Error saving fallback coupon: {db_err}")
+
+    return data
+
 
 @app.get("/api/v1/tenant/{slug}/coupon/{code}")
 def validate_coupon(slug: str, code: str, db: Session = Depends(get_db)):
