@@ -779,33 +779,37 @@ import subprocess
 import sys
 
 def check_instagram_schedules():
-    db = next(get_db())
-    now = datetime.datetime.now(pytz.timezone('America/Bogota'))
-    current_time = now.strftime("%H:%M")
-    
-    branches = db.query(models.Branch).filter(models.Branch.autopilot_active == True, models.Branch.ig_token != None).all()
-    for b in branches:
-        status = None
-        if b.opening_time == current_time:
-            status = "OPEN"
-        elif b.closing_time == current_time:
-            status = "CLOSED"
-            
-        if status:
-            try:
-                import requests
-                store_name = f"{b.tenant.name} {b.name}"
-                slug = b.tenant.slug
-                if status == "OPEN":
-                    bio = f"✅ ¡Abiertos en {store_name}! \n🚀 Pide aquí: hub.com/{slug} \n👇"
-                else:
-                    bio = f"💤 {store_name} está cerrado por ahora. \n📅 Mira el menú y programa: hub.com/{slug}"
+    from database import SessionLocal
+    db = SessionLocal()
+    try:
+        now = datetime.datetime.now(pytz.timezone('America/Bogota'))
+        current_time = now.strftime("%H:%M")
+        
+        branches = db.query(models.Branch).filter(models.Branch.autopilot_active == True, models.Branch.ig_token != None).all()
+        for b in branches:
+            status = None
+            if b.opening_time == current_time:
+                status = "OPEN"
+            elif b.closing_time == current_time:
+                status = "CLOSED"
+                
+            if status:
+                try:
+                    import requests
+                    store_name = f"{b.tenant.name} {b.name}"
+                    slug = b.tenant.slug
+                    if status == "OPEN":
+                        bio = f"✅ ¡Abiertos en {store_name}! \n🚀 Pide aquí: hub.com/{slug} \n👇"
+                    else:
+                        bio = f"💤 {store_name} está cerrado por ahora. \n📅 Mira el menú y programa: hub.com/{slug}"
 
-                url = f"https://graph.facebook.com/v19.0/{b.ig_account_id}"
-                payload = {'biography': bio, 'access_token': b.ig_token}
-                requests.post(url, data=payload)
-            except Exception as e:
-                print(f"Error MCP Autopilot: {e}")
+                    url = f"https://graph.facebook.com/v19.0/{b.ig_account_id}"
+                    payload = {'biography': bio, 'access_token': b.ig_token}
+                    requests.post(url, data=payload)
+                except Exception as e:
+                    print(f"Error MCP Autopilot: {e}")
+    finally:
+        db.close()
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(check_instagram_schedules, 'interval', minutes=1)

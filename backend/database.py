@@ -14,6 +14,8 @@ if not DATABASE_URL:
 # Neon lo exige: sslmode=require&channel_binding=require
 engine = create_engine(
     DATABASE_URL,
+    pool_size=10,                # Aumentamos el tamaño base para soportar workers y api
+    max_overflow=20,             # Permitimos picos de hasta 30 conexiones
     pool_pre_ping=True,          # detecta conexiones muertas antes de usarlas
     pool_recycle=300,            # recicla conexiones cada 5 min (Neon cierra idle > 5 min)
     connect_args={
