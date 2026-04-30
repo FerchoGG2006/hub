@@ -750,25 +750,108 @@ def verify_meta_webhook(hub_mode: str = Query(None, alias="hub.mode"),
     return "Verification failed"
 
 @app.post("/api/v1/meta/webhook")
-async def receive_meta_webhook(request: Request):
-    """Recibe notificaciones en tiempo real de Instagram/Facebook."""
+async def receive_meta_webhook(request: Request, db: Session = Depends(get_db)):
+    """Recibe notificaciones en tiempo real de Instagram/Facebook/WhatsApp."""
+    import requests
     data = await request.json()
-    # Aquí puedes manejar eventos como menciones, comentarios o cambios en el perfil
     print(f"📡 Meta Webhook recibido: {json.dumps(data, indent=2)}")
+
+    # 1. Extraer el mensaje y el remitente (Messenger / Instagram)
+    try:
+        entries = data.get('entry', [])
+        for entry in entries:
+            messaging = entry.get('messaging', [])
+            for message_event in messaging:
+                sender_id = message_event.get('sender', {}).get('id')
+                recipient_id = message_event.get('recipient', {}).get('id') # ID de nuestra página
+                message = message_event.get('message', {})
+                
+                if message and 'text' in message:
+                    text = message['text']
+                    print(f"💬 Mensaje de {sender_id}: {text}")
+
+                    # 2. IA Check: ¿Es intención de pedir?
+                    model = genai.GenerativeModel('gemini-flash-latest')
+                    prompt = f"El cliente dice: '{text}'. ¿Es un saludo o una intención de ver el menú/pedir comida? Responde solo 'SI' o 'NO'."
+                    ai_res = model.generate_content(prompt).text.strip().upper()
+
+                    if "SI" in ai_res:
+                        # 3. Buscar el Tenant/Branch vinculado a esta página (recipient_id)
+                        # Por ahora usamos el primero o el configurado en .env para el MVP
+                        branch = db.query(models.Branch).first() # TODO: Mapear recipient_id a branch real
+                        tenant_slug = branch.tenant.slug if branch else "hub"
+                        
+                        reply_text = f"¡Hola! 🚀 Soy el asistente inteligente de {branch.tenant.name if branch else 'HUB'}. \n\nPuedes ver nuestro menú interactivo y pedir directamente aquí: \n👉 https://hub-frontend-bbaa.onrender.com/{tenant_slug}"
+                        
+                        # 4. Enviar respuesta vía API de Meta
+                        # Detectar si es Instagram o Messenger para usar el token correcto
+                        is_instagram = "instagram" in data.get('object', '')
+                        access_token = os.getenv("IG_ACCESS_TOKEN") if is_instagram else os.getenv("FB_PAGE_ACCESS_TOKEN")
+                        
+                        endpoint = f"https://graph.facebook.com/v19.0/me/messages?access_token={access_token}"
+                        
+                        payload = {
+                            "recipient": {"id": sender_id},
+                            "message": {"text": reply_text}
+                        }
+                        
+                        res = requests.post(endpoint, json=payload)
+                        print(f"✅ Respuesta enviada ({'IG' if is_instagram else 'FB'}): {res.status_code}")
+
+    except Exception as e:
+        print(f"❌ Error procesando webhook Messenger/IG: {str(e)}")
+
+    # 5. Lógica para WhatsApp (Estructura diferente)
+    try:
+        entries = data.get('entry', [])
+        for entry in entries:
+            changes = entry.get('changes', [])
+            for change in changes:
+                value = change.get('value', {})
+                messages = value.get('messages', [])
+                if messages:
+                    wa_message = messages[0]
+                    sender_wa_id = wa_message.get('from')
+                    wa_text = wa_message.get('text', {}).get('body', '')
+                    phone_id = value.get('metadata', {}).get('phone_number_id')
+                    
+                    print(f"📱 WhatsApp de {sender_wa_id}: {wa_text}")
+
+                    # IA Check
+                    model = genai.GenerativeModel('gemini-flash-latest')
+                    prompt = f"El cliente dice en WhatsApp: '{wa_text}'. ¿Es un saludo o intención de pedir? Responde SI o NO."
+                    ai_res = model.generate_content(prompt).text.strip().upper()
+
+                    if "SI" in ai_res:
+                        branch = db.query(models.Branch).first()
+                        tenant_slug = branch.tenant.slug if branch else "hub"
+                        reply_text = f"¡Hola! 🚀 Soy el asistente de {branch.tenant.name if branch else 'HUB'}. \n\nMenú Digital: https://hub-frontend-bbaa.onrender.com/{tenant_slug}"
+                        
+                        access_token = os.getenv("WA_ACCESS_TOKEN")
+                        endpoint = f"https://graph.facebook.com/v19.0/{phone_id}/messages"
+                        
+                        payload = {
+                            "messaging_product": "whatsapp",
+                            "to": sender_wa_id,
+                            "type": "text",
+                            "text": {"body": reply_text}
+                        }
+                        res = requests.post(endpoint, json=payload, headers={"Authorization": f"Bearer {access_token}"})
+                        print(f"✅ WhatsApp enviado: {res.status_code}")
+
+    except Exception as e:
+        print(f"❌ Error procesando webhook WhatsApp: {str(e)}")
+
     return {"status": "received"}
 
 @app.get("/api/v1/admin/meta/test")
 def test_meta_config():
     """Prueba rápida para ver si las credenciales de Meta están cargadas."""
-    app_id = os.getenv("FB_CLIENT_ID")
-    app_secret = os.getenv("FB_CLIENT_SECRET")
-    verify_token = os.getenv("META_VERIFY_TOKEN")
-    
     return {
-        "app_id_present": bool(app_id and app_id != "TU_APP_ID_AQUI"),
-        "app_secret_present": bool(app_secret and app_secret != "TU_APP_SECRET_AQUI"),
-        "verify_token_present": bool(verify_token),
-        "callback_url": f"{os.getenv('FRONTEND_URL')}/api/v1/meta/webhook"
+        "fb_token_present": bool(os.getenv("FB_PAGE_ACCESS_TOKEN")),
+        "ig_token_present": bool(os.getenv("IG_ACCESS_TOKEN")),
+        "wa_token_present": bool(os.getenv("WA_ACCESS_TOKEN") and os.getenv("WA_ACCESS_TOKEN") != "TU_WHATSAPP_TOKEN_AQUI"),
+        "callback_url": f"https://hub-api-2lql.onrender.com/api/v1/meta/webhook"
     }
 
 # Background Scheduler
@@ -785,8 +868,12 @@ def check_instagram_schedules():
         now = datetime.datetime.now(pytz.timezone('America/Bogota'))
         current_time = now.strftime("%H:%M")
         
-        branches = db.query(models.Branch).filter(models.Branch.autopilot_active == True, models.Branch.ig_token != None).all()
+        branches = db.query(models.Branch).filter(models.Branch.autopilot_active == True).all()
         for b in branches:
+            # Usar el token específico de la rama si existe, si no el global
+            token = b.ig_token or os.getenv("IG_ACCESS_TOKEN")
+            if not token: continue
+
             status = None
             if b.opening_time == current_time:
                 status = "OPEN"
@@ -804,7 +891,7 @@ def check_instagram_schedules():
                         bio = f"💤 {store_name} está cerrado por ahora. \n📅 Mira el menú y programa: hub.com/{slug}"
 
                     url = f"https://graph.facebook.com/v19.0/{b.ig_account_id}"
-                    payload = {'biography': bio, 'access_token': b.ig_token}
+                    payload = {'biography': bio, 'access_token': token}
                     requests.post(url, data=payload)
                 except Exception as e:
                     print(f"Error MCP Autopilot: {e}")

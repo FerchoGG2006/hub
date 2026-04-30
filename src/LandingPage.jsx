@@ -70,6 +70,7 @@ export const LandingPage = () => {
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     const slug = form.restaurant.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    console.log('Onboarding submitted for:', slug);
     
     // Show the welcome modal with access instructions
     setWelcomeModal({
@@ -179,65 +180,6 @@ export const LandingPage = () => {
         )}
       </AnimatePresence>
 
-      {/* ─── WELCOME MODAL (post-registration) ─── */}
-      <AnimatePresence>
-        {welcomeModal && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[500] bg-black/90 backdrop-blur-3xl flex items-center justify-center p-6"
-            onClick={() => setWelcomeModal(null)}
-          >
-            <motion.div 
-              initial={{ scale: 0.85, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-md bg-[#0a0a0a] rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl p-10"
-              onClick={e => e.stopPropagation()}
-            >
-              {/* Success Animation */}
-              <div className="flex justify-center mb-6">
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.2 }} className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                  <span className="text-3xl">🚀</span>
-                </motion.div>
-              </div>
-
-              <h3 className="text-center text-lg font-black text-white mb-1">¡Bienvenido, {welcomeModal.name}!</h3>
-              <p className="text-center text-xs text-white/40 mb-8">Tu hub <span className="text-amber-500 font-bold">{welcomeModal.restaurant}</span> está casi listo. Te contactaremos para activar tu cuenta.</p>
-
-              {/* Access Info Cards */}
-              <div className="space-y-3 mb-8">
-                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
-                  <p className="text-[9px] uppercase tracking-[0.3em] text-amber-500 font-black mb-2">🔗 Tu Panel de Administración</p>
-                  <p className="text-xs text-white/80 font-mono break-all select-all bg-black/40 px-3 py-2 rounded-xl border border-white/5">{welcomeModal.adminUrl}</p>
-                </div>
-
-                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
-                  <p className="text-[9px] uppercase tracking-[0.3em] text-emerald-500 font-black mb-2">📱 Tu Menú Digital</p>
-                  <p className="text-xs text-white/80 font-mono break-all select-all bg-black/40 px-3 py-2 rounded-xl border border-white/5">{welcomeModal.menuUrl}</p>
-                </div>
-
-                <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-5">
-                  <p className="text-[9px] uppercase tracking-[0.3em] text-amber-500 font-black mb-2">📧 Credenciales por Email</p>
-                  <p className="text-xs text-white/50 leading-relaxed">Recibirás tu <span className="text-white font-bold">USER_ID</span> y <span className="text-white font-bold">PASSCODE</span> en tu correo de contacto una vez activemos tu cuenta.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => { navigator.clipboard.writeText(welcomeModal.adminUrl); }}
-                  className="flex-1 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/10 text-white/50 hover:text-white hover:bg-white/5 transition-all"
-                >
-                  Copiar URL
-                </button>
-                <button 
-                  onClick={() => setWelcomeModal(null)}
-                  className="flex-1 py-3.5 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-amber-500 transition-all"
-                >
-                  Entendido
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ─── HERO SECTION ─── */}
       <main className="relative z-10">
@@ -469,6 +411,66 @@ export const LandingPage = () => {
           © {new Date().getFullYear()} HUB SaaS. Infraestructura Dinámica.
         </p>
       </footer>
+
+      {/* ─── WELCOME MODAL (post-registration) ─── */}
+      <AnimatePresence>
+        {welcomeModal && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[999] bg-black/90 backdrop-blur-3xl flex items-center justify-center p-6"
+            onClick={() => setWelcomeModal(null)}
+          >
+            <motion.div 
+              initial={{ scale: 0.85, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-md bg-[#0a0a0a] rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl p-10"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Success Animation */}
+              <div className="flex justify-center mb-6">
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.2 }} className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                  <span className="text-3xl">🚀</span>
+                </motion.div>
+              </div>
+
+              <h3 className="text-center text-lg font-black text-white mb-1">¡Bienvenido, {welcomeModal.name}!</h3>
+              <p className="text-center text-xs text-white/40 mb-8">Tu hub <span className="text-amber-500 font-bold">{welcomeModal.restaurant}</span> está casi listo. Te contactaremos para activar tu cuenta.</p>
+
+              {/* Access Info Cards */}
+              <div className="space-y-3 mb-8">
+                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-amber-500 font-black mb-2">🔗 Tu Panel de Administración</p>
+                  <p className="text-xs text-white/80 font-mono break-all select-all bg-black/40 px-3 py-2 rounded-xl border border-white/5">{welcomeModal.adminUrl}</p>
+                </div>
+
+                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-emerald-500 font-black mb-2">📱 Tu Menú Digital</p>
+                  <p className="text-xs text-white/80 font-mono break-all select-all bg-black/40 px-3 py-2 rounded-xl border border-white/5">{welcomeModal.menuUrl}</p>
+                </div>
+
+                <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-5">
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-amber-500 font-black mb-2">📧 Credenciales por Email</p>
+                  <p className="text-xs text-white/50 leading-relaxed">Recibirás tu <span className="text-white font-bold">USER_ID</span> y <span className="text-white font-bold">PASSCODE</span> en tu correo de contacto una vez activemos tu cuenta.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => { navigator.clipboard.writeText(welcomeModal.adminUrl); }}
+                  className="flex-1 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/10 text-white/50 hover:text-white hover:bg-white/5 transition-all"
+                >
+                  Copiar URL
+                </button>
+                <button 
+                  onClick={() => setWelcomeModal(null)}
+                  className="flex-1 py-3.5 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-amber-500 transition-all"
+                >
+                  Entendido
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
