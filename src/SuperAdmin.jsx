@@ -29,22 +29,22 @@ export const SuperAdmin = () => {
   if (!isAuthenticated) return <AnimatePresence mode="wait"><LoginTerminal onAuth={() => setIsAuthenticated(true)} /></AnimatePresence>;
 
   return (
-    <div className="min-h-screen bg-[#020202] text-white p-10 font-sans relative">
+    <div className="min-h-screen bg-bone text-dark p-10 font-sans relative">
       
       {/* ─── AMBIENT BACKGROUND GLOWS ─── */}
       <div className="absolute top-0 inset-x-0 h-[800px] pointer-events-none opacity-30 z-0">
-         <div className="absolute top-[-20%] left-[20%] w-[50vw] h-[50vw] rounded-full blur-[120px] mix-blend-screen bg-gradient-to-r from-amber-500/20 to-orange-600/10"></div>
-         <div className="absolute top-[10%] right-[10%] w-[30vw] h-[30vw] rounded-full blur-[100px] mix-blend-screen bg-gradient-to-l from-amber-300/10 to-transparent"></div>
+          <div className="absolute top-[-20%] left-[20%] w-[50vw] h-[50vw] rounded-full blur-[120px] mix-blend-multiply bg-gradient-to-r from-amber-500/10 to-orange-600/5"></div>
+          <div className="absolute top-[10%] right-[10%] w-[30vw] h-[30vw] rounded-full blur-[100px] mix-blend-multiply bg-gradient-to-l from-amber-300/5 to-transparent"></div>
       </div>
       
       {/* ─── DOT MATRIX PATTERN ─── */}
       <div 
          className="absolute inset-0 pointer-events-none z-0" 
-         style={{ backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px)', backgroundSize: '32px 32px' }}
+         style={{ backgroundImage: 'radial-gradient(rgba(26, 26, 26, 0.03) 1px, transparent 1px)', backgroundSize: '32px 32px' }}
       ></div>
 
       <div className="mb-12 flex items-center justify-start relative z-10">
-        <img src="/logo.png" alt="HUB" className="h-[4.5rem] object-contain drop-shadow-xl" />
+        <img src="/logo.png" alt="HUB" className="h-[4.5rem] object-contain drop-shadow-xl invert" />
         <span className="text-amber-500/50 italic text-2xl ml-4 font-serif self-end pb-2">Network</span>
       </div>
       
@@ -55,11 +55,11 @@ export const SuperAdmin = () => {
            const cost = Math.max(15, t.total_products * 8); 
            
            return (
-            <div key={t.id} className="bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.05] rounded-[2rem] p-8 flex flex-col justify-between hover:border-amber-500/20 transition-all group backdrop-blur-md">
+            <div key={t.id} className="bg-dark/5 border border-dark/10 rounded-[2rem] p-8 flex flex-col justify-between hover:border-amber-500/20 transition-all group backdrop-blur-md shadow-sm">
               <div className="flex justify-between items-start mb-8">
                 <div>
-                  <h3 className="text-xl font-bold tracking-tight">{t.name}</h3>
-                  <p className="text-[9px] uppercase tracking-[0.2em] text-white/30 mt-1">/{t.slug}</p>
+                  <h3 className="text-xl font-bold tracking-tight text-dark">{t.name}</h3>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-dark/30 mt-1">/{t.slug}</p>
                 </div>
                 <div className="px-3 py-1 bg-amber-500/10 text-amber-500 text-[8px] uppercase tracking-widest rounded-full font-bold">
                   Activo
@@ -68,22 +68,22 @@ export const SuperAdmin = () => {
               
               <div className="space-y-3 mb-8">
                 <div className="flex justify-between text-xs">
-                  <span className="text-white/40">Plan</span>
-                  <span className="font-medium">Premium</span>
+                  <span className="text-dark/40">Plan</span>
+                  <span className="font-medium text-dark">Premium</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-white/40">Colecciones</span>
-                  <span className="font-medium">{t.total_products} Ítems</span>
+                  <span className="text-dark/40">Colecciones</span>
+                  <span className="font-medium text-dark">{t.total_products} Ítems</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-white/40">Facturación (Proyectada)</span>
-                  <span className="font-medium">${cost} USD/mo</span>
+                  <span className="text-dark/40">Facturación (Proyectada)</span>
+                  <span className="font-medium text-dark">${cost} USD/mo</span>
                 </div>
               </div>
               
               <button 
                 onClick={() => navigate(`/admin/${t.slug}`)}
-                className="w-full py-3 rounded-xl bg-white/5 text-[10px] uppercase tracking-widest hover:bg-amber-500 hover:text-black transition-colors font-bold">
+                className="w-full py-3 rounded-xl bg-dark text-bone text-[10px] uppercase tracking-widest hover:bg-amber-500 hover:text-bone transition-colors font-bold tactile-button">
                 Entrar como Admin
               </button>
             </div>
@@ -93,9 +93,9 @@ export const SuperAdmin = () => {
         {/* Placeholder Agregar Nuevo */}
         <div 
           onClick={() => setShowAIModal(true)}
-          className="bg-transparent border border-dashed border-white/10 rounded-[2rem] p-8 flex flex-col items-center justify-center text-white/30 hover:text-amber-500 hover:border-amber-500/30 hover:bg-amber-500/5 cursor-pointer transition-all min-h-[300px] backdrop-blur-sm">
-          <span className="text-4xl mb-4 font-light">+</span>
-          <span className="text-[10px] uppercase tracking-[0.2em]">Desplegar Nuevo HUB</span>
+          className="bg-transparent border border-dashed border-dark/20 rounded-[2rem] p-8 flex flex-col items-center justify-center text-dark/30 hover:text-amber-500 hover:border-amber-500/30 hover:bg-amber-500/5 cursor-pointer transition-all min-h-[300px] backdrop-blur-sm">
+          <span className="text-4xl mb-4 font-light text-dark">+</span>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-dark/30">Desplegar Nuevo HUB</span>
         </div>
       </div>
 
@@ -176,8 +176,8 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-lg relative overflow-y-auto max-h-[90vh] shadow-[0_30px_100px_rgba(245,158,11,0.07)]">
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-bone/80 backdrop-blur-md">
+      <div className="bg-bone border border-dark/10 rounded-[2.5rem] p-8 w-full max-w-lg relative overflow-y-auto max-h-[90vh] shadow-[0_30px_100px_rgba(197,160,89,0.07)]">
         
         {/* Glow AI */}
         {step === 2 && (
@@ -185,44 +185,44 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
         )}
 
         <div className="flex justify-between items-center mb-10 relative z-10">
-          <h2 className="text-xl font-normal text-white flex items-center gap-3">
+          <h2 className="text-xl font-normal text-dark flex items-center gap-3">
             <span className="text-amber-500 text-2xl">✦</span> Agente de Inserción AI
           </h2>
-          <button onClick={onClose} className="text-[9px] uppercase tracking-widest text-white/40 hover:text-white transition-colors">Cerrar</button>
+          <button onClick={onClose} className="text-[9px] uppercase tracking-widest text-dark/40 hover:text-dark transition-colors">Cerrar</button>
         </div>
 
         {step === 1 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 relative z-10">
             <div className="space-y-4">
               <div className="group">
-                <label className="text-[9px] uppercase tracking-[0.2em] text-white/30 ml-2 mb-1 block font-bold">Identidad del HUB</label>
+                <label className="text-[9px] uppercase tracking-[0.2em] text-dark/30 ml-2 mb-1 block font-bold">Identidad del HUB</label>
                 <input 
                   type="text" 
                   placeholder="Nombre Comercial (ej: Sushi Master)" 
                   value={formData.name} 
                   onChange={e => handleNameChange(e.target.value)} 
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/20" 
+                  className="w-full bg-dark/5 border border-dark/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-dark/20 text-dark" 
                 />
               </div>
 
               <div className="flex gap-3">
                 <div className="w-1/3">
-                  <label className="text-[9px] uppercase tracking-[0.2em] text-white/30 ml-2 mb-1 block font-bold">URL / Slug</label>
+                  <label className="text-[9px] uppercase tracking-[0.2em] text-dark/30 ml-2 mb-1 block font-bold">URL / Slug</label>
                   <input 
                     type="text" 
                     placeholder="URL Slug" 
                     value={formData.slug} 
                     onChange={e => setFormData({...formData, slug: e.target.value})} 
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs font-mono outline-none focus:border-amber-500 transition-colors placeholder-white/20" 
+                    className="w-full bg-dark/5 border border-dark/10 rounded-2xl px-5 py-4 text-xs font-mono outline-none focus:border-amber-500 transition-colors placeholder-dark/20 text-dark" 
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="text-[9px] uppercase tracking-[0.2em] text-white/30 ml-2 mb-1 block font-bold">Línea de Órdenes</label>
+                  <label className="text-[9px] uppercase tracking-[0.2em] text-dark/30 ml-2 mb-1 block font-bold">Línea de Órdenes</label>
                   <div className="flex gap-2">
                     <select 
                       value={formData.country_code} 
                       onChange={e => setFormData({...formData, country_code: e.target.value})}
-                      className="bg-white/5 border border-white/10 rounded-2xl px-3 py-4 text-xs text-white outline-none focus:border-amber-500 transition-colors appearance-none"
+                      className="bg-dark/5 border border-dark/10 rounded-2xl px-3 py-4 text-xs text-dark outline-none focus:border-amber-500 transition-colors appearance-none"
                     >
                       <option value="+57">🇨🇴 +57</option>
                       <option value="+52">🇲🇽 +52</option>
@@ -237,33 +237,33 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
                       placeholder="WhatsApp" 
                       value={formData.whatsapp_number} 
                       onChange={e => setFormData({...formData, whatsapp_number: e.target.value})} 
-                      className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-white/20" 
+                      className="flex-1 bg-dark/5 border border-dark/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-dark/20 text-dark" 
                     />
                   </div>
                 </div>
                 <div className="w-20">
-                  <label className="text-[9px] uppercase tracking-[0.2em] text-white/30 ml-2 mb-1 block font-bold text-center">Marca</label>
-                  <div className="relative w-full h-[54px] rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden hover:border-amber-500/50 transition-colors">
+                  <label className="text-[9px] uppercase tracking-[0.2em] text-dark/30 ml-2 mb-1 block font-bold text-center">Marca</label>
+                  <div className="relative w-full h-[54px] rounded-2xl bg-dark/5 border border-dark/10 flex items-center justify-center overflow-hidden hover:border-amber-500/50 transition-colors">
                     <input 
                       type="color" 
                       value={formData.brand_color} 
                       onChange={e => setFormData({...formData, brand_color: e.target.value})} 
                       className="absolute inset-0 w-[200%] h-[200%] -top-[50%] -left-[50%] cursor-pointer bg-transparent border-none p-0 outline-none" 
                     />
-                    <div className="pointer-events-none w-6 h-6 rounded-full shadow-2xl border border-white/20" style={{ backgroundColor: formData.brand_color }}></div>
+                    <div className="pointer-events-none w-6 h-6 rounded-full shadow-2xl border border-dark/20" style={{ backgroundColor: formData.brand_color }}></div>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="border border-dashed border-white/20 rounded-2xl p-6 text-center hover:border-amber-500/50 transition-colors cursor-pointer relative overflow-hidden group">
+            <div className="border border-dashed border-dark/20 rounded-2xl p-6 text-center hover:border-amber-500/50 transition-colors cursor-pointer relative overflow-hidden group">
               <input type="file" accept="image/*,application/pdf" onChange={e => setFile(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-              <p className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-amber-500 transition-colors">
+              <p className="text-[10px] tracking-widest uppercase text-dark/50 group-hover:text-amber-500 transition-colors">
                 {file ? file.name : "Subir Foto del Menú Actual"}
               </p>
             </div>
 
-            <button onClick={handleProcess} className="w-full py-4 rounded-2xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all">
+            <button onClick={handleProcess} className="w-full py-4 rounded-2xl bg-dark text-bone tactile-button font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all">
               Ejecutar Inserción Inteligente
             </button>
           </motion.div>
@@ -274,7 +274,7 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
             <div className="w-16 h-16 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
             <div className="text-center">
               <p className="text-[10px] tracking-[0.2em] uppercase text-amber-500 font-bold mb-2">Analizando Carta Visual</p>
-              <p className="text-xs text-white/40 italic">El modelo LLM está extrayendo categorías, cruzando precios y asignando emojis para la estructura.</p>
+              <p className="text-xs text-dark/40 italic">El modelo LLM está extrayendo categorías, cruzando precios y asignando emojis para la estructura.</p>
             </div>
           </motion.div>
         )}
@@ -285,8 +285,8 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
               ✓
             </div>
             <div>
-              <p className="text-lg font-bold text-white mb-1">{formData.name} Integrado</p>
-              <p className="text-[10px] tracking-widest uppercase text-white/40 mb-6">Base de Datos Generada. Tenant Listo.</p>
+              <p className="text-lg font-bold text-dark mb-1">{formData.name} Integrado</p>
+              <p className="text-[10px] tracking-widest uppercase text-dark/40 mb-6">Base de Datos Generada. Tenant Listo.</p>
             </div>
             
             {createdCredentials && (
@@ -294,25 +294,25 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
                 <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 blur-2xl rounded-full" />
                 <p className="text-[9px] uppercase tracking-widest text-amber-500 mb-3 text-center font-black">Acceso Propietario Activado</p>
                 <div className="flex justify-between items-center mb-2 px-2">
-                  <span className="text-[10px] text-white/50 uppercase tracking-widest">USER_ID</span>
-                  <span className="font-mono text-sm tracking-widest text-white">{createdCredentials.username}</span>
+                  <span className="text-[10px] text-dark/50 uppercase tracking-widest">USER_ID</span>
+                  <span className="font-mono text-sm tracking-widest text-dark">{createdCredentials.username}</span>
                 </div>
                 <div className="flex justify-between items-center px-2">
-                  <span className="text-[10px] text-white/50 uppercase tracking-widest">PASSCODE</span>
+                  <span className="text-[10px] text-dark/50 uppercase tracking-widest">PASSCODE</span>
                   <span className="font-mono text-sm tracking-widest text-amber-500">{createdCredentials.passcode}</span>
                 </div>
               </div>
             )}
 
             <div className="flex flex-col gap-3 w-full">
-              <button 
+                <button 
                   onClick={() => navigate(`/admin/${formData.slug}`)}
-                  className="w-full py-4 bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] rounded-2xl hover:scale-[1.02] transition-transform shadow-[0_10px_30px_rgba(245,158,11,0.3)]">
+                  className="w-full py-4 bg-dark text-bone font-black uppercase tracking-widest text-[10px] rounded-2xl hover:scale-[1.02] transition-transform shadow-[0_10px_30px_rgba(26,26,26,0.3)]">
                   🚀 Lanzar Dashboard de {formData.name}
               </button>
               <button 
                   onClick={onClose}
-                  className="w-full py-3 bg-white/5 text-white/40 font-bold uppercase tracking-widest text-[9px] rounded-2xl hover:bg-white/10 transition-colors">
+                  className="w-full py-3 bg-dark/5 text-dark/40 font-bold uppercase tracking-widest text-[9px] rounded-2xl hover:bg-dark/10 transition-colors">
                   Cerrar y Volver a la Red
               </button>
             </div>

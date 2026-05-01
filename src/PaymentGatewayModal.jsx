@@ -37,11 +37,11 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess }) => {
       >
         <motion.div
           initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-          className="bg-[#0a0a0a] border border-white/10 rounded-[2rem] w-full max-w-md overflow-hidden relative shadow-2xl"
-          style={{ boxShadow: '0 25px 50px -12px rgba(245,158,11,0.25)' }}
+          className="bg-black border border-white/10 rounded-[2rem] w-full max-w-md overflow-hidden relative shadow-2xl"
+          style={{ boxShadow: '0 25px 50px -12px rgba(197, 160, 89, 0.25)' }}
         >
           {/* Header */}
-          <div className="bg-[#111] p-6 border-b border-white/5 flex items-center justify-between relative overflow-hidden">
+          <div className="bg-black/5 p-6 border-b border-white/5 flex items-center justify-between relative overflow-hidden">
              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-600"></div>
              <div>
                 <h3 className="text-white font-black text-lg tracking-tight flex items-center gap-2">

@@ -3,7 +3,12 @@
 @import "tailwindcss/utilities";
 
 :root {
-  --amber: #f59e0b;
+  --amber: #C5A059;
+  --bone: #F7F3E9;
+  --dark: #1A1A1A;
+  --gold: #C5A059;
+  --gold-gradient: linear-gradient(135deg, #C5A059 0%, #A68648 100%);
+  --gold-shadow: 0 10px 30px rgba(197, 160, 89, 0.2);
 }
 
 html {
@@ -15,7 +20,8 @@ html {
 body {
   margin: 0;
   padding: 0;
-  background: #000;
+  background: var(--bone);
+  color: var(--dark);
   font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   width: 100%;
   min-height: 100vh;
@@ -38,7 +44,7 @@ body {
   justify-content: center;
   position: relative;
   overflow: hidden;
-  background: radial-gradient(ellipse at 25% 50%, #0f0a00 0%, #000 70%);
+  background: radial-gradient(ellipse at 25% 50%, #f2f0e4 0%, var(--bone) 70%);
 }
 
 /* ─── ESTILOS PARA PAGE-FLIP (ALTA FIDELIDAD) ─── */
@@ -53,8 +59,8 @@ body {
 
 .page-item {
   box-shadow: none;
-  background-color: #080808;
-  color: white;
+  background-color: #fdfcf7;
+  color: var(--dark);
 }
 
 /* El lomo cuando la página está quieta */
@@ -81,12 +87,29 @@ body {
 
 /* Animación de Shimmer para elementos Gold */
 .gold-shimmer {
-  background: linear-gradient(90deg, #d97706, #fbbf24 40%, #fcd34d 55%, #fbbf24 70%, #d97706);
+  background: linear-gradient(90deg, #A68648, #C5A059 40%, #E4D87B 55%, #C5A059 70%, #A68648);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: shimmer 4s linear infinite;
+}
+
+/* Tactile Depth Utility */
+.tactile-button {
+  background: var(--gold-gradient);
+  box-shadow: var(--gold-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tactile-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 40px rgba(197, 160, 89, 0.3);
+  filter: brightness(1.1);
+}
+
+.tactile-button:active {
+  transform: translateY(1px);
 }
 
 @keyframes shimmer {

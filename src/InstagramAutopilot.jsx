@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams } from 'react-router-dom';
 
@@ -142,25 +141,29 @@ export const InstagramAutopilot = () => {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-      <header className="mb-8 border-b border-white/10 pb-6">
-        <h2 className="text-3xl font-light text-white mb-2 tracking-tight">
-          Piloto Automático <span className="text-pink-500 font-serif italic">Meta</span>
+      <header className="mb-8 border-b border-dark/10 pb-6 relative">
+        <div className="absolute -top-4 left-0 text-[7px] font-mono text-dark/20 uppercase tracking-[0.5em]">META_SYNC_V1.9</div>
+        <h2 className="text-3xl font-light text-dark mb-2 tracking-tight">
+          Piloto Automático <span className="text-pink-600 font-serif italic">Meta</span>
         </h2>
-        <p className="text-[10px] uppercase tracking-widest text-white/40">Sincroniza tus horarios de atención con tu biografía de Instagram</p>
+        <p className="text-[10px] uppercase tracking-[0.3em] text-dark/40 font-bold">Sincronización de Biografía en Tiempo Real</p>
       </header>
 
       {!isLinked ? (
-        <div className="bg-white/[0.03] p-8 rounded-[2.5rem] border border-white/5 space-y-8 flex flex-col items-center max-w-2xl mx-auto text-center">
-            <div className="w-20 h-20 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-[0_0_40px_rgba(236,72,153,0.3)]">
-               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+        <div className="bg-dark/5 p-12 rounded-[2.5rem] border border-dark/10 space-y-10 flex flex-col items-center max-w-2xl mx-auto text-center relative overflow-hidden">
+            {/* Tech Decor */}
+            <div className="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-pink-500/10 rounded-tr-[2.5rem]" />
+            
+            <div className="w-24 h-24 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2rem] flex items-center justify-center shadow-[0_20px_50px_rgba(236,72,153,0.2)] transform rotate-3">
+               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
             </div>
-            <div>
-               <h3 className="text-2xl font-black text-white mb-4">Vende mientras duermes.</h3>
-               <p className="text-sm text-white/50 leading-relaxed mb-8">Conecta tu cuenta de Instagram con un solo clic. HUB cambiará automáticamente tu bio a 'Abierto' o 'Cerrado' según tus horarios.</p>
+            <div className="space-y-4">
+               <h3 className="text-3xl font-black text-dark italic tracking-tighter uppercase leading-none">VENDE_MIENTRAS_DUERMES</h3>
+               <p className="text-sm text-dark/60 leading-relaxed font-medium">Conecta tu cuenta de Instagram con un solo clic. <br/> HUB cambiará automáticamente tu bio a 'Abierto' o 'Cerrado' según tus horarios.</p>
             </div>
-            <button onClick={handleFBLogin} disabled={loading} className="w-full py-5 text-[12px] uppercase tracking-[0.2em] font-black text-white rounded-[2rem] hover:scale-[1.02] transition-all shadow-[0_10px_30px_rgba(236,72,153,0.3)] bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center gap-3">
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-               {loading ? 'Sincronizando...' : ' Vincular Instagram de Negocios'}
+            <button onClick={handleFBLogin} disabled={loading} className="w-full py-5 text-[12px] uppercase tracking-[0.4em] font-black text-bone rounded-2xl hover:scale-[1.02] transition-all shadow-[0_15px_40px_rgba(0,0,0,0.15)] bg-dark flex items-center justify-center gap-3 tactile-button">
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+               {loading ? 'SINCRONIZANDO_NÚCLEO...' : ' VINCULAR_INSTAGRAM_HUB'}
             </button>
         </div>
       ) : (
@@ -168,27 +171,30 @@ export const InstagramAutopilot = () => {
             
             <div className="space-y-8">
                 {/* Linked Profile Card */}
-                <div className="bg-white/[0.03] p-6 rounded-[2.5rem] border border-white/5 flex items-center justify-between gap-4">
+                <div className="bg-dark/5 p-6 rounded-[2.5rem] border border-dark/10 flex items-center justify-between gap-4 relative">
+                    <div className="absolute top-0 right-6 px-3 py-1 bg-emerald-500/10 border-x border-b border-emerald-500/30 rounded-b-xl">
+                        <span className="text-[7px] font-mono text-emerald-600 font-bold tracking-widest uppercase">ENLACE_ACTIVO</span>
+                    </div>
                     <div className="flex items-center gap-4">
                         <img src={mainProfile.ig_profile_picture || 'https://via.placeholder.com/150'} className="w-16 h-16 rounded-full border-2 border-pink-500 p-0.5" alt="IG Profile" />
                         <div>
-                            <p className="text-[10px] uppercase tracking-widest text-white/40">Conectado a</p>
-                            <h3 className="text-xl font-bold text-white">@{mainProfile.ig_username || tenantSlug}</h3>
+                            <p className="text-[10px] uppercase tracking-widest text-dark/40 font-bold">Cuenta Sincronizada</p>
+                            <h3 className="text-xl font-bold text-dark">@{mainProfile.ig_username || tenantSlug}</h3>
                         </div>
                     </div>
-                    <button onClick={() => setIsLinked(false)} className="text-[9px] uppercase tracking-widest text-red-500/50 hover:text-red-500 border border-red-500/20 px-4 py-2 rounded-full">Desvincular</button>
+                    <button onClick={() => setIsLinked(false)} className="text-[9px] uppercase tracking-widest text-red-500/50 hover:text-red-500 border border-red-500/20 px-4 py-2 rounded-full font-bold">TERMINAR_VÍNCULO</button>
                 </div>
 
                 {/* Configuration Area */}
-                <div className="bg-white/[0.03] p-8 rounded-[2.5rem] border border-white/5 space-y-6">
-                    <div className="flex flex-col gap-4 pb-6 border-b border-white/5">
-                        <h4 className="text-sm font-bold text-white uppercase tracking-widest">Configuración de Horarios</h4>
+                <div className="bg-dark/5 p-8 rounded-[2.5rem] border border-dark/10 space-y-6">
+                    <div className="flex flex-col gap-4 pb-6 border-b border-dark/10">
+                        <h4 className="text-xs font-black text-dark uppercase tracking-[0.2em] font-mono">[ SET_TIME_SYNC ]</h4>
                         
-                        <label className="flex items-center gap-3 cursor-pointer p-4 rounded-2xl bg-black/20 border border-white/5 hover:bg-white/5 transition-colors">
-                            <input type="checkbox" className="w-4 h-4 rounded border-white/20 text-pink-500 focus:ring-pink-500 bg-transparent" checked={syncAll} onChange={(e) => setSyncAll(e.target.checked)} />
+                        <label className="flex items-center gap-3 cursor-pointer p-4 rounded-2xl bg-dark/5 border border-dark/5 hover:bg-dark/10 transition-colors">
+                            <input type="checkbox" className="w-4 h-4 rounded border-dark/20 text-pink-500 focus:ring-pink-500 bg-transparent" checked={syncAll} onChange={(e) => setSyncAll(e.target.checked)} />
                             <div className="flex flex-col">
-                                <span className="text-xs font-bold text-white">Mismo horario para todas las sedes</span>
-                                <span className="text-[9px] text-white/40">Simplifica la gestión aplicando una sola regla global.</span>
+                                <span className="text-xs font-bold text-dark uppercase tracking-tight">Sincronización Multisede</span>
+                                <span className="text-[9px] text-dark/40 uppercase font-bold tracking-widest">Unificar reglas en red global.</span>
                             </div>
                         </label>
                     </div>
@@ -196,23 +202,23 @@ export const InstagramAutopilot = () => {
                     {syncAll ? (
                         <div className="space-y-6">
                             <div className="flex justify-between items-center">
-                                <p className="text-[10px] text-white/40 uppercase tracking-widest">Horario Global</p>
-                                <button onClick={() => { setGlobalHours({...globalHours, active: !globalHours.active}); }} className={`w-12 h-6 rounded-full relative transition-colors ${globalHours.active ? 'bg-emerald-500' : 'bg-white/10'}`}>
-                                    <motion.div animate={{ x: globalHours.active ? 24 : 4 }} className="w-4 h-4 bg-white rounded-full absolute top-1 shadow-md" />
+                                <p className="text-[9px] text-dark/40 uppercase tracking-[0.4em] font-bold font-mono">ESTADO_ACTUAL</p>
+                                <button onClick={() => { setGlobalHours({...globalHours, active: !globalHours.active}); }} className={`w-12 h-6 rounded-full relative transition-colors ${globalHours.active ? 'bg-emerald-500' : 'bg-dark/10'}`}>
+                                    <motion.div animate={{ x: globalHours.active ? 24 : 4 }} className="w-4 h-4 bg-bone rounded-full absolute top-1 shadow-md" />
                                 </button>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="flex flex-col gap-2">
-                                    <label className="text-[9px] uppercase tracking-widest text-white/50">Apertura</label>
-                                    <input type="time" value={globalHours.opening_time} onChange={(e) => setGlobalHours({...globalHours, opening_time: e.target.value})} className="bg-black border border-white/10 rounded-2xl py-3 px-4 text-xs focus:border-pink-500 outline-none text-white" />
+                                    <label className="text-[9px] uppercase tracking-widest text-dark/40 font-bold">APERTURA_H</label>
+                                    <input type="time" value={globalHours.opening_time} onChange={(e) => setGlobalHours({...globalHours, opening_time: e.target.value})} className="bg-dark/5 border border-dark/10 rounded-2xl py-4 px-4 text-xs focus:border-pink-500 outline-none text-dark font-mono font-bold" />
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                    <label className="text-[9px] uppercase tracking-widest text-white/50">Cierre</label>
-                                    <input type="time" value={globalHours.closing_time} onChange={(e) => setGlobalHours({...globalHours, closing_time: e.target.value})} className="bg-black border border-white/10 rounded-2xl py-3 px-4 text-xs focus:border-pink-500 outline-none text-white" />
+                                    <label className="text-[9px] uppercase tracking-widest text-dark/40 font-bold">CIERRE_H</label>
+                                    <input type="time" value={globalHours.closing_time} onChange={(e) => setGlobalHours({...globalHours, closing_time: e.target.value})} className="bg-dark/5 border border-dark/10 rounded-2xl py-4 px-4 text-xs focus:border-pink-500 outline-none text-dark font-mono font-bold" />
                                 </div>
                             </div>
-                            <button onClick={handleGlobalSave} disabled={loading} className="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors">
-                                {loading ? 'Guardando...' : 'Aplicar a todas las sedes'}
+                            <button onClick={handleGlobalSave} disabled={loading} className="w-full py-4 bg-dark text-bone rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all tactile-button">
+                                {loading ? 'GUARDANDO_REGLAS...' : 'DESPLEGAR_EN_RED'}
                             </button>
                         </div>
                     ) : (
@@ -256,54 +262,54 @@ export const InstagramAutopilot = () => {
 
             {/* Mobile Mockup */}
             <div className="flex justify-center relative">
-                <div className="w-[280px] h-[580px] bg-black border-[6px] border-zinc-800 rounded-[3rem] overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-                    <div className="absolute top-0 inset-x-0 h-6 bg-zinc-800 rounded-b-3xl w-1/2 mx-auto z-20"></div>
+                <div className="w-[280px] h-[580px] bg-bone border-[10px] border-dark/10 rounded-[3.5rem] overflow-hidden relative shadow-2xl">
+                    <div className="absolute top-0 inset-x-0 h-6 bg-dark/10 rounded-b-3xl w-1/3 mx-auto z-20"></div>
                     
-                    <div className="pt-12 px-4 pb-4 h-full bg-[#0a0a0a] flex flex-col">
+                    <div className="pt-12 px-4 pb-4 h-full bg-bone flex flex-col">
                        <div className="flex justify-between items-center mb-6">
-                          <span className="text-white font-bold tracking-tight">@{mainProfile.ig_username || tenantSlug}</span>
-                          <span className="text-white text-xs">{simulatedTime} AM</span>
+                          <span className="text-dark font-black tracking-tighter text-xs uppercase italic">@{mainProfile.ig_username || tenantSlug}</span>
+                          <span className="text-dark/40 text-[9px] font-mono font-bold">{simulatedTime} AM</span>
                        </div>
                        
                        <div className="flex items-center gap-4 mb-6">
-                          <div className="w-16 h-16 rounded-full bg-zinc-800 border-2 border-pink-500 p-0.5">
+                          <div className="w-16 h-16 rounded-full bg-dark/5 border-2 border-pink-500 p-0.5 shadow-xl">
                              <img src={mainProfile.ig_profile_picture || 'https://via.placeholder.com/150'} className="w-full h-full rounded-full object-cover" alt="Profile" />
                           </div>
                           <div className="flex gap-4">
-                             <div className="text-center"><div className="text-white font-bold">12</div><div className="text-white/50 text-[10px]">Posts</div></div>
-                             <div className="text-center"><div className="text-white font-bold">1.2k</div><div className="text-white/50 text-[10px]">Followers</div></div>
-                             <div className="text-center"><div className="text-white font-bold">84</div><div className="text-white/50 text-[10px]">Following</div></div>
+                             <div className="text-center"><div className="text-dark font-black tracking-tighter">12</div><div className="text-dark/40 text-[9px] font-bold uppercase">Posts</div></div>
+                             <div className="text-center"><div className="text-dark font-black tracking-tighter">1.2k</div><div className="text-dark/40 text-[9px] font-bold uppercase">Followers</div></div>
+                             <div className="text-center"><div className="text-dark font-black tracking-tighter">84</div><div className="text-dark/40 text-[9px] font-bold uppercase">Following</div></div>
                           </div>
                        </div>
                        
                        <div className="mb-4 text-sm relative h-[100px]">
                           <AnimatePresence mode="wait">
                             {bioStatus === 'OPEN' ? (
-                                <motion.div key="open" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="text-white">
-                                    <p>✅ ¡Abiertos en {tenantSlug}!</p>
-                                    <p>🍔 Sabor artesanal auténtico.</p>
-                                    <p className="mt-2">🚀 Pide sin filas aquí 👇</p>
-                                    <p className="text-blue-400">hub.com/{tenantSlug}</p>
+                                <motion.div key="open" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="text-dark">
+                                    <p className="font-bold">✅ ¡Abiertos en {tenantSlug}!</p>
+                                    <p className="text-xs text-dark/80 italic mt-1">🍔 Sabor artesanal auténtico.</p>
+                                    <p className="mt-2 text-[10px] font-bold text-dark/60">🚀 Pide sin filas aquí 👇</p>
+                                    <p className="text-blue-600 font-bold text-xs mt-1">hub.com/{tenantSlug}</p>
                                 </motion.div>
                             ) : (
-                                <motion.div key="closed" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="text-white/70">
-                                    <p>💤 Cerrados por ahora.</p>
-                                    <p>🍔 Sabor artesanal auténtico.</p>
-                                    <p className="mt-2">📅 Mira el menú y programa:</p>
-                                    <p className="text-blue-400">hub.com/{tenantSlug}</p>
+                                <motion.div key="closed" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="text-dark/50">
+                                    <p className="font-bold">💤 Cerrados por ahora.</p>
+                                    <p className="text-xs italic mt-1">🍔 Sabor artesanal auténtico.</p>
+                                    <p className="mt-2 text-[10px] font-bold">📅 Mira el menú y programa:</p>
+                                    <p className="text-blue-600/60 font-bold text-xs mt-1">hub.com/{tenantSlug}</p>
                                 </motion.div>
                             )}
                           </AnimatePresence>
                        </div>
                        
                        <div className="flex gap-2 mb-6">
-                           <div className="flex-1 py-1.5 bg-white/10 rounded-lg text-center text-white text-[10px] font-bold">Follow</div>
-                           <div className="flex-1 py-1.5 bg-white/10 rounded-lg text-center text-white text-[10px] font-bold">Message</div>
+                           <div className="flex-1 py-2 bg-dark text-bone rounded-xl text-center text-[9px] font-black uppercase tracking-widest shadow-lg">Follow</div>
+                           <div className="flex-1 py-2 bg-dark/5 border border-dark/10 rounded-xl text-center text-dark text-[9px] font-black uppercase tracking-widest">Message</div>
                        </div>
 
                        <div className="grid grid-cols-3 gap-1 flex-1 content-start">
                            {[1,2,3,4,5,6].map(i => (
-                               <div key={i} className="aspect-square bg-zinc-900 rounded-sm"></div>
+                               <div key={i} className="aspect-square bg-dark/5 rounded-sm border border-dark/[0.03]"></div>
                            ))}
                        </div>
                     </div>
