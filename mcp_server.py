@@ -109,8 +109,8 @@ def sync_hub_instagram(tenant_slug: str, force_status: str = None) -> str:
     load_dotenv(os.path.join(backend_dir, ".env"))
     
     try:
-        from database import SessionLocal
-        import models
+        from backend.database import SessionLocal
+        from backend import models
         import datetime
         import pytz
         
