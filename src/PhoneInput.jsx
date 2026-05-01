@@ -235,39 +235,39 @@ export const PhoneInput = ({ value, onChange, placeholder = "Número" }) => {
   };
 
   return (
-    <div className="flex gap-2">
-      <div className="relative group min-w-[110px]">
-        <div className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 px-3 text-xs flex items-center justify-between cursor-pointer group-hover:border-amber-500/50 transition-all">
+    <div className="flex gap-3">
+      <div className="relative group min-w-[140px]">
+        <div className="w-full bg-dark/5 border border-dark/10 rounded-2xl p-5 text-sm flex items-center justify-between cursor-pointer group-hover:border-amber-500/50 transition-all shadow-sm">
           <span className="flex items-center gap-2">
             <span className="text-base">{country.flag}</span>
-            <span className="text-white/60 font-mono">+{country.code}</span>
+            <span className="text-dark/40 font-mono font-black text-[10px]">+{country.code}</span>
           </span>
-          <span className="text-[8px] opacity-30">▼</span>
+          <span className="text-[10px] opacity-30 text-dark">▼</span>
         </div>
         
-        <div className="absolute top-full left-0 mt-2 w-64 bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] flex flex-col max-h-80">
-          <div className="p-2 border-b border-white/5">
+        <div className="absolute top-full left-0 mt-3 w-72 bg-bone border border-dark/10 rounded-[2rem] overflow-hidden shadow-[0_30px_70px_rgba(0,0,0,0.25)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[110] flex flex-col max-h-80">
+          <div className="p-4 border-b border-dark/5 bg-dark/5">
             <input 
               type="text" 
-              placeholder="Buscar país..." 
+              placeholder="BUSCAR_PAÍS..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none focus:border-amber-500/50 text-white"
+              className="w-full bg-bone border border-dark/10 rounded-xl px-4 py-3 text-[10px] outline-none focus:border-amber-500 text-dark font-black font-mono uppercase"
             />
           </div>
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-1">
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
             {filteredCountries.length > 0 ? filteredCountries.map(c => (
               <div 
                 key={c.name} 
                 onClick={() => handleCountryChange(c)}
-                className="px-4 py-3 flex items-center gap-3 hover:bg-white/5 cursor-pointer text-xs rounded-xl transition-colors"
+                className="px-4 py-3.5 flex items-center gap-3 hover:bg-dark/10 cursor-pointer text-[10px] rounded-xl transition-colors font-bold text-dark/70 uppercase tracking-tighter"
               >
                 <span className="text-base">{c.flag}</span>
-                <span className="flex-1 text-white/70 truncate">{c.name}</span>
-                <span className="text-white/30 font-mono text-[10px]">+{c.code}</span>
+                <span className="flex-1 truncate">{c.name}</span>
+                <span className="text-dark/40 font-mono text-[10px]">+{c.code}</span>
               </div>
             )) : (
-              <p className="p-4 text-[10px] text-white/20 text-center">No se encontraron resultados</p>
+              <p className="p-4 text-[10px] text-dark/30 text-center font-black uppercase tracking-widest">[ SIN_RESULTADOS ]</p>
             )}
           </div>
         </div>
@@ -277,7 +277,7 @@ export const PhoneInput = ({ value, onChange, placeholder = "Número" }) => {
         type="tel" 
         value={number} 
         onChange={(e) => handleNumberChange(e.target.value)}
-        className="flex-1 bg-black/50 border border-white/10 rounded-2xl py-4 px-4 text-xs focus:border-amber-500 outline-none transition-all placeholder-white/20 text-white" 
+        className="flex-1 bg-dark/5 border border-dark/10 rounded-2xl p-5 text-sm focus:border-amber-500 outline-none transition-all placeholder-dark/20 text-dark font-mono font-black shadow-sm" 
         placeholder={placeholder} 
       />
     </div>

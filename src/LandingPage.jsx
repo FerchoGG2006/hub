@@ -198,7 +198,7 @@ export const LandingPage = () => {
                className="text-6xl md:text-8xl font-sans tracking-tighter text-dark leading-[1.05]"
             >
               La Operativa Perfecta. <br className="hidden md:block"/>
-              <span className="italic font-serif text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-500 to-orange-500 drop-shadow-sm">
+              <span className="italic font-serif text-gold-gradient drop-shadow-sm">
                 Sin intermediarios.
               </span>
             </motion.h1>
@@ -246,26 +246,31 @@ export const LandingPage = () => {
                    <div className="w-3 h-3 rounded-full bg-white/10"></div>
                  </div>
                  <div className="bg-white/5 px-4 py-1.5 rounded-full border border-white/5 flex items-center gap-2">
-                    <span className="text-[9px] uppercase font-mono text-white/30 tracking-widest">hubsaas.com / admin / sync</span>
+                   <div className="w-3 h-3 rounded-full bg-dark/10"></div>
+                   <div className="w-3 h-3 rounded-full bg-dark/10"></div>
+                   <div className="w-3 h-3 rounded-full bg-dark/10"></div>
+                 </div>
+                 <div className="bg-dark/5 px-4 py-1.5 rounded-full border border-dark/5 flex items-center gap-2">
+                    <span className="text-[9px] uppercase font-mono text-dark/30 tracking-widest">hubsaas.com / admin / sync</span>
                  </div>
                  <div className="w-12"></div>
                </div>
 
                {/* Simulated Data Canvas */}
                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-                  <div className="h-64 rounded-2xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.05] p-6 flex flex-col justify-end relative overflow-hidden group-hover:bg-white/[0.04]">
-                     <div className="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/20 blur-3xl rounded-full"></div>
-                     <p className="text-3xl font-black italic tracking-tighter text-white/90">$2,450</p>
-                     <p className="text-[10px] uppercase font-bold tracking-widest text-amber-500">Live Traffic Metric</p>
+                  <div className="h-64 rounded-2xl bg-dark/5 border border-dark/10 p-6 flex flex-col justify-end relative overflow-hidden group-hover:bg-dark/[0.08] transition-colors">
+                     <div className="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/10 blur-3xl rounded-full"></div>
+                     <p className="text-4xl font-black italic tracking-tighter text-dark">$2,450</p>
+                     <p className="text-[10px] uppercase font-bold tracking-widest text-amber-600 font-mono">LIVE_TRAFFIC_METRIC</p>
                   </div>
-                  <div className="md:col-span-2 h-64 rounded-2xl bg-gradient-to-bl from-white/[0.03] to-transparent border border-white/[0.05] p-6 flex flex-col justify-end relative overflow-hidden group-hover:bg-white/[0.04]">
-                     <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none opacity-20">
+                  <div className="md:col-span-2 h-64 rounded-2xl bg-dark/5 border border-dark/10 p-6 flex flex-col justify-end relative overflow-hidden group-hover:bg-dark/[0.08] transition-colors">
+                     <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none opacity-40">
                        <svg width="100%" height="100" viewBox="0 0 500 100" preserveAspectRatio="none">
                          <path d="M0 50 C 150 150, 350 -50, 500 50" fill="none" stroke="#f59e0b" strokeWidth="4" />
                        </svg>
                      </div>
-                     <p className="text-xl font-light text-white/50 tracking-wide z-10 max-w-sm">
-                        "La conexión del socket retransmitió 3,420 eventos táctiles al monitor del cajero."
+                     <p className="text-xl font-light text-dark/40 tracking-wide z-10 max-w-sm">
+                        "La conexión del socket retransmitió <span className="text-dark font-black font-mono">3,420</span> eventos táctiles al monitor del cajero."
                      </p>
                   </div>
                </div>
@@ -276,7 +281,7 @@ export const LandingPage = () => {
         {/* ─── BENTO BOX FEATURES ─── */}
         <section id="showcase" className="py-32 px-6 max-w-7xl mx-auto relative">
            <div className="text-center mb-20 space-y-4">
-             <h2 className="text-4xl md:text-6xl font-light tracking-tighter">Una base de datos.<br/><span className="italic font-serif text-amber-500">Mil posibilidades.</span></h2>
+             <h2 className="text-4xl md:text-6xl font-light tracking-tighter">Una base de datos.<br/><span className="italic font-serif text-gold-gradient">Mil posibilidades.</span></h2>
              <p className="text-dark/40 tracking-widest uppercase text-[10px] font-bold">Arquitectura Unificada Multicanal</p>
            </div>
 
@@ -317,7 +322,7 @@ export const LandingPage = () => {
               {/* Feature 4 */}
               <div className={`md:col-span-7 rounded-[2rem] bg-[url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="n"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23n)" opacity="0.05"/%3E%3C/svg%3E')] border border-dark/[0.05] p-8 md:p-12 relative overflow-hidden flex flex-col justify-end group hover:border-dark/20 transition-all`}>
                 <div className="absolute -top-32 -right-10 text-[200px] opacity-[0.02] transform rotate-12 group-hover:rotate-6 transition-transform duration-1000">📖</div>
-                <h3 className="text-3xl font-light tracking-tight mb-2">Motor Render <span className="font-serif italic text-amber-500">4D</span></h3>
+                <h3 className="text-3xl font-light tracking-tight mb-2">Motor Render <span className="font-serif italic text-gold-gradient">4D</span></h3>
                 <p className="text-sm font-light text-dark/50 leading-relaxed max-w-sm">No es un PDF. Es un motor pseudo-físico que engaña al dedo imitando la fricción e inercia real del papel impreso usando matemática Framer y React.</p>
               </div>
 
@@ -330,7 +335,7 @@ export const LandingPage = () => {
           
           <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12 relative z-10 bg-dark/[0.02] border border-dark/5 rounded-[3rem] p-10 md:p-16 backdrop-blur-2xl">
              <div className="flex-1 space-y-6">
-                <h2 className="text-4xl font-light tracking-tight">Escalado simple. <br/><span className="text-amber-500 font-serif italic">Un solo plan.</span></h2>
+                <h2 className="text-4xl font-light tracking-tight">Escalado simple. <br/><span className="text-gold-gradient font-serif italic">Un solo plan.</span></h2>
                 <ul className="space-y-4 text-sm font-light text-dark/60">
                    <li className="flex items-center gap-3"><span className="text-amber-500 text-lg">✦</span> Plataforma Tenant Activa 24/7</li>
                    <li className="flex items-center gap-3"><span className="text-amber-500 text-lg">✦</span> Actualizaciones AI Inlimitadas</li>
@@ -362,7 +367,7 @@ export const LandingPage = () => {
           <div className="max-w-xl mx-auto text-center space-y-12">
              <div className="space-y-4">
                <h2 className="text-3xl md:text-5xl font-sans tracking-tight">
-                 Estás a un formulario <br/>de la <span className="font-serif italic text-amber-500">era digital</span>.
+                 Estás a un formulario <br/>de la <span className="font-serif italic text-gold-gradient">era digital</span>.
                </h2>
                <p className="text-sm text-dark/50 font-light mx-auto max-w-sm leading-relaxed">
                  Pruébalo gratis. Llena los datos y activaremos tu cuenta maestra en nuestro hub en cuestión de minutos.
@@ -431,37 +436,37 @@ export const LandingPage = () => {
                 </motion.div>
               </div>
 
-              <h3 className="text-center text-lg font-black text-white mb-1">¡Bienvenido, {welcomeModal.name}!</h3>
-              <p className="text-center text-xs text-white/40 mb-8">Tu hub <span className="text-amber-500 font-bold">{welcomeModal.restaurant}</span> está casi listo. Te contactaremos para activar tu cuenta.</p>
+              <h3 className="text-center text-2xl font-black text-dark tracking-tighter italic uppercase mb-2">¡BIEVENIDO, {welcomeModal.name.toUpperCase()}!</h3>
+              <p className="text-center text-[10px] text-dark/40 font-bold uppercase tracking-[0.2em] mb-8">Tu hub <span className="text-amber-600">{welcomeModal.restaurant}</span> está listo para el despliegue.</p>
 
               {/* Access Info Cards */}
-              <div className="space-y-3 mb-8">
-                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
-                  <p className="text-[9px] uppercase tracking-[0.3em] text-amber-500 font-black mb-2">🔗 Tu Panel de Administración</p>
-                  <p className="text-xs text-dark/80 font-mono break-all select-all bg-dark/5 px-3 py-2 rounded-xl border border-dark/5">{welcomeModal.adminUrl}</p>
+              <div className="space-y-4 mb-8">
+                <div className="bg-dark/5 border border-dark/10 rounded-2xl p-6">
+                  <p className="text-[9px] uppercase tracking-[0.4em] text-amber-600 font-black mb-3 font-mono">🔗 HUB_ADMIN_PORTAL</p>
+                  <p className="text-xs text-dark font-mono break-all select-all bg-bone px-4 py-3 rounded-xl border border-dark/10 shadow-sm">{welcomeModal.adminUrl}</p>
                 </div>
 
-                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
-                  <p className="text-[9px] uppercase tracking-[0.3em] text-emerald-500 font-black mb-2">📱 Tu Menú Digital</p>
-                  <p className="text-xs text-white/80 font-mono break-all select-all bg-black/40 px-3 py-2 rounded-xl border border-white/5">{welcomeModal.menuUrl}</p>
+                <div className="bg-dark/5 border border-dark/10 rounded-2xl p-6">
+                  <p className="text-[9px] uppercase tracking-[0.4em] text-emerald-600 font-black mb-3 font-mono">📱 DIGITAL_ECOSYSTEM</p>
+                  <p className="text-xs text-dark font-mono break-all select-all bg-bone px-4 py-3 rounded-xl border border-dark/10 shadow-sm">{welcomeModal.menuUrl}</p>
                 </div>
 
-                <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-5">
-                  <p className="text-[9px] uppercase tracking-[0.3em] text-amber-500 font-black mb-2">📧 Credenciales por Email</p>
-                  <p className="text-xs text-white/50 leading-relaxed">Recibirás tu <span className="text-white font-bold">USER_ID</span> y <span className="text-white font-bold">PASSCODE</span> en tu correo de contacto una vez activemos tu cuenta.</p>
+                <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-6">
+                  <p className="text-[9px] uppercase tracking-[0.4em] text-amber-600 font-black mb-3 font-mono">📧 CREDENTIALS_SENT</p>
+                  <p className="text-[10px] text-dark/60 leading-relaxed font-bold uppercase">Recibirás tu <span className="text-dark">USER_ID</span> y <span className="text-dark">PASSCODE</span> encriptados una vez activemos tu nodo maestro.</p>
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <button 
                   onClick={() => { navigator.clipboard.writeText(welcomeModal.adminUrl); }}
-                  className="flex-1 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/10 text-white/50 hover:text-white hover:bg-white/5 transition-all"
+                  className="flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-dark/10 text-dark/40 hover:text-dark hover:bg-dark/5 transition-all"
                 >
                   Copiar URL
                 </button>
                 <button 
                   onClick={() => setWelcomeModal(null)}
-                  className="flex-1 py-3.5 tactile-button text-black rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                  className="flex-1 py-4 bg-dark text-bone rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all tactile-button shadow-xl"
                 >
                   Entendido
                 </button>

@@ -158,12 +158,12 @@ export const InstagramAutopilot = () => {
                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
             </div>
             <div className="space-y-4">
-               <h3 className="text-3xl font-black text-dark italic tracking-tighter uppercase leading-none">VENDE_MIENTRAS_DUERMES</h3>
+               <h3 className="text-3xl font-black text-dark italic tracking-tighter uppercase leading-none">VENDE MIENTRAS DUERMES</h3>
                <p className="text-sm text-dark/60 leading-relaxed font-medium">Conecta tu cuenta de Instagram con un solo clic. <br/> HUB cambiará automáticamente tu bio a 'Abierto' o 'Cerrado' según tus horarios.</p>
             </div>
             <button onClick={handleFBLogin} disabled={loading} className="w-full py-5 text-[12px] uppercase tracking-[0.4em] font-black text-bone rounded-2xl hover:scale-[1.02] transition-all shadow-[0_15px_40px_rgba(0,0,0,0.15)] bg-dark flex items-center justify-center gap-3 tactile-button">
                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-               {loading ? 'SINCRONIZANDO_NÚCLEO...' : ' VINCULAR_INSTAGRAM_HUB'}
+               {loading ? 'SINCRONIZANDO NÚCLEO...' : ' VINCULAR INSTAGRAM HUB'}
             </button>
         </div>
       ) : (
@@ -224,22 +224,22 @@ export const InstagramAutopilot = () => {
                     ) : (
                         <div className="space-y-6 max-h-[300px] overflow-y-auto pr-2 no-scrollbar">
                             {branches.map(b => (
-                                <div key={b.id} className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-4">
+                                <div key={b.id} className="p-5 rounded-[2rem] bg-dark/[0.03] border border-dark/10 space-y-4">
                                     <div className="flex justify-between items-center">
-                                        <p className="text-xs font-bold text-white">Sede {b.name}</p>
-                                        <button onClick={() => handleIndividualSave(b.id, !b.autopilot_active, b.opening_time, b.closing_time)} className={`w-10 h-5 rounded-full relative transition-colors ${b.autopilot_active ? 'bg-emerald-500' : 'bg-white/10'}`}>
-                                            <motion.div animate={{ x: b.autopilot_active ? 20 : 2 }} className="w-4 h-4 bg-white rounded-full absolute top-0.5 shadow-md" />
+                                        <p className="text-[10px] font-black text-dark uppercase tracking-widest font-mono">SEDE_{b.name.toUpperCase()}</p>
+                                        <button onClick={() => handleIndividualSave(b.id, !b.autopilot_active, b.opening_time, b.closing_time)} className={`w-10 h-5 rounded-full relative transition-colors ${b.autopilot_active ? 'bg-emerald-500' : 'bg-dark/10'}`}>
+                                            <motion.div animate={{ x: b.autopilot_active ? 20 : 2 }} className="w-4 h-4 bg-bone rounded-full absolute top-0.5 shadow-md" />
                                         </button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <input type="time" value={b.opening_time} onChange={(e) => {
                                             const newB = branches.map(br => br.id === b.id ? {...br, opening_time: e.target.value} : br);
                                             setBranches(newB);
-                                        }} onBlur={() => handleIndividualSave(b.id, b.autopilot_active, b.opening_time, b.closing_time)} className="bg-black border border-white/10 rounded-xl py-2 px-3 text-[10px] text-white outline-none" />
+                                        }} onBlur={() => handleIndividualSave(b.id, b.autopilot_active, b.opening_time, b.closing_time)} className="bg-bone border border-dark/10 rounded-xl py-3 px-4 text-xs text-dark outline-none focus:border-amber-500 font-mono font-bold" />
                                         <input type="time" value={b.closing_time} onChange={(e) => {
                                             const newB = branches.map(br => br.id === b.id ? {...br, closing_time: e.target.value} : br);
                                             setBranches(newB);
-                                        }} onBlur={() => handleIndividualSave(b.id, b.autopilot_active, b.opening_time, b.closing_time)} className="bg-black border border-white/10 rounded-xl py-2 px-3 text-[10px] text-white outline-none" />
+                                        }} onBlur={() => handleIndividualSave(b.id, b.autopilot_active, b.opening_time, b.closing_time)} className="bg-bone border border-dark/10 rounded-xl py-3 px-4 text-xs text-dark outline-none focus:border-amber-500 font-mono font-bold" />
                                     </div>
                                 </div>
                             ))}
@@ -315,7 +315,7 @@ export const InstagramAutopilot = () => {
                     </div>
                 </div>
                 
-                <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1 }} className="absolute -right-12 top-1/2 bg-amber-500 text-black text-[10px] font-black uppercase px-3 py-2 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.5)] transform -rotate-6">
+                <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1 }} className="absolute -right-12 top-1/2 bg-gold-gradient text-dark text-[10px] font-black uppercase px-4 py-2 rounded-xl shadow-[0_10px_30px_rgba(252,211,77,0.4)] transform -rotate-6">
                     Live Simulator
                 </motion.div>
             </div>

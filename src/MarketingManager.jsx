@@ -42,7 +42,7 @@ export const MarketingManager = () => {
       className="pt-12 px-6 max-w-2xl mx-auto space-y-8 relative z-10"
     >
       <div className="mb-8">
-        <h2 className="text-3xl font-light text-dark">Agente de <span className="font-serif italic text-amber-500">Marketing</span></h2>
+        <h2 className="text-3xl font-light text-dark">Agente de <span className="font-serif italic text-gold-gradient">Marketing</span></h2>
         <p className="text-sm text-dark/40">Olvida las estrategias complejas. Dile a la IA qué necesitas impulsar y ella creará la campaña por ti.</p>
       </div>
 
@@ -82,9 +82,9 @@ export const MarketingManager = () => {
                   <p className="p-4 bg-bone rounded-xl text-sm italic border border-dark/10 font-bold text-dark">"{campaign.email_subject}"</p>
                 </div>
                 <div className="flex gap-4">
-                  <div className="flex-1 bg-amber-500/10 p-5 rounded-2xl border border-amber-500/20 text-center">
+                  <div className="flex-1 bg-amber-500/10 p-5 rounded-2xl border border-amber-500/20 text-center shadow-inner shadow-amber-500/5">
                      <span className="text-[9px] uppercase tracking-widest text-amber-600 mb-1 block font-bold">CUPÓN ACTIVADO</span>
-                     <span className="text-xl font-mono text-dark tracking-[0.2em] block font-black">{campaign.coupon_code}</span>
+                     <span className="text-xl font-mono text-gold-gradient tracking-[0.2em] block font-black">{campaign.coupon_code}</span>
                   </div>
                   <div className="w-1/3 bg-dark/5 p-5 rounded-2xl border border-dark/10 text-center">
                      <span className="text-[9px] uppercase tracking-widest text-dark/40 mb-1 block font-bold">DESCUENTO</span>

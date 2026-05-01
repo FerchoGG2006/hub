@@ -108,7 +108,7 @@ export const LoginTerminal = ({ onAuth }) => {
         <button 
           type="submit" 
           disabled={loading}
-          className="mt-6 py-3 bg-amber-500/10 text-amber-500 border border-amber-500/20 tactile-button text-black uppercase text-[10px] font-black tracking-widest transition-all rounded-full"
+          className="mt-6 py-3 bg-amber-500/10 text-gold font-black border border-amber-500/20 tactile-button uppercase text-[10px] tracking-widest transition-all rounded-full"
         >
           {loading ? 'Verificando...' : 'Enlazar'}
         </button>
@@ -228,7 +228,7 @@ export const LiveMonitor = ({ onLogout }) => {
                       initial={{ width: 0 }}
                       animate={{ width: `${fillPercent}%` }}
                       transition={{ duration: 0.8, ease: "circOut" }}
-                      className="h-full bg-amber-500 shadow-[0_0_10px_rgba(197,160,89,0.5)]"
+                      className="h-full bg-gold-gradient shadow-[0_0_15px_rgba(252,211,77,0.4)]"
                     />
                   </div>
                 </motion.div>
@@ -737,7 +737,7 @@ const BrandingSettings = () => {
                 </div>
                 
                 {/* Visual Hint */}
-                <motion.div animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute -right-8 top-1/2 bg-amber-500 text-black text-[9px] font-black uppercase px-2 py-1 rounded shadow-lg transform rotate-90 origin-right">
+                <motion.div animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute -right-8 top-1/2 bg-gold-gradient text-dark text-[9px] font-black uppercase px-3 py-1.5 rounded shadow-lg transform rotate-90 origin-right shadow-amber-500/20">
                     Carta Interactiva
                 </motion.div>
             </div>
@@ -1256,12 +1256,12 @@ export const AdminDashboard = () => {
         <div className="flex gap-10 flex-shrink-0 whitespace-nowrap pr-12">
           {['kanban', 'inventory', 'stats', 'sedes', 'qr', 'marketing', 'autopilot', 'settings', 'billing'].map(m => (
             <button key={m} onClick={() => setView(m)}
-              className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all relative py-3 ${view === m ? 'text-amber-600' : 'text-dark/30 hover:text-dark/60'}`}>
+              className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all relative py-3 ${view === m ? 'text-gold-gradient' : 'text-dark/30 hover:text-dark/60'}`}>
               {m === 'kanban' ? 'Pedidos Live' : m === 'inventory' ? 'Suministros' : m === 'stats' ? 'Monitor' : m === 'sedes' ? 'Sedes' : m === 'qr' ? 'Punto QR' : m === 'marketing' ? 'Marketing AI' : m === 'autopilot' ? 'IG Autopilot' : m === 'settings' ? 'Branding' : 'Billing'}
               {view === m && (
                 <motion.div 
                   layoutId="hud-nav" 
-                  className="absolute -bottom-1 left-0 h-0.5 bg-amber-500 w-full shadow-[0_0_12px_rgba(197,160,89,0.9)]" 
+                  className="absolute -bottom-1 left-0 h-0.5 bg-gold-gradient w-full shadow-[0_0_15px_rgba(252,211,77,0.6)]" 
                 />
               )}
             </button>
