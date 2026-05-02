@@ -1,0 +1,256 @@
+/* MacbookHero.css */
+:root {
+  --macbook-silver: #a1a1a6;
+  --macbook-space-gray: #3e3e42;
+  --macbook-bezel: #000000;
+  --screen-ratio: 16 / 10;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --accent-color: #0071e3;
+}
+
+.macbook-hero-container {
+  position: relative;
+  width: 100%;
+  height: 200vh; /* Extra height for scroll demonstration */
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-x: hidden;
+  background: radial-gradient(circle at center, #1d1d1f 0%, #000 100%);
+  perspective: 2000px;
+  padding-top: 20vh;
+}
+
+/* Base MacBook Structure */
+.macbook-wrapper {
+  position: sticky;
+  top: 20vh;
+  transform-style: preserve-3d;
+  width: min(80vw, 1000px);
+  aspect-ratio: var(--screen-ratio);
+}
+
+.macbook-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+  cursor: default;
+}
+
+/* MacBook Lid (The Screen) */
+.macbook-lid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--macbook-space-gray);
+  border-radius: 20px;
+  transform-origin: bottom;
+  transform-style: preserve-3d;
+  box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.05);
+  transform: rotateX(0deg);
+  z-index: 2;
+}
+
+/* The actual Screen */
+.macbook-screen {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  right: 15px;
+  bottom: 15px;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+/* Screen Content Area */
+.screen-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The Notch */
+.macbook-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 24px;
+  background: var(--macbook-bezel);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.macbook-notch::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #1a1a1a;
+  border-radius: 50%;
+  box-shadow: 0 0 2px rgba(255,255,255,0.2);
+}
+
+/* Dynamic Glare Effect */
+.screen-glare {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at var(--glare-x, 50%) var(--glare-y, 50%),
+    rgba(255, 255, 255, 0.08) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+  z-index: 99;
+  mix-blend-mode: overlay;
+}
+
+/* MacBook Base */
+.macbook-base {
+  position: absolute;
+  bottom: -40px;
+  left: -5%;
+  width: 110%;
+  height: 40px;
+  background: var(--macbook-space-gray);
+  border-radius: 0 0 20px 20px;
+  transform: rotateX(-85deg);
+  transform-origin: top;
+  box-shadow: 
+    0 20px 50px rgba(0,0,0,0.8),
+    inset 0 2px 5px rgba(255,255,255,0.1);
+}
+
+/* Internal Workspace Elements */
+.workspace-window {
+  position: absolute;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  cursor: grab;
+  user-select: none;
+  animation: windowEntry 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  overflow: hidden;
+}
+
+.workspace-window:active {
+  cursor: grabbing;
+}
+
+.window-header {
+  padding: 10px 15px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.window-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.dot-red { background: #ff5f56; }
+.dot-yellow { background: #ffbd2e; }
+.dot-green { background: #27c93f; }
+
+.window-content {
+  padding: 15px;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Metric Widgets */
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.metric-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(to bottom, #fff, #aaa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-label {
+  font-size: 0.7rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.chart-container {
+  margin-top: 10px;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 40px;
+}
+
+.chart-bar {
+  flex: 1;
+  background: var(--accent-color);
+  border-radius: 2px 2px 0 0;
+  opacity: 0.6;
+  transition: height 1s ease;
+}
+
+/* Animations */
+@keyframes windowEntry {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Text Overlays */
+.hero-text {
+  position: absolute;
+  bottom: 10vh;
+  text-align: center;
+  width: 100%;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.hero-title {
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.hero-subtitle {
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  color: #888;
+  margin-top: 10px;
+}

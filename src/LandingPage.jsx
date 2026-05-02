@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import MacbookHero from './components/MacbookHero';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -231,51 +232,42 @@ export const LandingPage = () => {
           </motion.div>
 
           {/* FLUID INTERFACE MOCKUP */}
-          <motion.div 
-            initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-6xl mt-24 relative z-20 group"
-          >
-             <div className="absolute inset-0 bg-gradient-to-t from-bone via-transparent to-transparent z-20 pointer-events-none h-full"></div>
-             <div className="bg-bone border border-dark/10 rounded-[2rem] md:rounded-[3rem] p-4 md:p-8 shadow-[0_30px_100px_rgba(197,160,89,0.07)] overflow-hidden relative transition-all duration-700 hover:border-amber-500/30">
-               
-               {/* Terminal Top Bar */}
-               <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4 px-2">
-                 <div className="flex gap-2">
-                   <div className="w-3 h-3 rounded-full bg-white/10"></div>
-                   <div className="w-3 h-3 rounded-full bg-white/10"></div>
-                   <div className="w-3 h-3 rounded-full bg-white/10"></div>
-                 </div>
-                 <div className="bg-white/5 px-4 py-1.5 rounded-full border border-white/5 flex items-center gap-2">
-                   <div className="w-3 h-3 rounded-full bg-dark/10"></div>
-                   <div className="w-3 h-3 rounded-full bg-dark/10"></div>
-                   <div className="w-3 h-3 rounded-full bg-dark/10"></div>
-                 </div>
-                 <div className="bg-dark/5 px-4 py-1.5 rounded-full border border-dark/5 flex items-center gap-2">
-                    <span className="text-[9px] uppercase font-mono text-dark/30 tracking-widest">hubsaas.com / admin / sync</span>
-                 </div>
-                 <div className="w-12"></div>
-               </div>
+          <div className="w-full max-w-7xl mt-32 relative z-20 flex flex-col md:flex-row items-center gap-16 px-6">
+            
+            {/* Left Side: Marketing Copy */}
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.8 }}
+              className="md:w-1/3 text-left space-y-8"
+            >
+              <h2 className="text-5xl md:text-7xl font-bold tracking-tight text-dark leading-[1.1]">
+                Controla tu <br/> <span className="italic font-serif text-gold-gradient">operación</span> <br/> en tiempo real.
+              </h2>
+              <p className="text-xl text-dark/50 font-light leading-relaxed max-w-lg">
+                Todo tu negocio sincronizado en tiempo real: pedidos, analítica, usuarios y operaciones desde un solo dashboard.
+              </p>
+              <div className="pt-4 flex flex-col sm:flex-row items-center gap-6">
+                <button 
+                  onClick={() => document.getElementById('demo').scrollIntoView({ behavior: 'smooth' })}
+                  className="px-8 py-4 bg-dark text-bone rounded-full font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl hover:bg-amber-600 transition-all"
+                >
+                  Agendar demostración
+                </button>
+                <button className="text-sm font-bold text-dark/40 hover:text-dark flex items-center gap-2 transition-all">
+                  Ver plataforma <span className="text-lg">›</span>
+                </button>
+              </div>
+            </motion.div>
 
-               {/* Simulated Data Canvas */}
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-                  <div className="h-64 rounded-2xl bg-dark/5 border border-dark/10 p-6 flex flex-col justify-end relative overflow-hidden group-hover:bg-dark/[0.08] transition-colors">
-                     <div className="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/10 blur-3xl rounded-full"></div>
-                     <p className="text-4xl font-black italic tracking-tighter text-dark">$2,450</p>
-                     <p className="text-[10px] uppercase font-bold tracking-widest text-amber-600 font-mono">LIVE_TRAFFIC_METRIC</p>
-                  </div>
-                  <div className="md:col-span-2 h-64 rounded-2xl bg-dark/5 border border-dark/10 p-6 flex flex-col justify-end relative overflow-hidden group-hover:bg-dark/[0.08] transition-colors">
-                     <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none opacity-40">
-                       <svg width="100%" height="100" viewBox="0 0 500 100" preserveAspectRatio="none">
-                         <path d="M0 50 C 150 150, 350 -50, 500 50" fill="none" stroke="#f59e0b" strokeWidth="4" />
-                       </svg>
-                     </div>
-                     <p className="text-xl font-light text-dark/40 tracking-wide z-10 max-w-sm">
-                        "La conexión del socket retransmitió <span className="text-dark font-black font-mono">3,420</span> eventos táctiles al monitor del cajero."
-                     </p>
-                  </div>
-               </div>
-             </div>
-          </motion.div>
+            {/* Right Side: The NEW MacBook Hero */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              transition={{ duration: 1.5, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="md:w-2/3 w-full"
+            >
+               <MacbookHero />
+            </motion.div>
+          </div>
         </section>
 
         {/* ─── BENTO BOX FEATURES ─── */}

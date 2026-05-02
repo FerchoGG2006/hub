@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MacbookHero - Premium SaaS Experience</title>
+    <link rel="stylesheet" href="MacbookHero.css">
+</head>
+<body>
+
+    <section class="macbook-hero-container">
+        
+        <!-- Hero Text (Background layer) -->
+        <div class="hero-text">
+            <h1 class="hero-title">Elevate Your Product</h1>
+            <p class="hero-subtitle">Experience the future of SaaS interfaces.</p>
+        </div>
+
+        <div class="macbook-wrapper">
+            <div class="macbook-container">
+                
+                <!-- The Lid (Screen) -->
+                <div class="macbook-lid">
+                    <div class="macbook-screen">
+                        
+                        <!-- Internal Screen Content -->
+                        <div class="screen-content">
+                            <div class="macbook-notch"></div>
+                            <div class="screen-glare"></div>
+
+                            <!-- Workspace Windows -->
+                            
+                            <!-- Window 1: Analytics -->
+                            <div class="workspace-window" style="top: 40px; left: 40px; width: 280px;">
+                                <div class="window-header">
+                                    <div class="window-dot dot-red"></div>
+                                    <div class="window-dot dot-yellow"></div>
+                                    <div class="window-dot dot-green"></div>
+                                </div>
+                                <div class="window-content">
+                                    <div class="metric-card">
+                                        <span class="metric-label">Monthly Revenue</span>
+                                        <span class="metric-value" data-value="128450">$0</span>
+                                        <div class="chart-container">
+                                            <div class="chart-bar" data-height="40%" style="height: 0;"></div>
+                                            <div class="chart-bar" data-height="65%" style="height: 0;"></div>
+                                            <div class="chart-bar" data-height="45%" style="height: 0;"></div>
+                                            <div class="chart-bar" data-height="80%" style="height: 0;"></div>
+                                            <div class="chart-bar" data-height="95%" style="height: 0;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Window 2: Active Users -->
+                            <div class="workspace-window" style="top: 180px; left: 340px; width: 220px;">
+                                <div class="window-header">
+                                    <div class="window-dot dot-red"></div>
+                                    <div class="window-dot dot-yellow"></div>
+                                    <div class="window-dot dot-green"></div>
+                                </div>
+                                <div class="window-content">
+                                    <div class="metric-card">
+                                        <span class="metric-label">Active Users</span>
+                                        <span class="metric-value" data-value="1240" style="color: #27c93f; -webkit-text-fill-color: #27c93f;">0</span>
+                                        <p style="font-size: 0.6rem; color: #666; margin-top: 5px;">↑ 12% vs last hour</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Window 3: Terminal/Code (Glassy) -->
+                            <div class="workspace-window" style="top: 60px; right: 40px; width: 200px; background: rgba(0,0,0,0.4);">
+                                <div class="window-header">
+                                    <div class="window-dot dot-red"></div>
+                                    <div class="window-dot dot-yellow"></div>
+                                    <div class="window-dot dot-green"></div>
+                                </div>
+                                <div class="window-content">
+                                    <code style="font-size: 0.7rem; color: #00ff00; font-family: monospace;">
+                                        > node deploy.js<br>
+                                        [OK] Optimized...<br>
+                                        [OK] CDN Push...
+                                    </code>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- The Base -->
+                <div class="macbook-base"></div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Content for scroll demonstration -->
+    <div style="height: 100vh; background: #000; display: flex; align-items: center; justify-content: center; color: #444; font-family: sans-serif;">
+        <p>Scroll up to open the MacBook</p>
+    </div>
+
+    <script src="MacbookHero.js"></script>
+</body>
+</html>
