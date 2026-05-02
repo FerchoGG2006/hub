@@ -245,20 +245,9 @@ export const LandingPage = () => {
               <p className="text-xl text-dark/50 font-light leading-relaxed max-w-lg">
                 Todo tu negocio sincronizado en tiempo real: pedidos, analítica, usuarios y operaciones desde un solo dashboard.
               </p>
-              <div className="pt-4 flex flex-col sm:flex-row items-center gap-6">
-                <button 
-                  onClick={() => document.getElementById('demo').scrollIntoView({ behavior: 'smooth' })}
-                  className="px-8 py-4 bg-dark text-bone rounded-full font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl hover:bg-amber-600 transition-all"
-                >
-                  Agendar demostración
-                </button>
-                <button className="text-sm font-bold text-dark/40 hover:text-dark flex items-center gap-2 transition-all">
-                  Ver plataforma <span className="text-lg">›</span>
-                </button>
-              </div>
             </motion.div>
 
-            {/* Right Side: The NEW MacBook Hero */}
+            {/* Right Side: The IMPROVED Macbook Hero */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }} 
               animate={{ opacity: 1, scale: 1 }} 
