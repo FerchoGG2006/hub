@@ -4,6 +4,7 @@ import { PageFlip } from 'page-flip';
 import { MENU_DATA as STATIC_MENU, CATEGORY_META } from './MenuData';
 import { useCart } from './useCart';
 import { ProductCell } from './ProductCell';
+import { EventWizard } from './EventWizard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -26,6 +27,7 @@ export const MenuEngine = ({ config }) => {
   const [allMenuData, setAllMenuData] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showEventWizard, setShowEventWizard] = useState(false);
   const bookRef = useRef(null);
   const pflip = useRef(null);
 
@@ -171,13 +173,16 @@ export const MenuEngine = ({ config }) => {
   if (!allMenuData) return <LoadingSkeleton />;
 
   const mainBranch = config.branches?.[0] || {};
+  const brandColor = config?.brand_color || '#f59e0b';
+  const totalPages = categories.length;
 
   return (
-    <div className="perspective-container flex flex-col items-center justify-center bg-black overflow-hidden py-10">
-      {/* ── CINEMATIC AMBIENCE ── */}
+    <div className="perspective-container flex flex-col items-center justify-center overflow-hidden py-10" style={{ background: '#050505' }}>
+      {/* ── CINEMATIC AMBIENCE (Brand Color Driven) ── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-[10%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-amber-500/5 blur-[120px]" />
-        <div className="absolute -bottom-[10%] -right-[10%] w-[60vw] h-[60vw] rounded-full bg-white/5 blur-[120px]" />
+        <div className="absolute -top-[10%] -left-[10%] w-[50vw] h-[50vw] rounded-full blur-[120px]" style={{ background: `${brandColor}08` }} />
+        <div className="absolute -bottom-[10%] -right-[10%] w-[60vw] h-[60vw] rounded-full bg-white/[0.03] blur-[120px]" />
+        <div className="absolute top-[30%] right-[10%] w-[30vw] h-[30vw] rounded-full blur-[100px]" style={{ background: `${brandColor}05` }} />
       </div>
 
 
@@ -234,29 +239,79 @@ export const MenuEngine = ({ config }) => {
             );
           })}
         </div>
+
+        {/* ── PAGE NAVIGATION ARROWS ── */}
+        <AnimatePresence>
+          {currentPage > 0 && (
+            <motion.button
+              key="nav-prev"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              whileTap={{ scale: 0.85 }}
+              onClick={() => { if (pflip.current) { pflip.current.flipPrev(); if (navigator.vibrate) navigator.vibrate(10); } }}
+              className="absolute bottom-4 left-3 z-40 w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
+              <span className="text-white/50 text-sm font-bold select-none">‹</span>
+            </motion.button>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {currentPage < totalPages - 1 && (
+            <motion.button
+              key="nav-next"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              whileTap={{ scale: 0.85 }}
+              onClick={() => { if (pflip.current) { pflip.current.flipNext(); if (navigator.vibrate) navigator.vibrate(10); } }}
+              className="absolute bottom-4 right-3 z-40 w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
+              <span className="text-white/50 text-sm font-bold select-none">›</span>
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* ── FLOATING SOCIAL BAR (Wow Moment) ── */}
-      <div className="fixed bottom-24 left-0 right-0 z-[200] pointer-events-none px-6">
-        <div className="flex justify-center">
-            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }} className="flex gap-6 items-center pointer-events-auto bg-black/40 backdrop-blur-3xl border border-white/10 py-3.5 px-8 rounded-full shadow-[0_25px_50px_rgba(0,0,0,0.6)]">
-                {config.whatsapp_number && (
-                    <a href={`https://wa.me/${config.whatsapp_number}`} target="_blank" rel="noreferrer" className="text-xl hover:scale-110 transition-transform active:scale-90">💬</a>
-                )}
-                {mainBranch.ig_username && (
-                    <a href={`https://instagram.com/${mainBranch.ig_username}`} target="_blank" rel="noreferrer" className="relative group">
-                        <div className="absolute -inset-2 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-full opacity-0 group-hover:opacity-20 transition-opacity blur-sm" />
-                        <span className="text-xl relative z-10 hover:scale-110 transition-transform block active:scale-90">📸</span>
-                    </a>
-                )}
-                {mainBranch.tt_username && (
-                    <a href={`https://tiktok.com/@${mainBranch.tt_username}`} target="_blank" rel="noreferrer" className="text-xl hover:scale-110 transition-transform active:scale-90">🎵</a>
-                )}
-            </motion.div>
-        </div>
-      </div>
+      {/* ── FLOATING EVENT BUTTON ── */}
+      <motion.button
+        initial={{ y: 60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 1, type: 'spring', stiffness: 200, damping: 20 }}
+        whileTap={{ scale: 0.92 }}
+        onClick={() => setShowEventWizard(true)}
+        className="fixed bottom-6 left-4 z-[200] flex items-center gap-2.5 rounded-2xl px-4 py-3"
+        style={{
+          background: 'rgba(245,158,11,0.12)',
+          backdropFilter: 'blur(24px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+          border: '1px solid rgba(245,158,11,0.25)',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(245,158,11,0.1)',
+        }}
+      >
+        <span className="text-xl leading-none">🎉</span>
+        <span className="text-[9px] font-black text-amber-400 uppercase tracking-[0.2em]">Evento</span>
+      </motion.button>
 
-
+      {/* ── EVENT WIZARD MODAL ── */}
+      <AnimatePresence>
+        {showEventWizard && (
+          <EventWizard
+            slug={config?.slug || 'la-rivera'}
+            onClose={() => setShowEventWizard(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── CINEMATIC PRODUCT MODAL ── */}
       <AnimatePresence>

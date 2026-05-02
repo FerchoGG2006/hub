@@ -11,6 +11,7 @@ import { MarketingManager } from './MarketingManager';
 import { InstagramAutopilot } from './InstagramAutopilot';
 import { OnboardingTour } from './OnboardingTour';
 import { PhoneInput } from './PhoneInput';
+import { EventsManager } from './EventsManager';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -1254,10 +1255,10 @@ export const AdminDashboard = () => {
           <img src="/logo.png" alt="HUB" className="h-6 lg:h-8 object-contain" />
         </div>
         <div className="flex gap-10 flex-shrink-0 whitespace-nowrap pr-12">
-          {['kanban', 'inventory', 'stats', 'sedes', 'qr', 'marketing', 'autopilot', 'settings', 'billing'].map(m => (
+          {['kanban', 'inventory', 'stats', 'sedes', 'qr', 'marketing', 'autopilot', 'eventos', 'settings', 'billing'].map(m => (
             <button key={m} onClick={() => setView(m)}
               className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all relative py-3 ${view === m ? 'text-gold-gradient' : 'text-dark/30 hover:text-dark/60'}`}>
-              {m === 'kanban' ? 'Pedidos Live' : m === 'inventory' ? 'Suministros' : m === 'stats' ? 'Monitor' : m === 'sedes' ? 'Sedes' : m === 'qr' ? 'Punto QR' : m === 'marketing' ? 'Marketing AI' : m === 'autopilot' ? 'IG Autopilot' : m === 'settings' ? 'Branding' : 'Billing'}
+              {m === 'kanban' ? 'Pedidos Live' : m === 'inventory' ? 'Suministros' : m === 'stats' ? 'Monitor' : m === 'sedes' ? 'Sedes' : m === 'qr' ? 'Punto QR' : m === 'marketing' ? 'Marketing AI' : m === 'autopilot' ? 'IG Autopilot' : m === 'eventos' ? '🎉 Eventos' : m === 'settings' ? 'Branding' : 'Billing'}
               {view === m && (
                 <motion.div 
                   layoutId="hud-nav" 
@@ -1285,6 +1286,8 @@ export const AdminDashboard = () => {
             <MarketingManager key="marketing" tenantSlug={tenantSlug} />
           ) : view === 'autopilot' ? (
             <InstagramAutopilot key="autopilot" />
+          ) : view === 'eventos' ? (
+            <EventsManager key="eventos" tenantSlug={tenantSlug} />
           ) : view === 'settings' ? (
             <BrandingSettings key="settings" />
           ) : (

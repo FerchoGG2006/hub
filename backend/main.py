@@ -14,6 +14,7 @@ from database import get_db, engine
 from utils.storage import upload_product_image
 from utils.gemini_extractor import extract_menu_from_image
 import auth
+from events import router as events_router
 
 load_dotenv()
 import google.generativeai as genai
@@ -36,6 +37,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Router de Eventos Especiales
+app.include_router(events_router)
 
 # ════════════════ WEBSOCKETS ════════════════
 class ConnectionManager:

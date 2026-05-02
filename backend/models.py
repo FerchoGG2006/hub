@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, Boolean, DateTime, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -140,3 +140,22 @@ class Analytics(Base):
 
     tenant  = relationship("Tenant")
     product = relationship("Product")
+
+class SpecialEvent(Base):
+    """Modelo de Solicitudes de Eventos Especiales (público → admin)."""
+    __tablename__ = "special_events"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    restaurant_id   = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    client_name     = Column(String(100), nullable=False)
+    client_phone    = Column(String(30), nullable=False)   # WhatsApp del cliente
+    event_type      = Column(String(30), default="otro")   # cumpleanos, aniversario, reunion, despedida, otro
+    event_date      = Column(DateTime, nullable=True)
+    guests_count    = Column(Integer, default=1)
+    extras          = Column(JSON, default=[])              # lista: decoracion, torta, zona_privada, menu_especial, musica
+    notes           = Column(Text, nullable=True)           # mensaje adicional del cliente
+    admin_notes     = Column(Text, nullable=True)           # notas internas del admin
+    status          = Column(String(20), default="pending") # pending | managing | confirmed | rejected
+    created_at      = Column(DateTime, default=datetime.utcnow)
+
+    restaurant = relationship("Tenant")
