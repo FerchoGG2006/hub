@@ -198,6 +198,7 @@
   font-weight: 700;
   background: linear-gradient(to bottom, #fff, #aaa);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   font-variant-numeric: tabular-nums;
 }

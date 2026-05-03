@@ -80,7 +80,6 @@ class MacbookHero {
         activeWindow.style.zIndex = ++zIndex;
         
         const rect = win.getBoundingClientRect();
-        const screenRect = document.querySelector('.macbook-screen').getBoundingClientRect();
         
         // Offset relative to the screen content
         offset.x = e.clientX - rect.left;
