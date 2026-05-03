@@ -57,21 +57,29 @@ body {
   background-color: transparent !important;
 }
 
+/* ─── Sombra de flip (la hoja que se levanta) ─── */
+.stf__item {
+  box-shadow: 0 15px 40px rgba(26, 26, 26, 0.12) !important;
+}
+
 .page-item {
   box-shadow: none;
   background-color: #fdfcf7;
   color: var(--dark);
 }
 
-/* El lomo cuando la página está quieta */
+/* Lomo izquierdo — glassmorfismo Ivory Gold */
 .page-item::before {
   content: '';
   position: absolute;
   left: 0; top: 0; bottom: 0;
-  width: 50px;
-  background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, transparent 100%);
+  width: 40px;
+  background: linear-gradient(to right, rgba(242, 240, 228, 0.85) 0%, rgba(247, 243, 233, 0.4) 50%, transparent 100%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 10;
   pointer-events: none;
+  border-right: 1px solid rgba(26, 26, 26, 0.04);
 }
 
 /* ─── UTILITIES ─── */

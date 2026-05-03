@@ -14,7 +14,7 @@ export const FloatingCart = ({ config, branch }) => {
         initial={{ y: 120, opacity: 0 }}
         animate={{ y: totalItems > 0 ? 0 : 120, opacity: totalItems > 0 ? 1 : 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-        className="fixed bottom-6 right-4 z-[200]"
+        className="fixed bottom-2 right-3 z-[210]"
         style={{ pointerEvents: totalItems > 0 ? 'auto' : 'none' }}
       >
         <motion.button
@@ -24,31 +24,31 @@ export const FloatingCart = ({ config, branch }) => {
           whileTap={{ scale: 0.88 }}
           transition={{ type: 'spring', stiffness: 400, damping: 20 }}
           onClick={() => setCheckoutOpen(true)}
-          className="flex items-center gap-3 rounded-2xl px-4 py-3"
+          className="flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5"
           style={{
-            background: 'rgba(255,255,255,0.08)',
-            backdropFilter: 'blur(24px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-            border: '1px solid rgba(255,255,255,0.18)',
-            boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(245,158,11,0.15)',
+            background: 'rgba(253,248,239,0.08)',
+            backdropFilter: 'blur(16px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+            border: '0.5px solid rgba(245,158,11,0.25)',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(245,158,11,0.1)',
           }}
         >
           <div className="relative">
-            <span className="text-2xl leading-none">🛍️</span>
+            <span className="text-xl leading-none">🛍️</span>
             <motion.span key={totalItems} initial={{ scale: 1.5 }} animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 500, damping: 18 }}
-              className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black text-black"
-              style={{ background: '#f59e0b' }}>
+              className="absolute -top-1.5 -right-1.5 w-4 h-4 flex items-center justify-center rounded-full text-[8px] font-black"
+              style={{ background: '#f59e0b', color: '#1a1008' }}>
               {totalItems}
             </motion.span>
           </div>
-          <div className="text-left pr-1">
-            <p className="text-[9px] text-white/45 uppercase font-bold tracking-widest leading-none mb-0.5">Tu Pedido</p>
+          <div className="text-left">
+            <p className="text-[8px] uppercase font-bold tracking-widest leading-none mb-0.5" style={{ color: 'rgba(253,248,239,0.45)' }}>Pedido</p>
             <p className="font-bold leading-none text-sm" style={{ color: '#f59e0b' }}>
               ${(totalPrice / 1000).toFixed(0)}k
             </p>
           </div>
-          <span className="text-amber-400 text-xs opacity-70 ml-1">›</span>
+          <span className="text-xs opacity-60 ml-0.5" style={{ color: '#f59e0b' }}>›</span>
         </motion.button>
       </motion.div>
 
