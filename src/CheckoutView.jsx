@@ -6,12 +6,17 @@ import { ProductCustomizer } from './ProductCustomizer';
 
 export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
   const { cart, total, clearCart, updateQty, updateCustomization } = useCart();
-  const [method,  setMethod]  = useState('mesa');      // mesa | recoger | domicilio
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const tableFromUrl = urlParams.get('mesa') || urlParams.get('table');
+  const isFromQR = !!tableFromUrl;
+
+  const [method,  setMethod]  = useState(isFromQR ? 'mesa' : 'domicilio'); // mesa | recoger | domicilio
   const [payment, setPayment] = useState('efectivo');  // efectivo | transferencia
   const [done, setDone]       = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [address, setAddress] = useState('');
-  const [tableNumber, setTableNumber] = useState('');
+  const [tableNumber, setTableNumber] = useState(tableFromUrl || '');
   const [editingItem, setEditingItem] = useState(null);
 
   React.useEffect(() => {
@@ -276,12 +281,12 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
           <label className="text-[10px] text-dark/30 uppercase tracking-[0.2em] block mb-4 font-semibold">
             ¿Cómo recibes?
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {[
-              { id: 'mesa',      icon: '🪑', label: 'Mesa' },
-              { id: 'recoger',   icon: '🏃', label: 'Recoger' },
-              { id: 'domicilio', icon: '🛵', label: 'Domicilio' },
-            ].map(opt => (
+              { id: 'mesa',      icon: '🪑', label: 'Mesa',      show: isFromQR },
+              { id: 'recoger',   icon: '🏃', label: 'Recoger',   show: !isFromQR },
+              { id: 'domicilio', icon: '🛵', label: 'Domicilio', show: !isFromQR },
+            ].filter(opt => opt.show).map(opt => (
               <button
                 key={opt.id}
                 onClick={() => setMethod(opt.id)}

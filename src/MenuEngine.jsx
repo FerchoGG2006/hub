@@ -140,7 +140,7 @@ const CategoryHero = ({ meta, restaurantName }) => (
 // ═══════════════════════════════════════════════════════════════
 const NavArrow = ({ direction, visible, onClick }) => (
   <button
-    onClick={(e) => {
+    onPointerDown={(e) => {
       e.stopPropagation();
       if (visible) onClick();
     }}
@@ -468,13 +468,10 @@ export const MenuEngine = ({ config }) => {
     handleInteraction();
     if (!pflip.current || currentPage <= 0) return;
     try { 
-      pflip.current.flip(currentPage - 1, 'top'); 
+      pflip.current.update();
+      pflip.current.flipPrev('top'); 
     } catch (e) {
-      try { 
-        pflip.current.flip(currentPage - 1, 'bottom'); 
-      } catch (e2) {
-        pflip.current.turnToPage(currentPage - 1);
-      }
+      pflip.current.turnToPage(currentPage - 1);
     }
     if (navigator.vibrate) navigator.vibrate(8);
   }, [handleInteraction, currentPage]);
@@ -483,13 +480,10 @@ export const MenuEngine = ({ config }) => {
     handleInteraction();
     if (!pflip.current || currentPage >= totalPagesRef.current - 1) return;
     try { 
-      pflip.current.flip(currentPage + 1, 'top'); 
+      pflip.current.update();
+      pflip.current.flipNext('top'); 
     } catch (e) {
-      try { 
-        pflip.current.flip(currentPage + 1, 'bottom'); 
-      } catch (e2) {
-        pflip.current.turnToPage(currentPage + 1);
-      }
+      pflip.current.turnToPage(currentPage + 1);
     }
     if (navigator.vibrate) navigator.vibrate(8);
   }, [handleInteraction, currentPage]);
