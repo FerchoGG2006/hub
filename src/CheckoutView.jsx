@@ -67,7 +67,7 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
           className="mt-4 px-10 py-4 rounded-2xl font-black uppercase text-sm tracking-widest tactile-button"
-          style={{ color: '#F9F8F2', boxShadow: '0 8px 28px rgba(197,160,89,0.4)' }}
+          style={{ color: '#1a1008', boxShadow: '0 8px 28px rgba(245, 158, 11, 0.35)' }}
         >
           Volver a la carta
         </motion.button>
@@ -161,7 +161,7 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
         </h2>
         <button
           onClick={onClose}
-          className="text-amber-500 font-bold text-xs uppercase tracking-widest"
+          className="font-bold text-xs uppercase tracking-widest text-gold-gradient"
         >
           Cerrar ✕
         </button>
@@ -212,7 +212,7 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
         <section>
           <div className="flex justify-between items-center mb-4">
             <p className="text-[10px] text-dark/30 uppercase tracking-[0.25em] font-semibold">Resumen de tu Orden</p>
-            <p className="text-[9px] text-amber-500/40 uppercase font-black tracking-widest">Toca un plato para personalizar</p>
+            <p className="text-[9px] uppercase font-black tracking-widest text-gold-gradient opacity-60">Toca un plato para personalizar</p>
           </div>
           {cart.map(item => (
             <div
@@ -245,7 +245,7 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
                   )}
                 </div>
 
-                <span className="text-[10px] font-bold text-amber-500/80 mt-1">
+                <span className="text-[10px] font-bold text-[#F59E0B] mt-1">
                   {item.price}
                 </span>
               </div>
@@ -287,10 +287,10 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
                 onClick={() => setMethod(opt.id)}
                 className={`py-3 rounded-2xl text-[10px] font-black uppercase transition-all border flex flex-col items-center gap-1`}
                 style={{
-                  background:  method === opt.id ? '#C5A059' : 'rgba(26,26,26,0.04)',
-                  borderColor: method === opt.id ? '#C5A059' : 'rgba(26,26,26,0.09)',
-                  color:       method === opt.id ? '#F9F8F2' : 'rgba(26,26,26,0.38)',
-                  boxShadow:   method === opt.id ? '0 4px 16px rgba(197,160,89,0.3)' : 'none',
+                  background:  method === opt.id ? 'linear-gradient(to right, rgb(252, 211, 77) 0%, rgb(245, 158, 11) 100%)' : 'rgba(26,26,26,0.04)',
+                  borderColor: method === opt.id ? '#F59E0B' : 'rgba(26,26,26,0.09)',
+                  color:       method === opt.id ? '#1a1008' : 'rgba(26,26,26,0.38)',
+                  boxShadow:   method === opt.id ? '0 4px 16px rgba(245, 158, 11, 0.35)' : 'none',
                 }}
               >
                 <span className="text-lg">{opt.icon}</span>
@@ -321,10 +321,10 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
               onClick={() => setPayment('transferencia')}
               className="py-5 rounded-2xl text-xs font-black uppercase border transition-all"
               style={{
-                background:  payment === 'transferencia' ? '#C5A059' : 'rgba(26,26,26,0.04)',
-                borderColor: payment === 'transferencia' ? '#C5A059' : 'rgba(26,26,26,0.09)',
-                color:       payment === 'transferencia' ? '#F9F8F2' : 'rgba(26,26,26,0.38)',
-                boxShadow:   payment === 'transferencia' ? '0 4px 20px rgba(197,160,89,0.35)' : 'none',
+                background:  payment === 'transferencia' ? 'linear-gradient(to right, rgb(252, 211, 77) 0%, rgb(245, 158, 11) 100%)' : 'rgba(26,26,26,0.04)',
+                borderColor: payment === 'transferencia' ? '#F59E0B' : 'rgba(26,26,26,0.09)',
+                color:       payment === 'transferencia' ? '#1a1008' : 'rgba(26,26,26,0.38)',
+                boxShadow:   payment === 'transferencia' ? '0 4px 20px rgba(245, 158, 11, 0.35)' : 'none',
               }}
             >
               🏦 Transf.
@@ -396,11 +396,11 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
           whileTap={{ scale: 0.94 }}
           onClick={handleSend}
           disabled={cart.length === 0}
-          className="w-full py-5 font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl active:scale-95 transition-all"
+          className="w-full py-4 font-black uppercase text-[12px] tracking-[0.2em] rounded-[18px] shadow-xl active:scale-95 transition-all"
           style={{
-            background: 'linear-gradient(135deg, #C5A059, #A68648)',
-            color:       '#F9F8F2',
-            boxShadow:   '0 10px 30px rgba(197,160,89,0.25)',
+            background: 'linear-gradient(to right, rgb(252, 211, 77) 0%, rgb(245, 158, 11) 100%)',
+            color:       '#1a1008',
+            boxShadow:   '0 10px 30px rgba(245, 158, 11, 0.35)',
           }}
         >
           {payment === 'transferencia' ? 'Reportar Transferencia' : 'Confirmar Pedido'}

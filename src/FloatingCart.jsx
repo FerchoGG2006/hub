@@ -1,11 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from './useCart';
 import { CheckoutView } from './CheckoutView';
+import { useViewport916 } from './useViewport916';
 
 export const FloatingCart = ({ config, branch }) => {
-  const { totalItems, totalPrice } = useCart();
+  const { totalItems } = useCart();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const { width: vpWidth } = useViewport916();
+  const [winWidth, setWinWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWinWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isWideScreen = vpWidth > 0 && vpWidth < winWidth;
+  const rightOffset = isWideScreen ? (winWidth - vpWidth) / 2 + 12 : 12;
 
   return (
     <>
@@ -13,8 +25,12 @@ export const FloatingCart = ({ config, branch }) => {
         initial={{ y: 120, opacity: 0 }}
         animate={{ y: totalItems > 0 ? 0 : 120, opacity: totalItems > 0 ? 1 : 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-        className="fixed bottom-2 right-3 z-[210]"
-        style={{ pointerEvents: totalItems > 0 ? 'auto' : 'none' }}
+        className="fixed z-[210]"
+        style={{ 
+          bottom: 74,
+          right: rightOffset,
+          pointerEvents: totalItems > 0 ? 'auto' : 'none' 
+        }}
       >
         <motion.button
           key={totalItems}
@@ -23,31 +39,33 @@ export const FloatingCart = ({ config, branch }) => {
           whileTap={{ scale: 0.88 }}
           transition={{ type: 'spring', stiffness: 400, damping: 20 }}
           onClick={() => setCheckoutOpen(true)}
-          className="flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5"
+          className="relative flex items-center justify-center rounded-full w-[56px] h-[56px]"
           style={{
-            background: 'rgba(253,248,239,0.08)',
-            backdropFilter: 'blur(16px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-            border: '0.5px solid rgba(245,158,11,0.25)',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(245,158,11,0.1)',
+            background: 'rgba(253, 248, 239, 0.85)',
+            backdropFilter: 'blur(24px) saturate(200%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(200%)',
+            border: '0.5px solid rgba(197, 160, 89, 0.4)',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.15), inset 0 1px 1px rgba(255,255,255,0.5)',
           }}
         >
-          <div className="relative">
-            <span className="text-xl leading-none">🛍️</span>
+          {/* Subtle inner glow */}
+          <div className="absolute inset-0 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle at 50% 0%, rgba(255,255,255,0.8) 0%, transparent 60%)' }} />
+
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Emoji as requested */}
+            <span style={{ fontSize: 24, lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}>📃</span>
+
             <motion.span key={totalItems} initial={{ scale: 1.5 }} animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 500, damping: 18 }}
-              className="absolute -top-1.5 -right-1.5 w-4 h-4 flex items-center justify-center rounded-full text-[8px] font-black"
-              style={{ background: '#f59e0b', color: '#1a1008' }}>
+              className="absolute -top-1 -right-1 z-10 w-[20px] h-[20px] flex items-center justify-center rounded-full text-[10px] font-black"
+              style={{ 
+                background: '#1a1008', 
+                color: '#f7e8b0', 
+                boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+              }}>
               {totalItems}
             </motion.span>
           </div>
-          <div className="text-left">
-            <p className="text-[8px] uppercase font-bold tracking-widest leading-none mb-0.5" style={{ color: 'rgba(253,248,239,0.45)' }}>Pedido</p>
-            <p className="font-bold leading-none text-sm" style={{ color: '#f59e0b' }}>
-              ${(totalPrice / 1000).toFixed(0)}k
-            </p>
-          </div>
-          <span className="text-xs opacity-60 ml-0.5" style={{ color: '#f59e0b' }}>›</span>
         </motion.button>
       </motion.div>
 
