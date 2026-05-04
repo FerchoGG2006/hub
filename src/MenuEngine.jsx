@@ -45,9 +45,69 @@ function useViewport916() {
   return dims;
 }
 
-/* ─────────────────────────────────────────────
-   LOADING SKELETON
-───────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   CORNER PEEL — MEJORA B
+   CSS-only animated page-curl hint. Appears after 2.5s idle,
+   disappears permanently after first interaction.
+═══════════════════════════════════════════════════════════════ */
+const CornerPeel = ({ visible, accent }) => (
+  <AnimatePresence>
+    {visible && (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        style={{ position:'absolute', bottom:70, right:0, width:52, height:52, pointerEvents:'none', zIndex:50 }}>
+        <motion.div animate={{ opacity:[0.18,0.35,0.18] }} transition={{ duration:2.2, repeat:Infinity, ease:'easeInOut' }}
+          style={{ position:'absolute', bottom:0, right:0, width:44, height:44,
+            background:'radial-gradient(ellipse at 100% 100%, rgba(0,0,0,0.28) 0%, transparent 70%)', borderRadius:'0 0 0 100%' }} />
+        <motion.div animate={{ width:[28,38,28], height:[28,38,28] }} transition={{ duration:2.2, repeat:Infinity, ease:'easeInOut' }}
+          style={{ position:'absolute', bottom:0, right:0, background:`linear-gradient(135deg, ${accent}30 0%, #f0e8d0 60%, #e8dcc0 100%)`,
+            clipPath:'polygon(100% 0, 100% 100%, 0 100%)', borderLeft:'0.5px solid rgba(184,120,32,0.2)', borderTop:'0.5px solid rgba(184,120,32,0.15)' }} />
+        <motion.div animate={{ opacity:[0.5,1,0.5] }} transition={{ duration:2.2, repeat:Infinity, ease:'easeInOut' }}
+          style={{ position:'absolute', bottom:5, right:5, fontSize:9, color:accent, fontWeight:900, lineHeight:1 }}>›</motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
+/* ═══════════════════════════════════════════════════════════════
+   CATEGORY HERO — MEJORA A
+   Fills dead space when category has < HERO_THRESHOLD items.
+═══════════════════════════════════════════════════════════════ */
+const HERO_THRESHOLD = 5;
+
+const CategoryHero = ({ meta, restaurantName }) => (
+  <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.15, duration:0.5 }}
+    style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'space-evenly', paddingTop:8, paddingBottom:12, minHeight:0 }}>
+    <motion.div animate={{ y:[0,-8,0] }} transition={{ duration:3.5, repeat:Infinity, ease:'easeInOut' }}
+      style={{ width:120, height:120, borderRadius:36, background:`${meta.accent}16`, border:`1.5px solid ${meta.accent}28`,
+        display:'flex', alignItems:'center', justifyContent:'center', fontSize:60, boxShadow:`0 20px 60px ${meta.accent}22, 0 0 0 1px ${meta.accent}10` }}>
+      {meta.icon}
+    </motion.div>
+    <div style={{ display:'flex', alignItems:'center', gap:8, width:'60%' }}>
+      <div style={{ flex:1, height:1, background:`${meta.accent}20` }} />
+      <span style={{ fontSize:14, opacity:0.3 }}>{meta.icon}</span>
+      <div style={{ flex:1, height:1, background:`${meta.accent}20` }} />
+    </div>
+    <p style={{ fontSize:12, fontWeight:300, color:'rgba(30,20,8,0.38)', fontStyle:'italic', lineHeight:1.55, textAlign:'center', maxWidth:'70%', margin:0 }}>
+      Nuestra selección de{' '}
+      <span style={{ fontWeight:600, color:`${meta.accent}cc` }}>{meta.label?.toLowerCase() || 'productos'}</span>
+    </p>
+    <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+      {[0,1,2].map(i => (
+        <motion.div key={i} animate={{ opacity:[0.15,0.6,0.15], scale:[1,1.15,1] }} transition={{ duration:1.8, repeat:Infinity, delay:i*0.28 }}
+          style={{ width:i===1?18:6, height:6, borderRadius:3, background:meta.accent }} />
+      ))}
+    </div>
+    {restaurantName && (
+      <p style={{ fontSize:8, fontWeight:900, letterSpacing:'0.4em', textTransform:'uppercase', color:'rgba(30,20,8,0.14)', margin:0 }}>
+        {restaurantName}
+      </p>
+    )}
+  </motion.div>
+);
+
+/* ═══════════════════════════════════════════════════════════════
+   LOADING SKELETON — dark theme
+═══════════════════════════════════════════════════════════════ */
 const LoadingSkeleton = () => (
   <div className="w-full h-full flex items-center justify-center" style={{ background: '#080604' }}>
     <div className="w-full max-w-[280px] px-6 space-y-3 animate-pulse">
@@ -62,6 +122,34 @@ const LoadingSkeleton = () => (
       </div>
     </div>
   </div>
+);
+
+/* ═══════════════════════════════════════════════════════════════
+   NAV ARROW — CSS opacity/pointerEvents instead of mount/unmount.
+   Fixes ‹ button not responding during AnimatePresence transitions.
+═══════════════════════════════════════════════════════════════ */
+const NavArrow = ({ direction, visible, onClick }) => (
+  <button
+    onClick={onClick}
+    style={{
+      width: 30, height: 30, borderRadius: 10,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(253,248,239,0.07)',
+      border: '0.5px solid rgba(184,120,32,0.2)',
+      flexShrink: 0,
+      cursor: visible ? 'pointer' : 'default',
+      opacity: visible ? 1 : 0,
+      pointerEvents: visible ? 'auto' : 'none',
+      transition: 'opacity 0.2s ease',
+    }}
+  >
+    <span style={{
+      color: 'rgba(253,248,239,0.55)', fontSize: 16,
+      fontWeight: 700, lineHeight: 1, userSelect: 'none',
+    }}>
+      {direction === 'prev' ? '‹' : '›'}
+    </span>
+  </button>
 );
 
 /* ─────────────────────────────────────────────
@@ -130,9 +218,30 @@ export const MenuEngine = ({ config }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showEventWizard, setShowEventWizard] = useState(false);
+  const [showPeel, setShowPeel]             = useState(false);
+  const [hasInteracted, setHasInteracted]   = useState(false);
 
-  const bookRef = useRef(null);
-  const pflip = useRef(null);
+  const bookRef  = useRef(null);
+  const pflip    = useRef(null);
+  const peelTimer = useRef(null);
+  const currentPageRef = useRef(0);
+
+  useEffect(() => { currentPageRef.current = currentPage; }, [currentPage]);
+
+  /* ── CORNER PEEL timer — MEJORA B ── */
+  useEffect(() => {
+    if (hasInteracted || !allMenuData) return;
+    peelTimer.current = setTimeout(() => setShowPeel(true), 2500);
+    return () => clearTimeout(peelTimer.current);
+  }, [hasInteracted, allMenuData]);
+
+  const handleInteraction = () => {
+    if (!hasInteracted) {
+      setHasInteracted(true);
+      setShowPeel(false);
+      clearTimeout(peelTimer.current);
+    }
+  };
 
   /* ── FETCH MENU ── */
   useEffect(() => {
@@ -217,7 +326,10 @@ export const MenuEngine = ({ config }) => {
         const pages = document.querySelectorAll('.page-item');
         if (pages.length > 0) {
           pflip.current.loadFromHTML(pages);
-          pflip.current.on('flip', e => setCurrentPage(e.data));
+          pflip.current.on('flip', e => {
+            setCurrentPage(e.data);
+            handleInteraction();
+          });
         }
       } catch (e) {
         console.error('PageFlip init error:', e);
@@ -231,9 +343,6 @@ export const MenuEngine = ({ config }) => {
   }, [allMenuData, vpWidth, vpHeight]);
 
   /* ── SWIPE ── */
-  const pageRef = useRef(0);
-  useEffect(() => { pageRef.current = currentPage; }, [currentPage]);
-
   useEffect(() => {
     const el = bookRef.current;
     if (!el || !allMenuData) return;
@@ -249,10 +358,11 @@ export const MenuEngine = ({ config }) => {
       const dy = e.changedTouches[0].clientY - startY;
       const dt = Date.now() - startTime;
       if (Math.abs(dx) > Math.abs(dy) * 1.3 && dt < 600) {
+        handleInteraction();
         if (dx < -50 && pflip.current) {
           pflip.current.flipNext();
           if (navigator.vibrate) navigator.vibrate(10);
-        } else if (dx > 50 && pflip.current && pageRef.current > 0) {
+        } else if (dx > 50 && pflip.current && currentPageRef.current > 0) {
           pflip.current.flipPrev();
           if (navigator.vibrate) navigator.vibrate(10);
         }
@@ -266,10 +376,24 @@ export const MenuEngine = ({ config }) => {
     };
   }, [allMenuData]);
 
-  const categories = allMenuData ? Object.keys(allMenuData) : [];
-  const totalPages = categories.length;
-  const brandColor = config?.brand_color || '#f59e0b';
-  const isWideScreen = vpWidth < window.innerWidth;
+  const categories   = allMenuData ? Object.keys(allMenuData) : [];
+  const totalPages   = categories.length;
+  const brandColor   = config?.brand_color || '#f59e0b';
+  const restaurantName = config?.name || '';
+  const isWideScreen = vpWidth > 0 && vpWidth < window.innerWidth;
+
+  const goPrev = () => {
+    if (!pflip.current || currentPageRef.current <= 0) return;
+    handleInteraction();
+    pflip.current.flipPrev();
+    if (navigator.vibrate) navigator.vibrate(8);
+  };
+  const goNext = () => {
+    if (!pflip.current || currentPageRef.current >= totalPages - 1) return;
+    handleInteraction();
+    pflip.current.flipNext();
+    if (navigator.vibrate) navigator.vibrate(8);
+  };
 
   return (
     /*
@@ -322,6 +446,7 @@ export const MenuEngine = ({ config }) => {
                 {categories.map((cat, pageIdx) => {
                   const items = allMenuData[cat] || [];
                   const meta = CATEGORY_META[cat] || { accent: '#f59e0b', icon: '🍽️', label: cat };
+                  const isSparse  = items.length < HERO_THRESHOLD;
 
                   return (
                     <div key={cat} className="page-item overflow-hidden" data-density="soft">
@@ -347,20 +472,44 @@ export const MenuEngine = ({ config }) => {
                         <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-[0.015]"
                           style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/carbon-fibre.png")' }} />
 
+                        {/* MEJORA D — Watermark hidden when hero is showing */}
+                        {!isSparse && (
+                          <div
+                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                            style={{ zIndex: 1 }}
+                          >
+                            <span style={{
+                              fontSize:   Math.min(vpWidth * 0.55, 220),
+                              opacity:    0.028,
+                              lineHeight: 1,
+                              userSelect: 'none',
+                            }}>
+                              {meta.icon}
+                            </span>
+                          </div>
+                        )}
+
                         {/* Header */}
                         <div className="mb-3 relative z-20 pl-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <motion.div initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-lg flex items-center justify-center"
-                                style={{ background: `${meta.accent}15`, border: `0.5px solid ${meta.accent}30` }}>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <motion.div
+                              initial={{ x: -14, opacity: 0 }}
+                              animate={{ x: 0, opacity: 1 }}
+                              className="flex items-center gap-2"
+                            >
+                              <div
+                                className="w-6 h-6 rounded-lg flex items-center justify-center"
+                                style={{
+                                  background: `${meta.accent}15`,
+                                  border:     `0.5px solid ${meta.accent}30`,
+                                }}
+                              >
                                 <span style={{ fontSize: 13 }}>{meta.icon}</span>
                               </div>
-                              <span className="text-[8px] font-black uppercase tracking-[0.4em]" style={{ color: meta.accent }}>
-                                {meta.label}
-                              </span>
                             </motion.div>
-                            <span className="font-mono text-[10px] italic" style={{ color: 'rgba(30,20,8,0.18)' }}>
-                              {String(pageIdx + 1).padStart(2, '0')}/{String(totalPages).padStart(2, '0')}
+                            <span className="font-mono text-[10px] italic"
+                              style={{ color: 'rgba(30,20,8,0.2)' }}>
+                              {String(pageIdx + 1).padStart(2, '0')}&thinsp;/&thinsp;{String(totalPages).padStart(2, '0')}
                             </span>
                           </div>
                           <h2 className="text-[26px] font-black uppercase italic tracking-tighter leading-[0.85] break-words mb-2"
@@ -368,103 +517,93 @@ export const MenuEngine = ({ config }) => {
                             {cat}
                           </h2>
                           <motion.div initial={{ width: 0 }} animate={{ width: 36 }}
-                            className="h-[2px] rounded-full" style={{ backgroundColor: meta.accent, opacity: 0.6 }} />
+                            className="h-[2px] rounded-full" style={{ backgroundColor: meta.accent, opacity: 0.55 }} />
                         </div>
 
                         {/* Products */}
-                        <div className="flex-1 flex flex-col gap-[5px] overflow-y-auto relative z-20"
-                          style={{ scrollbarWidth: 'none' }}>
+                        <div
+                          className="flex flex-col gap-[5px] overflow-y-auto relative z-20"
+                          style={{
+                            scrollbarWidth: 'none',
+                            flex: isSparse ? '0 0 auto' : '1 1 auto',
+                          }}
+                        >
                           {items.map(item => (
                             <CompactProductRow
                               key={item.id}
                               item={item}
                               accent={meta.accent}
-                              onAdd={() => addToCart(item)}
-                              onClick={() => setSelectedProduct(item)}
+                              onAdd={() => { addToCart(item); handleInteraction(); }}
+                              onClick={() => { setSelectedProduct(item); handleInteraction(); }}
                             />
                           ))}
-                          <div style={{ height: 4 }} />
                         </div>
+
+                        {/* MEJORA A — CategoryHero fills dead space */}
+                        {isSparse && (
+                          <CategoryHero meta={meta} restaurantName={restaurantName} />
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Arrow navigation */}
-              <div className="absolute bottom-[68px] left-0 right-0 z-40 flex items-center justify-between px-3 pointer-events-none">
-                <AnimatePresence>
-                  {currentPage > 0 && (
-                    <motion.button key="prev"
-                      initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }}
-                      whileTap={{ scale: 0.85 }}
-                      onClick={() => { if (pflip.current) { pflip.current.flipPrev(); if (navigator.vibrate) navigator.vibrate(10); } }}
-                      className="pointer-events-auto w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{ background: 'rgba(253,248,239,0.75)', backdropFilter: 'blur(12px)', border: '0.5px solid rgba(184,120,32,0.2)', boxShadow: '0 2px 12px rgba(0,0,0,0.2)' }}>
-                      <span className="text-sm font-bold select-none" style={{ color: 'rgba(26,16,8,0.5)' }}>‹</span>
-                    </motion.button>
-                  )}
-                </AnimatePresence>
-                <div />
-                <AnimatePresence>
-                  {currentPage < totalPages - 1 && (
-                    <motion.button key="next"
-                      initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }}
-                      whileTap={{ scale: 0.85 }}
-                      onClick={() => { if (pflip.current) { pflip.current.flipNext(); if (navigator.vibrate) navigator.vibrate(10); } }}
-                      className="pointer-events-auto w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{ background: 'rgba(253,248,239,0.75)', backdropFilter: 'blur(12px)', border: '0.5px solid rgba(184,120,32,0.2)', boxShadow: '0 2px 12px rgba(0,0,0,0.2)' }}>
-                      <span className="text-sm font-bold select-none" style={{ color: 'rgba(26,16,8,0.5)' }}>›</span>
-                    </motion.button>
-                  )}
-                </AnimatePresence>
-              </div>
+              {/* MEJORA B — Corner peel */}
+              <CornerPeel
+                visible={showPeel && currentPage < totalPages - 1}
+                accent={brandColor}
+              />
             </div>
 
-            {/* Bottom bar */}
+            {/* MEJORA C — Unified bottom bar with arrows inside */}
             <div
-              className="absolute bottom-0 left-0 right-0 z-[200] flex items-center gap-3 px-4"
+              className="absolute bottom-0 left-0 right-0 z-[200] flex items-center px-3 gap-2"
               style={{
-                height: 62,
-                background: 'rgba(8,6,4,0.85)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                borderTop: '0.5px solid rgba(184,120,32,0.12)',
+                height:              62,
+                background:          'rgba(8,6,4,0.88)',
+                backdropFilter:      'blur(18px)',
+                WebkitBackdropFilter:'blur(18px)',
+                borderTop:           '0.5px solid rgba(184,120,32,0.12)',
               }}
             >
-              {/* Evento button — original amber/glassmorphism */}
               <motion.button
                 initial={{ y: 40, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 1, type: 'spring', stiffness: 200, damping: 20 }}
                 whileTap={{ scale: 0.92 }}
-                onClick={() => setShowEventWizard(true)}
-                className="flex items-center gap-2 rounded-2xl px-3 py-2.5 flex-shrink-0"
+                onClick={() => { setShowEventWizard(true); handleInteraction(); }}
+                className="flex items-center gap-1.5 rounded-2xl px-3 py-2 flex-shrink-0"
                 style={{
                   background: 'rgba(253,248,239,0.08)',
-                  border: '0.5px solid rgba(245,158,11,0.3)',
-                  boxShadow: '0 4px 20px rgba(245,158,11,0.1)',
+                  border:     '0.5px solid rgba(245,158,11,0.3)',
+                  boxShadow:  '0 4px 20px rgba(245,158,11,0.1)',
                 }}
               >
-                <span style={{ fontSize: 16, lineHeight: 1 }}>🎉</span>
-                <span className="text-[8px] font-black uppercase tracking-[0.2em]" style={{ color: '#f59e0b' }}>
+                <span style={{ fontSize: 15, lineHeight: 1 }}>🎉</span>
+                <span className="text-[8px] font-black uppercase tracking-[0.2em]"
+                  style={{ color: '#f59e0b' }}>
                   Evento
                 </span>
               </motion.button>
 
+              {/* ‹ — always mounted, CSS show/hide */}
+              <NavArrow direction="prev" visible={currentPage > 0} onClick={goPrev} />
+
               {/* Page dots */}
-              <div className="flex-1 flex items-center justify-center gap-1.5">
+              <div className="flex-1 flex items-center justify-center gap-1.5 overflow-hidden px-1">
                 {categories.map((_, i) => (
-                  <div key={i} className="rounded-full transition-all duration-300"
-                    style={{
-                      width: i === currentPage ? 16 : 5,
-                      height: 5,
-                      background: i === currentPage ? (brandColor || '#F59E0B') : 'rgba(253,248,239,0.15)',
-                    }} />
+                  <motion.div
+                    key={i}
+                    animate={{ width: i === currentPage ? 16 : 5, opacity: i === currentPage ? 1 : 0.25 }}
+                    transition={{ duration: 0.25 }}
+                    style={{ height: 5, borderRadius: 3, background: brandColor, flexShrink: 0 }}
+                  />
                 ))}
               </div>
 
-              {/* Cart slot — drop <CartButton /> here */}
+              {/* › — always mounted, CSS show/hide */}
+              <NavArrow direction="next" visible={currentPage < totalPages - 1} onClick={goNext} />
             </div>
           </>
         )}
@@ -540,11 +679,11 @@ export const MenuEngine = ({ config }) => {
         </AnimatePresence>
       </div>
 
-      {/* Letterbox label — only visible on wide screens, subtle branding */}
+      {/* Letterbox label */}
       {isWideScreen && (
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 pointer-events-none" style={{ opacity: 0.25 }}>
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 pointer-events-none" style={{ opacity: 0.22 }}>
           <span className="text-[9px] font-black uppercase tracking-[0.35em]" style={{ color: '#f59e0b' }}>
-            {config?.name || 'Lacarta'} · Menu
+            {restaurantName || 'Lacarta'} · Menu
           </span>
         </div>
       )}

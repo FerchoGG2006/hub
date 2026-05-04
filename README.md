@@ -111,4 +111,4 @@ Este proyecto está bajo la Licencia **MIT**. Consulta el archivo [LICENSE](./LI
 
 ---
 
-Desarrollado con ❤️ por **FerchoGG2006**
+Desarrollado por **FerchoGG2006**
