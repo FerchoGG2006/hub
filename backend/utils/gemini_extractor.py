@@ -109,3 +109,42 @@ def enhance_copywriting(name: str, price: str, existing_desc: str) -> dict:
             "price": price, 
             "emoji": "🍽️"
         }
+def analyze_dish_image(image_bytes: bytes) -> dict:
+    """Uses Gemini Vision to identify a dish from an image and suggest metadata."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return {"name": "Plato Nuevo", "description": "Sabor auténtico.", "price": "$0", "emoji": "🍽️"}
+
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-flash-latest')
+    
+    try:
+        image = Image.open(io.BytesIO(image_bytes))
+    except Exception as e:
+        print("Error opening image:", e)
+        return {"error": "Invalid image"}
+
+    prompt = """
+    Analiza esta fotografía de comida de un restaurante. 
+    Identifica qué plato es y genera una descripción sumamente apetitosa y profesional.
+    Responde estrictamente con un JSON válido (sin markdown):
+    {
+      "name": "Nombre creativo del plato",
+      "description": "Descripción gastronómica cautivadora de 2 frases.",
+      "price": "Sugiere un precio razonable en pesos (ej: $35.000) o pon $0 si no estás seguro",
+      "emoji": "Emoji representativo",
+      "category_suggestion": "Ej: Entradas, Fuertes, Postres, etc."
+    }
+    """
+    
+    try:
+        response = model.generate_content([prompt, image])
+        text = response.text.strip()
+        if text.startswith("```json"):
+            text = text.replace("```json", "", 1).replace("```", "", 1).strip()
+        elif text.startswith("```"):
+            text = text.replace("```", "", 2).strip()
+        return json.loads(text)
+    except Exception as e:
+        print("Vision analysis failed:", e)
+        return {"name": "Plato Detectado", "description": "Una deliciosa preparación artesanal.", "price": "$0", "emoji": "🍽️"}

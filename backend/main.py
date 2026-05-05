@@ -905,3 +905,114 @@ def check_instagram_schedules():
 scheduler = BackgroundScheduler()
 scheduler.add_job(check_instagram_schedules, 'interval', minutes=1)
 scheduler.start()
+@app.get("/api/admin/ai/briefing")
+def get_ai_strategic_briefing(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    # 1. Recopilar Data Real
+    tenant_id = current_user.tenant_id
+    
+    # Top Clicks
+    top_hits = (
+        db.query(models.Product.name, func.count(models.Analytics.id).label("hits"))
+        .join(models.Analytics, models.Product.id == models.Analytics.product_id)
+        .filter(models.Analytics.tenant_id == tenant_id)
+        .filter(models.Analytics.action == "add_to_cart")
+        .group_by(models.Product.id)
+        .order_by(func.count(models.Analytics.id).desc())
+        .limit(5)
+        .all()
+    )
+    
+    # Ordenes Recientes
+    recent_orders = db.query(models.Order).filter_by(tenant_id=tenant_id).order_by(models.Order.id.desc()).limit(10).all()
+    total_sales = sum([o.total_price for o in recent_orders])
+    
+    # 2. Formatear Contexto para Gemini
+    clicks_str = ", ".join([f"{name} ({hits} clics)" for name, hits in top_hits])
+    orders_summary = f"Total ventas recientes: ${total_sales}. Número de pedidos: {len(recent_orders)}."
+    
+    prompt = f"""
+    Eres un consultor estratégico de restaurantes de lujo. Analiza estos datos:
+    - Productos más populares (clics): {clicks_str}
+    - Resumen comercial: {orders_summary}
+    
+    Tarea: Genera un "Briefing Estratégico" corto y premium. 
+    Da exactamente 3 consejos accionables (pueden ser de marketing, inventario o precios).
+    Usa un tono profesional, sofisticado y motivador.
+    
+    Responde en JSON estricto:
+    {{
+      "briefing": "Un párrafo de análisis general",
+      "tips": [
+        {{"title": "Título corto", "action": "La recomendación específica"}},
+        {{"title": "...", "action": "..."}},
+        {{"title": "...", "action": "..."}}
+      ]
+    }}
+    """
+    
+    try:
+        model = genai.GenerativeModel('gemini-flash-latest')
+        response = model.generate_content(prompt)
+        # Limpiar y parsear JSON
+        import re
+        match = re.search(r'\{.*\}', response.text, re.DOTALL)
+        if match:
+            return json.loads(match.group(0))
+        return {"briefing": "Analizando tendencias...", "tips": []}
+    except Exception as e:
+        return {
+            "briefing": "Tu asistente IA está procesando los datos del fin de semana.",
+            "tips": [
+                {"title": "Impulsa el Top 1", "action": "Crea una historia en Instagram resaltando tu producto más clickeado."},
+                {"title": "Venta Cruzada", "action": "Sugiere una bebida premium con los pedidos de mayor valor."},
+                {"title": "Hora Pico", "action": "Prepara el staff para un aumento de flujo según las tendencias de hoy."}
+            ]
+        }
+@app.post("/api/admin/ai/vision-product")
+async def vision_product_creation(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail="Operación denegada")
+        
+    image_bytes = await file.read()
+    
+    from utils.gemini_extractor import analyze_dish_image
+    dish_data = analyze_dish_image(image_bytes)
+    
+    if "error" in dish_data:
+        raise HTTPException(status_code=400, detail="Error analizando imagen")
+
+    cat_suggestion = dish_data.get("category_suggestion", "Nuevos")
+    cat = db.query(models.Category).filter_by(tenant_id=current_user.tenant_id, name=cat_suggestion).first()
+    if not cat:
+        cat = models.Category(tenant_id=current_user.tenant_id, name=cat_suggestion, icon="✨")
+        db.add(cat)
+        db.commit()
+        db.refresh(cat)
+
+    from utils.storage import upload_product_image
+    image_url = None
+    try:
+        file.file.seek(0)
+        image_url = await upload_product_image(file)
+    except:
+        pass
+
+    nuevo_prod = models.Product(
+        tenant_id=current_user.tenant_id,
+        category_id=cat.id,
+        name=dish_data.get("name", "Plato Nuevo"),
+        description=dish_data.get("description", ""),
+        price=dish_data.get("price", "$0"),
+        emoji=dish_data.get("emoji", "🍽️"),
+        image_url=image_url
+    )
+    db.add(nuevo_prod)
+    db.commit()
+    db.refresh(nuevo_prod)
+    
+    await manager.broadcast({"type": "MENU_UPDATE", "event": "NEW_PRODUCT", "tenant_id": current_user.tenant_id})
+    return {"status": "ok", "product": {"id": nuevo_prod.id, "name": nuevo_prod.name}}

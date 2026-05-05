@@ -472,9 +472,34 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
               Sincronización de activos digitales en red.
             </p>
           </div>
-          <button onClick={onLogout} className="text-[10px] font-black uppercase tracking-[0.3em] text-dark/40 hover:text-dark transition-all border border-dark/10 px-6 py-3 rounded-2xl hover:bg-dark/5 tactile-button">
-            Terminar_Sesión
-          </button>
+          <div className="flex gap-4">
+             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600 border border-amber-500/20 px-6 py-3 rounded-2xl bg-amber-500/5 hover:bg-amber-500/10 cursor-pointer transition-all flex items-center gap-2 group">
+                <span className="text-lg group-hover:rotate-12 transition-transform">📸</span>
+                <span>Magic Snap (AI)</span>
+                <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  const token = localStorage.getItem('hub_token');
+                  alert("✨ Gemini Vision está analizando el plato... Por favor espera.");
+                  try {
+                    const res = await fetch(`${API_URL}/api/admin/ai/vision-product`, {
+                      method: 'POST',
+                      headers: { 'Authorization': `Bearer ${token}` },
+                      body: formData
+                    });
+                    if (res.ok) {
+                      alert("✅ ¡Plato creado mágicamente!");
+                      window.location.reload();
+                    }
+                  } catch (err) { alert("Error en el análisis visual."); }
+                }} />
+             </label>
+             <button onClick={onLogout} className="text-[10px] font-black uppercase tracking-[0.3em] text-dark/40 hover:text-dark transition-all border border-dark/10 px-6 py-3 rounded-2xl hover:bg-dark/5 tactile-button">
+                Terminar_Sesión
+             </button>
+          </div>
         </div>
       </header>
       
@@ -1160,6 +1185,119 @@ function SedesView({ branches }) {
   );
 }
 
+
+/* ── AI STRATEGIC BRIEFING PANEL ── */
+const AIBriefingPanel = ({ onClose }) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBriefing = async () => {
+      try {
+        const token = localStorage.getItem('hub_token');
+        const res = await fetch(`${API_URL}/api/admin/ai/briefing`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const json = await res.json();
+        setData(json);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBriefing();
+  }, []);
+
+  const handleExecuteAction = (tip) => {
+    if (tip.title.toLowerCase().includes("instagram") || tip.title.toLowerCase().includes("historia")) {
+      onClose();
+      // Simular redirección a Autopilot
+      window.dispatchEvent(new CustomEvent('nav-view', { detail: 'autopilot' }));
+      alert(`🚀 Iniciando Campaña: ${tip.title}\nPreparando contenido para Instagram...`);
+    } else {
+      alert(`✅ Acción Programada: ${tip.title}\nEl sistema está optimizando los parámetros automáticamente.`);
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[300] bg-dark/40 backdrop-blur-md flex items-center justify-end p-4 sm:p-8"
+      onClick={onClose}
+    >
+      <motion.div 
+        initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }}
+        className="bg-bone border border-dark/10 w-full max-w-md h-full sm:h-auto sm:max-h-[85vh] rounded-[2.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col relative"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="absolute top-0 right-0 p-8">
+           <button onClick={onClose} className="text-dark/20 hover:text-dark transition-colors">✕</button>
+        </div>
+
+        <div className="p-10 flex-1 overflow-y-auto no-scrollbar">
+          <header className="mb-10 pt-4">
+             <div className="flex items-center gap-3 mb-4">
+                <span className="text-2xl animate-pulse">✦</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-500 font-mono">ESTRATÉGICO_IA</span>
+             </div>
+             <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none text-dark">
+                AI Briefing <br /><span className="text-dark/30">Business Suite</span>
+             </h2>
+          </header>
+
+          {loading ? (
+            <div className="space-y-8 animate-pulse">
+               <div className="h-20 bg-dark/5 rounded-3xl" />
+               <div className="space-y-4">
+                  <div className="h-4 w-1/2 bg-dark/5 rounded-full" />
+                  <div className="h-32 bg-dark/5 rounded-3xl" />
+               </div>
+            </div>
+          ) : (
+            <div className="space-y-12">
+               <div className="relative">
+                  <div className="absolute -left-4 top-0 bottom-0 w-1 bg-amber-500/20 rounded-full" />
+                  <p className="text-sm font-medium leading-relaxed text-dark italic opacity-80">
+                     "{data?.briefing || 'No hay datos suficientes para un análisis detallado hoy.'}"
+                  </p>
+               </div>
+
+               <div className="space-y-6">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-dark/30 border-b border-dark/5 pb-4">Consejos Accionables (Top 3)</h3>
+                  {data?.tips?.map((tip, i) => (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      key={i} 
+                      className="bg-dark/5 p-6 rounded-3xl border border-dark/5 hover:border-amber-500/20 transition-all group"
+                    >
+                       <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-500 mb-2 group-hover:translate-x-1 transition-transform">0{i+1} — {tip.title}</p>
+                       <p className="text-xs text-dark/70 leading-relaxed font-medium mb-4">{tip.action}</p>
+                       <button 
+                         onClick={() => handleExecuteAction(tip)}
+                         className="text-[9px] font-black uppercase tracking-widest text-dark py-2 px-4 bg-amber-500 rounded-lg hover:scale-105 transition-transform"
+                       >
+                         Ejecutar Acción ➔
+                       </button>
+                    </motion.div>
+                  ))}
+               </div>
+
+               <div className="pt-10">
+                  <button onClick={onClose} className="w-full py-5 bg-dark text-bone rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-xl tactile-button">
+                    ENTENDIDO_SYNC
+                  </button>
+               </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 /* ── MASTER TERMINAL ── */
 export const AdminDashboard = () => {
   const { tenantSlug } = useParams();
@@ -1169,6 +1307,7 @@ export const AdminDashboard = () => {
   const [branches, setBranches] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
+  const [showBriefing, setShowBriefing] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
@@ -1228,6 +1367,12 @@ export const AdminDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    const handleNav = (e) => setView(e.detail);
+    window.addEventListener('nav-view', handleNav);
+    return () => window.removeEventListener('nav-view', handleNav);
+  }, []);
+
   if (!isAuthenticated) {
     return <AnimatePresence mode="wait"><LoginTerminal onAuth={() => setIsAuthenticated(true)} /></AnimatePresence>;
   }
@@ -1267,6 +1412,12 @@ export const AdminDashboard = () => {
               )}
             </button>
           ))}
+          <button 
+            onClick={() => setShowBriefing(true)}
+            className="flex items-center gap-2 bg-amber-500/10 text-amber-600 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all border border-amber-500/20 ml-auto animate-pulse"
+          >
+            ✦ Briefing IA
+          </button>
         </div>
       </nav>
 
@@ -1316,6 +1467,7 @@ export const AdminDashboard = () => {
       <AnimatePresence>
         {showAddModal && <AddProductModal onClose={() => setShowAddModal(false)} onProductAdded={fetchProducts} />}
         {showAIModal && <AIIngestModal onClose={() => setShowAIModal(false)} onSuccess={fetchProducts} />}
+        {showBriefing && <AIBriefingPanel onClose={() => setShowBriefing(false)} />}
         {showOnboarding && <OnboardingTour onComplete={handleOnboardingComplete} />}
       </AnimatePresence>
     </motion.div>

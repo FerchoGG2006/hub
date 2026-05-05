@@ -361,7 +361,6 @@ export const MenuEngine = ({ config }) => {
   /* ── Inicialización de PageFlip (SOLO UNA VEZ) ──────────── */
   useEffect(() => {
     if (!allMenuData || !bookRef.current || isInitialized.current) return;
-
     const timer = setTimeout(() => {
       try {
         if (pflip.current) pflip.current.destroy();
@@ -375,11 +374,13 @@ export const MenuEngine = ({ config }) => {
           showCover: false,
           mobileScrollSupport: false,
           usePortrait: true,
-          flippingTime: 900,
-          swipeDistance: 12,
-          showPageCorners: true,
+          flippingTime: 700,
+          swipeDistance: 0, // Disable internal swipe
+          showPageCorners: false,
           disableFlipByClick: true,
+          useMouseEvents: false, // Disable all internal touch/mouse
           autoSize: true,
+          clickEventForward: false,
         });
 
         const pages = document.querySelectorAll('.page-item');
@@ -392,7 +393,7 @@ export const MenuEngine = ({ config }) => {
             isFlippingRef.current = false;
           });
           pflip.current.on('changeState', (e) => {
-            if (e.data === 'folding' || e.data === 'user_fold') {
+            if (e.data === 'flipping' || e.data === 'user_fold' || e.data === 'folding') {
               isFlippingRef.current = true;
             } else if (e.data === 'read') {
               isFlippingRef.current = false;
@@ -430,36 +431,58 @@ export const MenuEngine = ({ config }) => {
 
   /* ── Swipe (sin cambios) ────────────────────────────────── */
   useEffect(() => {
-    const el = bookRef.current;
+    const el = document.getElementById('menu-main-container'); // ✅ Usamos el contenedor principal
     if (!el || !allMenuData) return;
     let startX = 0, startY = 0, startTime = 0;
+
     const onStart = (e) => {
-      if (e.touches.length !== 1) return;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
+      // Permitimos iniciar el gesto incluso si está 'flipping' para no ignorar inputs rápidos
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
       startTime = Date.now();
     };
+
     const onEnd = (e) => {
-      const dx = e.changedTouches[0].clientX - startX;
-      const dy = e.changedTouches[0].clientY - startY;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
       const dt = Date.now() - startTime;
 
-      if (Math.abs(dx) > Math.abs(dy) * 1.3 && dt < 600) {
+      // Umbrales de swipe profesional: 50px de distancia, < 350ms de duración
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.1 && dt < 350) {
+        if (isFlippingRef.current) return; // Si ya hay una animación en curso, esperamos
+        
         handleInteraction();
-        if (dx < -50 && pflip.current) {
-          try { pflip.current.flipNext('top'); } catch (e) { pflip.current.turnToPage(currentPageRef.current + 1); }
-          if (navigator.vibrate) navigator.vibrate(10);
-        } else if (dx > 50 && pflip.current && currentPageRef.current > 0) {
-          try { pflip.current.flipPrev('top'); } catch (e) { pflip.current.turnToPage(currentPageRef.current - 1); }
-          if (navigator.vibrate) navigator.vibrate(10);
+        if (dx < 0 && pflip.current) {
+          // Swipe IZQUIERDA -> Siguiente
+          if (currentPageRef.current < totalPagesRef.current - 1) {
+            try { 
+              pflip.current.flipNext('top'); 
+            } catch (_) { 
+              pflip.current.turnToPage(currentPageRef.current + 1); 
+            }
+            if (navigator.vibrate) navigator.vibrate(12);
+          }
+        } else if (dx > 0 && pflip.current) {
+          // Swipe DERECHA -> Anterior
+          if (currentPageRef.current > 0) {
+            try { 
+              pflip.current.flipPrev('top'); 
+            } catch (_) { 
+              pflip.current.turnToPage(currentPageRef.current - 1); 
+            }
+            if (navigator.vibrate) navigator.vibrate(12);
+          }
         }
       }
     };
-    el.addEventListener('touchstart', onStart, { capture:true, passive:true });
-    el.addEventListener('touchend', onEnd, { capture:true, passive:true });
+
+    el.addEventListener('touchstart', onStart, { capture: true, passive: true });
+    el.addEventListener('touchend', onEnd, { capture: true, passive: true });
     return () => {
-      el.removeEventListener('touchstart', onStart, { capture:true });
-      el.removeEventListener('touchend', onEnd, { capture:true });
+      el.removeEventListener('touchstart', onStart, { capture: true });
+      el.removeEventListener('touchend', onEnd, { capture: true });
     };
   }, [allMenuData, handleInteraction]);
 
@@ -489,11 +512,21 @@ export const MenuEngine = ({ config }) => {
   }, [handleInteraction, currentPage]);
 
   const goToPage = useCallback((pageNum) => {
-    if (isFlippingRef.current) return;
+    // Si ya está animando, ignoramos para evitar que la página se quede pegada
+    if (isFlippingRef.current || pageNum === currentPageRef.current) return;
+    
     handleInteraction();
     if (!pflip.current || pageNum < 0 || pageNum >= totalPagesRef.current) return;
-    try { pflip.current.turnToPage(pageNum); } catch (_) { /* ignore */ }
-    if (navigator.vibrate) navigator.vibrate(8);
+
+    try {
+      // Usamos turnToPage para navegación directa por categorías (más robusto)
+      pflip.current.turnToPage(pageNum);
+    } catch (e) {
+      console.warn("Manual turn failed, syncing state");
+      setCurrentPage(pageNum);
+      currentPageRef.current = pageNum;
+    }
+    if (navigator.vibrate) navigator.vibrate(15);
   }, [handleInteraction]);
 
   const categories     = allMenuData ? Object.keys(allMenuData) : [];
@@ -520,6 +553,7 @@ export const MenuEngine = ({ config }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center" style={{ background: '#040302' }}>
       <div
+        id="menu-main-container"
         style={{
           width:        vpWidth  || '100%',
           height:       vpHeight || '100%',
@@ -560,15 +594,16 @@ export const MenuEngine = ({ config }) => {
                   scrollBehavior: 'smooth',
                 }}>
                 {categories.map((cat, i) => {
-                  const meta = CATEGORY_META[cat] || { label: cat };
+                  const meta = CATEGORY_META[cat] || { icon: '🍽️', label: cat };
                   const isActive = i === currentPage;
                   return (
                     <button key={i} onPointerUp={() => goToPage(i)}
-                      className="relative flex items-center justify-center px-4 py-2 rounded-full transition-all active:scale-95"
+                      className="relative flex items-center justify-center px-4 py-2.5 rounded-full transition-all duration-300 ease-out active:scale-95"
                       style={{
                         touchAction: 'manipulation',
-                        color: isActive ? '#1a1008' : 'rgba(30, 20, 8, 0.55)',
+                        color: isActive ? '#1a1008' : 'rgba(30, 20, 8, 0.45)',
                         flexShrink: 0,
+                        minWidth: isActive ? 100 : 48,
                       }}>
                       {isActive && (
                         <motion.div
@@ -576,14 +611,32 @@ export const MenuEngine = ({ config }) => {
                           className="absolute inset-0 rounded-full"
                           style={{
                             background: 'linear-gradient(to right, rgb(252, 211, 77) 0%, rgb(245, 158, 11) 100%)',
-                            boxShadow: '0 2px 10px rgba(245, 158, 11, 0.35)',
+                            boxShadow: '0 4px 15px rgba(245, 158, 11, 0.4)',
                           }}
-                          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                          transition={{ type: 'spring', stiffness: 400, damping: 28 }}
                         />
                       )}
-                      <span className="relative z-10 text-[10px] font-black uppercase tracking-[0.1em] whitespace-nowrap">
-                        {meta.label}
-                      </span>
+                      <div className="relative z-10 flex items-center gap-2">
+                        <span style={{ 
+                          fontSize: isActive ? 18 : 16, 
+                          transition: 'all 0.3s ease',
+                          filter: isActive ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' : 'grayscale(0.5) opacity(0.7)'
+                        }}>
+                          {meta.icon}
+                        </span>
+                        <AnimatePresence mode="wait">
+                          {isActive && (
+                            <motion.span 
+                              initial={{ width: 0, opacity: 0, x: -5 }}
+                              animate={{ width: 'auto', opacity: 1, x: 0 }}
+                              exit={{ width: 0, opacity: 0, x: -5 }}
+                              className="text-[10px] font-black uppercase tracking-[0.1em] whitespace-nowrap overflow-hidden"
+                            >
+                              {meta.label}
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </button>
                   );
                 })}
