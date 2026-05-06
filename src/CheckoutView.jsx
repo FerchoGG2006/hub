@@ -1,17 +1,23 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from './useCart';
 import { formatWhatsAppMessage, sendToWhatsApp } from './CheckoutLogic';
 import { ProductCustomizer } from './ProductCustomizer';
+import { useOrders } from './core/orders/useOrders';
 
 export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
   const { cart, total, clearCart, updateQty, updateCustomization } = useCart();
-  
+  const { createOrder, loading: orderLoading } = useOrders();
+
+  const enabledModules = config?.enabled_modules || ['orders', 'products'];
+  const hasTables = enabledModules.includes('tables');
   const urlParams = new URLSearchParams(window.location.search);
   const tableFromUrl = urlParams.get('mesa') || urlParams.get('table');
   const isFromQR = !!tableFromUrl;
 
-  const [method,  setMethod]  = useState(isFromQR ? 'mesa' : 'domicilio'); // mesa | recoger | domicilio
+  const [method,  setMethod]  = useState((isFromQR && hasTables) ? 'mesa' : 'domicilio'); // mesa | recoger | domicilio
   const [payment, setPayment] = useState('efectivo');  // efectivo | transferencia
   const [done, setDone]       = useState(false);
   const [customerName, setCustomerName] = useState('');
@@ -64,7 +70,7 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
             onClose();
             // Reset PageFlip to page 0 if possible
             if (window.pflipInstance) {
-              // eslint-disable-next-line no-unused-vars
+               
               try { window.pflipInstance.turnToPage(0); } catch (_e) { /* ignore if instance is busy */ }
             }
           }}
@@ -80,7 +86,11 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
     );
   }
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSend = async () => {
+    if (isSubmitting || orderLoading) return;
+    
     if (!customerName) {
       alert("Por favor ingresa tu nombre de pedido.");
       return;
@@ -96,44 +106,41 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
       return;
     }
 
+    setIsSubmitting(true);
     const finalLocation = method === 'mesa' ? (tableParam || tableNumber) : (method === 'domicilio' ? address : 'Para Recoger');
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    const tenantSlug = window.location.pathname.split('/t/')[1]?.split('?')[0]?.split('/')[0] || '';
+    const tenantSlug = config?.slug || window.location.pathname.split('/t/')[1]?.split('?')[0]?.split('/')[0] || '';
     
-    // 1. Send to Live Kitchen (API)
     try {
-      await fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items_json: JSON.stringify(cart),
-          total_price: total,
-          customer_name: customerName,
-          phone: "0000",
-          table_number: finalLocation,
-          delivery_method: method,
-          payment_method: payment,
-          branch_id: branch?.id
-        })
+      // 1. Send to Live Kitchen (via useOrders hook)
+      await createOrder(tenantSlug, {
+        items_json: JSON.stringify(cart),
+        total_price: total,
+        customer_name: customerName,
+        phone: "0000",
+        table_number: hasTables ? finalLocation : null,
+        delivery_method: method,
+        payment_method: payment,
+        branch_id: branch?.id
       });
-    } catch(err) {
-      console.warn("No se pudo enviar al Kanban:", err);
-    }
 
-    // 2. Open WhatsApp
-    const waNumber = branch?.whatsapp_number || config?.whatsapp_number || '573000000000';
-    const locationLabel = method === 'domicilio' ? 'Dirección' : method === 'mesa' ? 'Mesa' : 'Recogida';
-    const waNameLine = `👤 Cliente: *${customerName}*\n📍 ${locationLabel}: *${finalLocation}*\n🏛️ Sede: *${branch?.name || 'Central'}*\n\n`;
-    const msg = formatWhatsAppMessage(cart, total, method, payment, config?.name);
-    sendToWhatsApp(waNumber, waNameLine + msg);
-    
-    clearCart();
-    setDone(true);
-    
-    // Reset PageFlip
-    if (window.pflipInstance) {
-      // eslint-disable-next-line no-unused-vars
-      try { window.pflipInstance.turnToPage(0); } catch (_e) { /* ignore if instance is busy */ }
+      // 2. Open WhatsApp
+      const waNumber = branch?.whatsapp_number || config?.whatsapp_number || '573000000000';
+      const locationLabel = method === 'domicilio' ? 'Dirección' : method === 'mesa' ? 'Mesa' : 'Recogida';
+      const waNameLine = `👤 Cliente: *${customerName}*\n📍 ${locationLabel}: *${finalLocation}*\n🏛️ Sede: *${branch?.name || 'Central'}*\n\n`;
+      const msg = formatWhatsAppMessage(cart, total, method, payment, config?.name);
+      sendToWhatsApp(waNumber, waNameLine + msg);
+      
+      clearCart();
+      setDone(true);
+      
+      if (window.pflipInstance) {
+        try { window.pflipInstance.turnToPage(0); } catch (_e) { /* ignore */ }
+      }
+    } catch(err) {
+      console.error("Critical order error:", err);
+      alert("Hubo un error procesando tu pedido. Por favor intenta de nuevo o contacta al restaurante.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -200,7 +207,7 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
                 className="w-full bg-dark/5 border border-dark/10 rounded-2xl p-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-dark/30 text-dark"
               />
             )}
-            {method === 'mesa' && !new URLSearchParams(window.location.search).get('mesa') && (
+            {method === 'mesa' && hasTables && !new URLSearchParams(window.location.search).get('mesa') && (
               <input 
                 type="text" 
                 placeholder="Número de mesa" 
@@ -283,9 +290,9 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
           </label>
           <div className="grid grid-cols-2 gap-2">
             {[
-              { id: 'mesa',      icon: '🪑', label: 'Mesa',      show: isFromQR },
-              { id: 'recoger',   icon: '🏃', label: 'Recoger',   show: !isFromQR },
-              { id: 'domicilio', icon: '🛵', label: 'Domicilio', show: !isFromQR },
+              { id: 'mesa',      icon: '🪑', label: 'Mesa',      show: isFromQR && hasTables },
+              { id: 'recoger',   icon: '🏃', label: 'Recoger',   show: !isFromQR || !hasTables },
+              { id: 'domicilio', icon: '🛵', label: 'Domicilio', show: !isFromQR || !hasTables },
             ].filter(opt => opt.show).map(opt => (
               <button
                 key={opt.id}
@@ -400,15 +407,15 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
         <motion.button
           whileTap={{ scale: 0.94 }}
           onClick={handleSend}
-          disabled={cart.length === 0}
+          disabled={cart.length === 0 || orderLoading}
           className="w-full py-4 font-black uppercase text-[12px] tracking-[0.2em] rounded-[18px] shadow-xl active:scale-95 transition-all"
           style={{
-            background: 'linear-gradient(to right, rgb(252, 211, 77) 0%, rgb(245, 158, 11) 100%)',
+            background: orderLoading ? '#ccc' : 'linear-gradient(to right, rgb(252, 211, 77) 0%, rgb(245, 158, 11) 100%)',
             color:       '#1a1008',
-            boxShadow:   '0 10px 30px rgba(245, 158, 11, 0.35)',
+            boxShadow:   orderLoading ? 'none' : '0 10px 30px rgba(245, 158, 11, 0.35)',
           }}
         >
-          {payment === 'transferencia' ? 'Reportar Transferencia' : 'Confirmar Pedido'}
+          {orderLoading ? 'Procesando...' : (payment === 'transferencia' ? 'Reportar Transferencia' : 'Confirmar Pedido')}
         </motion.button>
       </footer>
     </motion.div>

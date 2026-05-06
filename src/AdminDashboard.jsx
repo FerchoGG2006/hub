@@ -12,6 +12,9 @@ import { InstagramAutopilot } from './InstagramAutopilot';
 import { OnboardingTour } from './OnboardingTour';
 import { PhoneInput } from './PhoneInput';
 import { EventsManager } from './EventsManager';
+import { useAuth } from './core/auth/useAuth';
+import { useProducts } from './core/products/useProducts';
+import { authService } from './core/auth/authService';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -19,36 +22,15 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 export const LoginTerminal = ({ onAuth }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { login, loading, error } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
     try {
-      const formData = new URLSearchParams();
-      formData.append('username', username);
-      formData.append('password', password);
-
-      const res = await fetch(`${API_URL}/api/auth/token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData.toString()
-      });
-
-      if (!res.ok) throw new Error('Credenciales Inválidas');
-      const data = await res.json();
-      
-      localStorage.setItem('hub_token', data.access_token);
-      localStorage.setItem('hub_role', data.role);
-      localStorage.setItem('hub_tenant', data.tenant_slug || '');
-      
+      const data = await login(username, password);
       onAuth(data.access_token);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    } catch {
+      // Error is handled by the hook
     }
   };
 
@@ -243,7 +225,9 @@ export const LiveMonitor = ({ onLogout }) => {
 };
 
 /* ── QR DEPLOYMENT TERMINAL (FASE 1) ── */
-const QRTerminal = () => {
+const QRTerminal = ({ config }) => {
+  const enabledModules = config?.enabled_modules || ['orders', 'products'];
+  const hasTables = enabledModules.includes('tables');
   const { tenantSlug } = useParams();
   const qrRef = React.useRef(null);
   const [table, setTable] = useState('');
@@ -397,24 +381,26 @@ const QRTerminal = () => {
       </div>
 
       {/* ── GENERACIÓN POR LOTE (BATCH) ── */}
-      <div className="w-full max-w-sm mt-8 border-t border-dark/10 pt-10 text-center space-y-6 relative">
-        <h3 className="text-xl font-black uppercase italic text-dark tracking-tighter">Despliegue Masivo</h3>
-        <p className="text-[10px] text-dark/40 uppercase tracking-[0.3em] px-4 font-medium">Generación automatizada de kits físicos por zona.</p>
-        
-        <div className="flex gap-3">
-          <input 
-            type="number" 
-            min="1" max="100"
-            placeholder="M_COUNT" 
-            value={tableCount}
-            onChange={(e) => setTableCount(e.target.value)}
-            className="w-1/3 bg-dark/5 border border-dark/10 rounded-2xl py-4 px-2 text-center text-sm outline-none focus:border-amber-500 transition-colors placeholder-dark/20 text-dark font-mono"
-          />
-          <button onClick={handleDownloadBatchPDF} disabled={isGenerating || !tableCount} className="flex-1 py-4 bg-dark text-bone font-black flex items-center justify-center gap-2 rounded-2xl text-[10px] uppercase tracking-[0.3em] shadow-xl hover:scale-[1.02] transition-transform disabled:opacity-50 tactile-button">
-            {isGenerating ? 'SYNC_BATCH_PDF...' : '🖨️ Generar PDF Completo'}
-          </button>
+      {hasTables && (
+        <div className="w-full max-w-sm mt-8 border-t border-dark/10 pt-10 text-center space-y-6 relative">
+          <h3 className="text-xl font-black uppercase italic text-dark tracking-tighter">Despliegue Masivo</h3>
+          <p className="text-[10px] text-dark/40 uppercase tracking-[0.3em] px-4 font-medium">Generación automatizada de kits físicos por zona.</p>
+          
+          <div className="flex gap-3">
+            <input 
+              type="number" 
+              min="1" max="100"
+              placeholder="M_COUNT" 
+              value={tableCount}
+              onChange={(e) => setTableCount(e.target.value)}
+              className="w-1/3 bg-dark/5 border border-dark/10 rounded-2xl py-4 px-2 text-center text-sm outline-none focus:border-amber-500 transition-colors placeholder-dark/20 text-dark font-mono"
+            />
+            <button onClick={handleDownloadBatchPDF} disabled={isGenerating || !tableCount} className="flex-1 py-4 bg-dark text-bone font-black flex items-center justify-center gap-2 rounded-2xl text-[10px] uppercase tracking-[0.3em] shadow-xl hover:scale-[1.02] transition-transform disabled:opacity-50 tactile-button">
+              {isGenerating ? 'SYNC_BATCH_PDF...' : '🖨️ Generar PDF Completo'}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── HIDDEN RENDER AREA FOR BATCH ── */}
       <div className="absolute opacity-0 pointer-events-none -z-50" style={{ left: '-9999px', top: 0 }}>
@@ -442,7 +428,7 @@ const QRTerminal = () => {
 };
 
 /* ── COMPONENTS (Colecciones) ── */
-const InventoryManager = ({ products, toggleProduct, onLogout }) => {
+const InventoryManager = ({ products, toggleProduct, magicSnap, onLogout }) => {
   const { tenantSlug } = useParams();
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
@@ -479,21 +465,13 @@ const InventoryManager = ({ products, toggleProduct, onLogout }) => {
                 <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
                   const file = e.target.files[0];
                   if (!file) return;
-                  const formData = new FormData();
-                  formData.append('file', file);
-                  const token = localStorage.getItem('hub_token');
+                  const token = authService.getToken();
                   alert("✨ Gemini Vision está analizando el plato... Por favor espera.");
                   try {
-                    const res = await fetch(`${API_URL}/api/admin/ai/vision-product`, {
-                      method: 'POST',
-                      headers: { 'Authorization': `Bearer ${token}` },
-                      body: formData
-                    });
-                    if (res.ok) {
-                      alert("✅ ¡Plato creado mágicamente!");
-                      window.location.reload();
-                    }
-                  } catch (err) { alert("Error en el análisis visual."); }
+                    await magicSnap(token, file);
+                    alert("✅ ¡Plato creado mágicamente!");
+                    window.location.reload();
+                  } catch { alert("Error en el análisis visual."); }
                 }} />
              </label>
              <button onClick={onLogout} className="text-[10px] font-black uppercase tracking-[0.3em] text-dark/40 hover:text-dark transition-all border border-dark/10 px-6 py-3 rounded-2xl hover:bg-dark/5 tactile-button">
@@ -1309,6 +1287,7 @@ export const AdminDashboard = () => {
   const [showAIModal, setShowAIModal] = useState(false);
   const [showBriefing, setShowBriefing] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [config, setConfig] = useState(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -1328,13 +1307,19 @@ export const AdminDashboard = () => {
     if (!tenantSlug) return;
     try {
       const res = await fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/menu`);
+      if (!res.ok) throw new Error("Menu fetch failed");
       const data = await res.json();
+      
       const flatProducts = [];
-      Object.keys(data).forEach(catName => {
-        data[catName].forEach(prod => {
-          flatProducts.push({ ...prod, category: catName, is_available: true }); 
+      if (data && typeof data === 'object' && !data.detail) {
+        Object.keys(data).forEach(catName => {
+          if (Array.isArray(data[catName])) {
+            data[catName].forEach(prod => {
+              flatProducts.push({ ...prod, category: catName, is_available: prod.is_available ?? true }); 
+            });
+          }
         });
-      });
+      }
       setProducts(flatProducts);
     } catch (err) {
       console.warn("API Error, loading fallback", err);
@@ -1342,24 +1327,40 @@ export const AdminDashboard = () => {
   }, [tenantSlug]);
 
   useEffect(() => { 
-    if (isAuthenticated) {
+    if (isAuthenticated && tenantSlug) {
       fetchProducts(); 
       fetch(`${API_URL}/api/v1/tenant/${tenantSlug}`)
-        .then(r => r.json())
-        .then(data => setBranches(data.branches || []))
-        .catch(err => console.warn(err));
+        .then(r => {
+          if (!r.ok) throw new Error("Tenant fetch failed");
+          return r.json();
+        })
+        .then(data => {
+          setBranches(data.branches || []);
+          setConfig(data);
+        })
+        .catch(err => console.warn("Config fetch error:", err));
     }
   }, [isAuthenticated, fetchProducts, tenantSlug]);
 
+  const { toggleAvailability, magicSnap, loading: productLoading } = useProducts();
+  const { logout: authLogout } = useAuth();
+
+  const handleLogout = useCallback(() => {
+    authLogout();
+    setIsAuthenticated(false);
+  }, [authLogout]);
+
+  const handleAuthError = useCallback((err) => {
+    if (err.message?.includes('401') || err.message?.includes('validate credentials')) {
+        handleLogout();
+    }
+  }, [handleLogout]);
+
   const toggleProduct = async (id, currentStatus) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, is_available: !currentStatus } : p));
     try {
-      const token = localStorage.getItem('hub_token');
-      const res = await fetch(`${API_URL}/api/admin/products/${id}/toggle`, { 
-          method: 'PUT',
-          headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error("Toggle failed");
+      const token = authService.getToken();
+      setProducts(prev => prev.map(p => p.id === id ? { ...p, is_available: !currentStatus } : p));
+      await toggleAvailability(id, token);
       if (navigator.vibrate) navigator.vibrate([15, 30, 15]);
     } catch(err) {
       console.warn(err);
@@ -1412,11 +1413,26 @@ export const AdminDashboard = () => {
               )}
             </button>
           ))}
+          <div className="flex flex-col items-end ml-auto">
+             <p className="text-[7px] font-mono text-dark/30 uppercase tracking-widest">Linked_Session</p>
+             <p className="text-[9px] font-black text-amber-600/60 uppercase tracking-tighter">
+                {localStorage.getItem('hub_tenant')?.toUpperCase() || 'EXTERNAL_USER'} 
+                <span className="mx-2 text-dark/10">|</span> 
+                ID_{config?.id || '?'}
+             </p>
+          </div>
+
           <button 
             onClick={() => setShowBriefing(true)}
-            className="flex items-center gap-2 bg-amber-500/10 text-amber-600 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all border border-amber-500/20 ml-auto animate-pulse"
+            className="flex items-center gap-2 bg-amber-500/10 text-amber-600 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all border border-amber-500/20 ml-6 animate-pulse"
           >
             ✦ Briefing IA
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="text-[9px] font-black uppercase tracking-widest text-red-500/40 hover:text-red-500 transition-colors ml-6"
+          >
+            SALIR_SYNC ✕
           </button>
         </div>
       </nav>
@@ -1424,15 +1440,15 @@ export const AdminDashboard = () => {
       <main className="pt-24 pb-12 px-5 max-w-7xl w-full mx-auto">
         <AnimatePresence mode="wait">
           {view === 'kanban' ? (
-            <KanbanBoard key="kanban" tenantSlug={tenantSlug} />
+            <KanbanBoard key="kanban" tenantSlug={tenantSlug} onAuthError={handleAuthError} config={config} />
           ) : view === 'sedes' ? (
             <SedesView key="sedes" branches={branches} tenantSlug={tenantSlug} />
           ) : view === 'inventory' ? (
-            <InventoryManager key="inv" products={products} toggleProduct={toggleProduct} onLogout={() => setIsAuthenticated(false)} />
+            <InventoryManager key="inv" products={products} toggleProduct={toggleProduct} magicSnap={magicSnap} onLogout={handleLogout} />
           ) : view === 'stats' ? (
-            <LiveMonitor key="stats" onLogout={() => setIsAuthenticated(false)} />
+            <LiveMonitor key="stats" onLogout={handleLogout} />
           ) : view === 'qr' ? (
-            <QRTerminal key="qr" />
+            <QRTerminal key="qr" config={config} />
           ) : view === 'marketing' ? (
             <MarketingManager key="marketing" tenantSlug={tenantSlug} />
           ) : view === 'autopilot' ? (

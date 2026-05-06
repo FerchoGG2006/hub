@@ -8,6 +8,11 @@ from sqlalchemy.orm import Session
 from typing import List
 from pydantic import BaseModel
 from dotenv import load_dotenv
+import logging
+
+# Configuración de logs
+logger = logging.getLogger("tech-gastro-hub")
+logging.basicConfig(level=logging.INFO)
 
 import models
 from database import get_db, engine
@@ -15,6 +20,11 @@ from utils.storage import upload_product_image
 from utils.gemini_extractor import extract_menu_from_image
 import auth
 from events import router as events_router
+from core.events.event_bus import emit_event
+from core.events.consumers import process_analytics
+
+from core.orders import orders_service
+from schemas.order import OrderRequest
 
 load_dotenv()
 import google.generativeai as genai
@@ -115,6 +125,7 @@ def get_tenant_config(slug: str, db: Session = Depends(get_db)):
         "valid_until": tenant.valid_until.isoformat() if tenant.valid_until else None,
         "instagram_url": tenant.instagram_url,
         "tiktok_url": tenant.tiktok_url,
+        "enabled_modules": tenant.enabled_modules or ["orders", "products"],
         "branches": [
             {
                 "id": b.id,
@@ -151,7 +162,12 @@ def get_tenant_menu(slug: str, db: Session = Depends(get_db)):
                 "emoji": p.emoji,
                 "image_url": p.image_url,
                 "is_available": p.is_available,
-                "category_id": p.category_id
+                "category_id": p.category_id,
+                "type": p.type,
+                "variants": [
+                    {"id": v.id, "name": v.name, "price": v.price}
+                    for v in p.variants
+                ]
             }
             for p in cat.products
         ]
@@ -159,6 +175,12 @@ def get_tenant_menu(slug: str, db: Session = Depends(get_db)):
             grouped_menu[cat.name] = prods
 
     return grouped_menu
+
+@app.post("/api/v1/events/product-view")
+def track_product_view(product_id: int, tenant_id: int, db: Session = Depends(get_db)):
+    """Endpoint para registrar visualizaciones de productos (Analytics)."""
+    emit_event(db, tenant_id, "product_viewed", {"product_id": product_id})
+    return {"status": "ok"}
 
 @app.get("/api/v1/tenant/{slug}/categories")
 def get_tenant_categories(slug: str, db: Session = Depends(get_db)):
@@ -261,76 +283,85 @@ def onboard_new_tenant(
     whatsapp_number: str = Form(""),
     email: str = Form(""),
     file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_superadmin)
+    db: Session = Depends(get_db)
 ):
     # 1. Crear el nuevo Tenant en la base de datos
     nuevo_tenant = models.Tenant(
         slug=slug,
         name=name,
         brand_color=brand_color,
-        whatsapp_number=whatsapp_number
+        whatsapp_number=whatsapp_number,
+        enabled_modules=["orders", "products", "tables", "inventory"] # Módulos iniciales pro
     )
     db.add(nuevo_tenant)
     db.commit()
     db.refresh(nuevo_tenant)
     
-    # 2. Leer la imagen de forma síncrona y darsela a Gemini Flash
-    image_bytes = file.file.read()
-    menu_data = extract_menu_from_image(image_bytes)
-    
-    # 3. Iterar por el JSON estructurado de la IA y poblar la Base de Datos
-    for category_data in menu_data:
-        cat_name = category_data.get("category", "Miscelaneo")
-        cat_icon = category_data.get("icon", "🍽️")
-        
-        nueva_cat = models.Category(
-            tenant_id=nuevo_tenant.id,
-            name=cat_name,
-            icon=cat_icon
-        )
-        db.add(nueva_cat)
-        db.commit()
-        db.refresh(nueva_cat)
-        
-        products = category_data.get("products", [])
-        for p in products:
-            nuevo_prod = models.Product(
-                tenant_id=nuevo_tenant.id,
-                category_id=nueva_cat.id,
-                name=p.get("name", "Plato Desconocido"),
-                description=p.get("description", ""),
-                price=str(p.get("price", "$0")),
-                emoji=p.get("emoji", "🍽️")
-            )
-            db.add(nuevo_prod)
-        db.commit()
-
+    # 2. Generar usuario administrador para el negocio
     import secrets
     import string
-    passcode = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(8))
+    generated_pass = ''.join(secrets.choice(string.digits) for i in range(6)) # Passcode de 6 dígitos para simplicidad
     
-    import auth
-    tenant_admin = models.User(
-        username=slug,
-        hashed_password=auth.get_password_hash(passcode),
+    hashed_password = auth.get_password_hash(generated_pass)
+    nuevo_usuario = models.User(
+        username=email or f"admin@{slug}.com",
+        hashed_password=hashed_password,
         role="admin",
         tenant_id=nuevo_tenant.id
     )
-    db.add(tenant_admin)
+    db.add(nuevo_usuario)
     db.commit()
 
+    # 3. Procesar menú con IA (Gemini Flash)
+    try:
+        image_bytes = file.file.read()
+        menu_data = extract_menu_from_image(image_bytes)
+        
+        for category_data in menu_data:
+            cat_name = category_data.get("category", "Miscelaneo")
+            cat_icon = category_data.get("icon", "🍽️")
+            
+            nueva_cat = models.Category(
+                tenant_id=nuevo_tenant.id,
+                name=cat_name,
+                icon=cat_icon
+            )
+            db.add(nueva_cat)
+            db.commit()
+            db.refresh(nueva_cat)
+            
+            products = category_data.get("products", [])
+            for p in products:
+                nuevo_prod = models.Product(
+                    tenant_id=nuevo_tenant.id,
+                    category_id=nueva_cat.id,
+                    name=p.get("name", "Plato Desconocido"),
+                    description=p.get("description", ""),
+                    price=str(p.get("price", "$0")),
+                    emoji=p.get("emoji", "🍽️")
+                )
+                db.add(nuevo_prod)
+            db.commit()
+    except Exception as e:
+        print(f"Error procesando menú IA: {e}")
+
     # == HANDOVER KIT EMAIL ==
-    front_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-    if email:
-        from utils.email_service import send_welcome_kit
-        send_welcome_kit(email, name, slug, passcode, front_url)
+    try:
+        front_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+        if email:
+            from utils.email_service import send_welcome_kit
+            send_welcome_kit(email, name, slug, generated_pass, front_url)
+    except Exception as e:
+        print(f"Error enviando kit de bienvenida: {e}")
 
     return {
-        "status": "ok", 
-        "message": "Tenant y Menú inyectados vía AI", 
-        "tenant_id": nuevo_tenant.id,
-        "credentials": {"username": slug, "passcode": passcode}
+        "status": "success",
+        "message": "Negocio activado en tiempo récord",
+        "credentials": {
+            "user": nuevo_usuario.username,
+            "passcode": generated_pass
+        },
+        "url": f"https://techgastrohub.com/t/{slug}"
     }
 
 @app.put("/api/admin/products/{product_id}/toggle")
@@ -499,36 +530,14 @@ def ai_ingest_tenant_menu(
 
 # ════════════════ KANBAN & MARKETING (NEW FEATURES) ════════════════
 
-class OrderRequest(BaseModel):
-    items_json: str
-    total_price: int
-    customer_name: str
-    phone: str
-    table_number: str = None
-    delivery_method: str = "mesa" # mesa, domicilio, recojo
-    payment_method: str = "transferencia"
-    branch_id: int = None
+# ════════════════ KANBAN & MARKETING (NEW FEATURES) ════════════════
 
 @app.post("/api/v1/tenant/{slug}/orders")
 async def receive_order(slug: str, req: OrderRequest, db: Session = Depends(get_db)):
     t = db.query(models.Tenant).filter_by(slug=slug).first()
     if not t: raise HTTPException(status_code=404)
     
-    nuevo = models.Order(
-        tenant_id=t.id,
-        delivery_method=req.delivery_method,
-        payment_method=req.payment_method,
-        total_price=req.total_price,
-        items_json=req.items_json,
-        status="pending",
-        table_number=req.table_number,
-        phone=req.phone,
-        customer_name=req.customer_name,
-        branch_id=req.branch_id
-    )
-    db.add(nuevo)
-    db.commit()
-    db.refresh(nuevo)
+    nuevo = orders_service.create_order(db, t.id, req.dict())
     
     # Broadcast to admin Kanban!
     await manager.broadcast({
@@ -538,14 +547,17 @@ async def receive_order(slug: str, req: OrderRequest, db: Session = Depends(get_
             "id": nuevo.id,
             "customer_name": nuevo.customer_name,
             "total_price": nuevo.total_price,
-            "status": nuevo.status
+            "status": nuevo.status,
+            "table_number": nuevo.table_number,
+            "created_at": nuevo.created_at.isoformat(),
+            "items_json": nuevo.items_json
         }
     })
     return {"status": "ok", "order_id": nuevo.id}
 
 @app.get("/api/admin/orders")
 def get_orders(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    orders = db.query(models.Order).filter_by(tenant_id=current_user.tenant_id).order_by(models.Order.id.desc()).all()
+    orders = orders_service.get_tenant_orders(db, current_user.tenant_id)
     result = []
     for o in orders:
         result.append({
@@ -555,6 +567,7 @@ def get_orders(db: Session = Depends(get_db), current_user: models.User = Depend
             "status": o.status,
             "table_number": o.table_number,
             "items_json": o.items_json,
+            "created_at": o.created_at.isoformat(),
             "branch_id": o.branch_id,
             "branch_name": o.branch.name if o.branch else "Central"
         })
@@ -562,12 +575,29 @@ def get_orders(db: Session = Depends(get_db), current_user: models.User = Depend
 
 @app.put("/api/admin/orders/{order_id}/status")
 async def update_order_status(order_id: int, status: str, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    o = db.query(models.Order).filter_by(id=order_id, tenant_id=current_user.tenant_id).first()
-    if not o: raise HTTPException(status_code=404)
-    o.status = status
-    db.commit()
-    await manager.broadcast({"type": "ORDER_UPDATED", "tenant_id": current_user.tenant_id, "order_id": o.id, "status": status})
-    return {"status": "ok"}
+    try:
+        # Diagnostic logging
+        logger.info(f"Intento de update: User(id={current_user.id}, tenant={current_user.tenant_id}) -> Order(id={order_id})")
+        
+        o = orders_service.update_order_status(db, order_id, current_user.tenant_id, status)
+        if not o: 
+            # Si no se encuentra, ver si existe para otro tenant (para dar un error claro)
+            exists_any = db.query(models.Order).filter_by(id=order_id).first()
+            if exists_any:
+                detail = f"Acceso denegado: El pedido #{order_id} pertenece al negocio {exists_any.tenant_id}, pero tú eres del negocio {current_user.tenant_id}."
+                logger.error(detail)
+                raise HTTPException(status_code=403, detail=detail)
+            raise HTTPException(status_code=404, detail=f"Pedido #{order_id} no encontrado.")
+            
+        await manager.broadcast({"type": "ORDER_UPDATED", "tenant_id": current_user.tenant_id, "order_id": o.id, "status": status})
+        return {"status": "ok"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Error inesperado en update_order_status: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
 
 class AIMarketingRequest(BaseModel):
     goal: str
@@ -902,8 +932,17 @@ def check_instagram_schedules():
     finally:
         db.close()
 
+def run_background_analytics():
+    from database import SessionLocal
+    db = SessionLocal()
+    try:
+        process_analytics(db)
+    finally:
+        db.close()
+
 scheduler = BackgroundScheduler()
 scheduler.add_job(check_instagram_schedules, 'interval', minutes=1)
+scheduler.add_job(run_background_analytics, 'interval', hours=1) # Procesa analytics cada hora
 scheduler.start()
 @app.get("/api/admin/ai/briefing")
 def get_ai_strategic_briefing(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):

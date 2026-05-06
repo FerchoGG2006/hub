@@ -24,6 +24,7 @@ class Tenant(Base):
     logo_url = Column(String(255))
     whatsapp_number = Column(String(20))
     whatsapp_message = Column(Text, default="¡Hola! Quiero hacer el siguiente pedido:")
+    enabled_modules = Column(JSON, default=["orders", "products"]) # "tables", "variants", "inventory", etc.
     
     # Phase 2 Branding
     instagram_url = Column(String(255), nullable=True)
@@ -94,9 +95,12 @@ class Product(Base):
     emoji        = Column(String(10), default="🍽️")
     image_url    = Column(Text)
     is_available = Column(Boolean, default=True)
+    type         = Column(String(20), default="simple") # simple, variant
 
-    tenant = relationship("Tenant")
+    tenant   = relationship("Tenant")
     category = relationship("Category", back_populates="products")
+    variants = relationship("ProductVariant", back_populates="product", cascade="all, delete-orphan")
+    inventory = relationship("Inventory", back_populates="product", uselist=False)
 
 class Order(Base):
     __tablename__ = "orders"
@@ -108,7 +112,7 @@ class Order(Base):
     total_price     = Column(Integer, nullable=False)
     items_json      = Column(Text, nullable=False)
     status          = Column(String(20), default="pending")
-    table_number    = Column(String(10))
+    table_number    = Column(String(255))
     phone           = Column(String(20))
     customer_name   = Column(String(100))
     created_at      = Column(DateTime, default=datetime.utcnow)
@@ -126,6 +130,31 @@ class Coupon(Base):
     discount_percent = Column(Integer, default=10)
     is_active  = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class ProductVariant(Base):
+    """Modelo para variantes de producto (talla, color, etc.)"""
+    __tablename__ = "product_variants"
+    
+    id         = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    name       = Column(String(100), nullable=False) # ej: "Talla M", "Rojo"
+    price      = Column(Integer, nullable=False)
+    
+    product   = relationship("Product", back_populates="variants")
+    inventory = relationship("Inventory", back_populates="variant", uselist=False)
+
+class Inventory(Base):
+    """Modelo centralizado de stock para productos simples y variantes."""
+    __tablename__ = "inventory"
+    
+    id         = Column(Integer, primary_key=True, index=True)
+    tenant_id  = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=True)
+    variant_id = Column(Integer, ForeignKey("product_variants.id"), nullable=True)
+    stock      = Column(Integer, default=0)
+    
+    product = relationship("Product", back_populates="inventory")
+    variant = relationship("ProductVariant", back_populates="inventory")
     
     tenant = relationship("Tenant")
 
@@ -159,3 +188,37 @@ class SpecialEvent(Base):
     created_at      = Column(DateTime, default=datetime.utcnow)
 
     restaurant = relationship("Tenant")
+
+class BusinessEvent(Base):
+    """Modelo para el sistema impulsado por eventos (Analytics, AI, Automation)."""
+    __tablename__ = "business_events"
+    
+    id         = Column(Integer, primary_key=True, index=True)
+    tenant_id  = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    type       = Column(String(50), nullable=False) # order_created, product_viewed, etc.
+    payload    = Column(JSON, default={})
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class AutomationRule(Base):
+    """Reglas de negocio automatizadas (Triggers -> Conditions -> Actions)."""
+    __tablename__ = "automation_rules"
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    trigger_event = Column(String(50))  # e.g., "order_paid"
+    condition_json = Column(JSON, default={})
+    action_json = Column(JSON, default={})
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Suggestion(Base):
+    """Sugerencias generadas por el motor de automatización para el administrador."""
+    __tablename__ = "suggestions"
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    type = Column(String(50))           # suggestion, notification, flag
+    message = Column(Text)
+    status = Column(String(20), default="pending") # pending, applied, dismissed
+    metadata_json = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    tenant = relationship("Tenant")

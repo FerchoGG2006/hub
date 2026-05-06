@@ -8,6 +8,16 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = useCallback((product) => {
     setCart((prev) => {
+      const existing = prev.find(i => 
+        i.id === product.id && 
+        i.variant_id === product.variant_id &&
+        JSON.stringify(i.customizations) === JSON.stringify({ removed: [], note: "" })
+      );
+      
+      if (existing) {
+        return prev.map(i => i.instanceId === existing.instanceId ? { ...i, qty: i.qty + 1 } : i);
+      }
+
       const instanceId = `${product.id}-${Date.now()}`;
       return [...prev, { 
         ...product, 

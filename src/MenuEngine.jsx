@@ -140,7 +140,7 @@ const CategoryHero = ({ meta, restaurantName }) => (
 // ═══════════════════════════════════════════════════════════════
 const NavArrow = ({ direction, visible, onClick }) => (
   <button
-    onPointerDown={(e) => {
+    onClick={(e) => {
       e.stopPropagation();
       if (visible) onClick();
     }}
@@ -182,8 +182,19 @@ const NavArrow = ({ direction, visible, onClick }) => (
 // ───── Formateador de precio (sin cambios) ─────
 const formatPrice = (price) => {
   if (typeof price === 'number') return price.toLocaleString('es-CO');
-  // Already a formatted string — return as-is
-  return String(price);
+  if (!price) return '0';
+  let str = String(price).trim();
+  
+  // Convert "32k" to "32.000" for premium look
+  if (str.toLowerCase().endsWith('k')) {
+    str = str.substring(0, str.length - 1) + '.000';
+  }
+
+  // Remove extra $ to avoid double display ($$32.000)
+  if (str.startsWith('$')) {
+    str = str.substring(1).trim();
+  }
+  return str;
 };
 
 // ───── Skeleton (sin cambios) ─────
@@ -236,8 +247,14 @@ const CompactProductRow = ({ item, accent, onAdd, onClick }) => (
         {item.name}
       </p>
       {item.description && (
-        <p className="text-[8.5px] font-light leading-tight truncate mt-[1px]"
-          style={{ color: 'rgba(30,20,8,0.42)' }}>
+        <p className="text-[9px] font-light leading-tight mt-[1px] opacity-60 italic"
+          style={{ 
+            color: '#1a1008',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden'
+          }}>
           {item.description}
         </p>
       )}
@@ -245,17 +262,21 @@ const CompactProductRow = ({ item, accent, onAdd, onClick }) => (
 
     {/* Price — $ separated explicitly */}
     <div className="flex items-center gap-2 flex-shrink-0">
-      <span className="text-[12px] font-black"
+      <span className="text-[12.5px] font-bold"
         style={{ color: '#1a1008', fontVariantNumeric: 'tabular-nums' }}>
         {'$'}{formatPrice(item.price)}
       </span>
       <button
         className="w-[28px] h-[28px] rounded-[8px] flex items-center justify-center active:scale-90 transition-transform relative z-50"
         style={{ background: '#1a1008', touchAction: 'manipulation' }}
-        onPointerDown={e => e.stopPropagation()}
-        onTouchStart={e => e.stopPropagation()}
-        onPointerUp={e => { e.stopPropagation(); e.preventDefault(); onAdd(); }}
-        onClick={e => { e.stopPropagation(); e.preventDefault(); onAdd(); }}
+        onClick={e => { 
+          e.stopPropagation(); 
+          if (item.type === 'variant' || (item.variants && item.variants.length > 0)) {
+            onClick(); // Open modal for variant selection
+          } else {
+            onAdd(); 
+          }
+        }}
       >
         <svg width="12" height="12" viewBox="0 0 10 10" fill="none">
           <path d="M5 2v6M2 5h6" stroke="#f7e8b0" strokeWidth="1.6" strokeLinecap="round" />
@@ -512,19 +533,15 @@ export const MenuEngine = ({ config }) => {
   }, [handleInteraction, currentPage]);
 
   const goToPage = useCallback((pageNum) => {
-    // Si ya está animando, ignoramos para evitar que la página se quede pegada
-    if (isFlippingRef.current || pageNum === currentPageRef.current) return;
-    
     handleInteraction();
     if (!pflip.current || pageNum < 0 || pageNum >= totalPagesRef.current) return;
-
+    
     try {
-      // Usamos turnToPage para navegación directa por categorías (más robusto)
       pflip.current.turnToPage(pageNum);
-    } catch (e) {
-      console.warn("Manual turn failed, syncing state");
       setCurrentPage(pageNum);
       currentPageRef.current = pageNum;
+    } catch (e) {
+      console.warn("Manual turn failed", e);
     }
     if (navigator.vibrate) navigator.vibrate(15);
   }, [handleInteraction]);
@@ -597,7 +614,7 @@ export const MenuEngine = ({ config }) => {
                   const meta = CATEGORY_META[cat] || { icon: '🍽️', label: cat };
                   const isActive = i === currentPage;
                   return (
-                    <button key={i} onPointerUp={() => goToPage(i)}
+                    <button key={i} onClick={() => goToPage(i)}
                       className="relative flex items-center justify-center px-4 py-2.5 rounded-full transition-all duration-300 ease-out active:scale-95"
                       style={{
                         touchAction: 'manipulation',
@@ -874,16 +891,44 @@ export const MenuEngine = ({ config }) => {
                     {selectedProduct.description || 'Una experiencia gourmet diseñada para elevar tus sentidos.'}
                   </p>
                   <div className="flex flex-col gap-4">
+                    {/* Variant Selector */}
+                    {selectedProduct.variants && selectedProduct.variants.length > 0 && (
+                      <div className="space-y-3 mb-4">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-dark/40">Selecciona Opción</p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {selectedProduct.variants.map(v => (
+                            <button 
+                              key={v.id}
+                              onClick={() => setSelectedProduct({...selectedProduct, selectedVariant: v})}
+                              className={`px-4 py-2 rounded-xl text-[10px] font-bold transition-all border ${
+                                selectedProduct.selectedVariant?.id === v.id
+                                  ? 'bg-dark text-bone border-dark'
+                                  : 'bg-white/50 text-dark border-dark/10'
+                              }`}
+                            >
+                              {v.name} (+${formatPrice(v.price)})
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-sm" style={{ color:'rgba(30,20,8,0.3)' }}>{'$'}</span>
                       <span className="text-4xl font-black" style={{ color:'#1a1008' }}>
-                        {formatPrice(selectedProduct.price)}
+                        {formatPrice(selectedProduct.selectedVariant ? selectedProduct.selectedVariant.price : selectedProduct.price)}
                       </span>
                     </div>
                     <button
-                      onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}
+                      onClick={() => { 
+                        const toAdd = selectedProduct.selectedVariant 
+                          ? { ...selectedProduct, price: selectedProduct.selectedVariant.price, variant_id: selectedProduct.selectedVariant.id, name: `${selectedProduct.name} (${selectedProduct.selectedVariant.name})` }
+                          : selectedProduct;
+                        addToCart(toAdd); 
+                        setSelectedProduct(null); 
+                      }}
                       className="w-full py-5 rounded-[2rem] font-black uppercase text-[11px] tracking-[0.3em] active:scale-95 transition-all tactile-button"
-                      style={{ color:'#1a1008' }}>
+                      style={{ color:'#1a1008', background: brandColor }}>
                       ✦ Añadir a la Orden
                     </button>
                   </div>

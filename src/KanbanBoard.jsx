@@ -5,8 +5,16 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
   const [elapsed, setElapsed] = React.useState(0);
+  const items = React.useMemo(() => {
+    try {
+      return typeof o.items_json === 'string' ? JSON.parse(o.items_json) : (o.items_json || []);
+    } catch {
+      return [];
+    }
+  }, [o.items_json]);
 
   React.useEffect(() => {
+    if (!o.created_at) return;
     const startTime = new Date(o.created_at).getTime();
     const interval = setInterval(() => {
       setElapsed(Math.floor((Date.now() - startTime) / 1000));
@@ -15,6 +23,7 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
   }, [o.created_at]);
 
   const formatTime = (seconds) => {
+    if (isNaN(seconds) || seconds < 0) return "0:00";
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -26,46 +35,57 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
   return (
     <motion.div 
       layout 
-      initial={{ opacity: 0, scale: 0.9 }} 
+      initial={{ opacity: 0, y: 20 }} 
       animate={{ 
         opacity: 1, 
-        scale: 1,
-        borderColor: isCritical ? 'rgba(239, 68, 68, 0.5)' : isUrgent ? 'rgba(245, 158, 11, 0.5)' : 'rgba(255, 255, 255, 0.1)'
+        y: 0,
+        borderColor: isCritical ? '#ef4444' : isUrgent ? '#f59e0b' : 'rgba(0, 0, 0, 0.05)'
       }} 
-      exit={{ opacity: 0 }} 
+      exit={{ opacity: 0, scale: 0.95 }} 
       key={o.id}
-      className={`bg-black/40 border-2 rounded-2xl p-5 hover:border-amber-500/30 transition-colors relative overflow-hidden group ${o.is_priority ? 'ring-2 ring-amber-500/50' : ''}`}
+      className="bg-white/80 backdrop-blur-md border-[1.5px] rounded-[2rem] p-6 shadow-sm hover:shadow-xl transition-all relative overflow-hidden group"
     >
       {o.is_priority && (
-        <div className="absolute top-0 left-0 bg-amber-500 text-black text-[7px] font-black px-2 py-0.5 rounded-br-lg uppercase tracking-widest z-10">
+        <div className="absolute top-0 left-0 bg-amber-500 text-white text-[8px] font-black px-3 py-1 rounded-br-2xl uppercase tracking-widest z-10">
           PRIORITY_VIP
         </div>
       )}
       
-      <div className="flex justify-between items-start mb-2 relative z-0">
-        <span className="text-white font-bold">{o.customer_name || 'Mesa Local'}</span>
-        <div className="flex flex-col items-end">
-          <span className="text-amber-500 font-bold">${o.total_price.toLocaleString()}</span>
-          <span className={`text-[10px] font-mono font-bold mt-1 ${isCritical ? 'text-red-500 animate-pulse' : isUrgent ? 'text-amber-500' : 'text-white/40'}`}>
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex flex-col">
+          <span className="text-dark font-black text-sm uppercase tracking-tight">{o.customer_name || 'Mesa Local'}</span>
+          <span className="text-[10px] text-dark/40 font-mono">ORDEN #{o.id}</span>
+        </div>
+        <div className="text-right">
+          <p className="text-amber-600 font-black text-sm">${o.total_price?.toLocaleString()}</p>
+          <p className={`text-[10px] font-bold mt-1 ${isCritical ? 'text-red-500 animate-pulse' : isUrgent ? 'text-amber-500' : 'text-dark/30'}`}>
             ⏱️ {formatTime(elapsed)}
-          </span>
+          </p>
         </div>
       </div>
+
+      {/* ITEMS LIST */}
+      <div className="space-y-2 mb-6 border-y border-dark/5 py-4">
+        {items.map((item, idx) => (
+          <div key={idx} className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 flex items-center justify-center bg-dark/5 rounded-lg text-[10px] font-black text-dark/60">{item.qty}x</span>
+              <span className="text-[11px] font-medium text-dark/80">{item.name}</span>
+            </div>
+            {item.price && <span className="text-[9px] text-dark/30 font-mono">{item.price}</span>}
+          </div>
+        ))}
+      </div>
       
-      <p className="text-[10px] text-white/40 uppercase tracking-widest mb-4 flex items-center justify-between">
-        <span>ORDEN #{o.id} • {o.table_number || 'S/M'}</span>
-        <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded-full border border-white/5">{o.branch_name || 'Central'}</span>
-      </p>
-      
-      <div className="flex gap-2 w-full mt-2">
+      <div className="flex gap-2 w-full">
          {nextStatus && (
            <button onClick={() => changeStatus(o.id, nextStatus)}
-             className="flex-1 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all hover:bg-white/10"
-             style={{ background: 'rgba(255,255,255,0.05)', color: color }}>
-             ➔ Mover a {nextStatus}
+             className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-sm"
+             style={{ background: color, color: '#fff' }}>
+             ➔ {nextStatus}
            </button>
          )}
-         <button onClick={() => printOrder(o)} className="py-2.5 px-4 bg-white/5 hover:bg-white/10 rounded-xl text-white/50 text-[10px] transition-colors" title="Imprimir Comanda">
+         <button onClick={() => printOrder(o)} className="w-12 h-12 flex items-center justify-center bg-dark/5 hover:bg-dark/10 rounded-2xl text-dark/40 text-sm transition-colors" title="Imprimir Comanda">
             🖨️
          </button>
       </div>
@@ -74,12 +94,13 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
 };
 
 const KanbanColumn = ({ title, items, nextStatus, color, icon, changeStatus, printOrder }) => (
-  <div className="flex-1 min-w-[300px] sm:min-w-[350px] flex-shrink-0 snap-center bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 flex flex-col relative overflow-hidden">
-    <div className="absolute top-0 right-0 w-32 h-32 opacity-10 bg-gradient-to-bl blur-[40px] pointer-events-none" style={{ backgroundImage: `linear-gradient(to bottom left, ${color}, transparent)` }} />
-    <h3 className="text-sm font-bold uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-      <span style={{ color }}>{icon}</span> {title} <span className="bg-white/10 text-white px-2 py-0.5 rounded-full text-[9px]">{items.length}</span>
+  <div className="flex-1 min-w-[320px] sm:min-w-[380px] flex-shrink-0 snap-center bg-dark/[0.02] border border-dark/5 rounded-[2.5rem] p-6 flex flex-col relative">
+    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-3 text-dark/60">
+      <span className="w-8 h-8 flex items-center justify-center rounded-xl bg-white shadow-sm" style={{ color }}>{icon}</span> 
+      {title} 
+      <span className="ml-auto bg-dark/5 text-dark/40 px-3 py-1 rounded-full text-[10px] font-mono">{items.length}</span>
     </h3>
-    <div className="space-y-4 overflow-y-auto custom-scrollbar flex-1 pb-10">
+    <div className="space-y-5 overflow-y-auto custom-scrollbar flex-1 pb-10 px-1">
       <AnimatePresence>
         {items.map(o => (
           <OrderCard key={o.id} o={o} nextStatus={nextStatus} color={color} changeStatus={changeStatus} printOrder={printOrder} />
@@ -89,7 +110,7 @@ const KanbanColumn = ({ title, items, nextStatus, color, icon, changeStatus, pri
   </div>
 );
 
-export const KanbanBoard = ({ tenantSlug }) => {
+export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
   const [orders, setOrders] = useState([]);
   const [stats, setStats] = useState({ avgPrep: '0:00', totalServed: 0 });
 
@@ -133,28 +154,52 @@ export const KanbanBoard = ({ tenantSlug }) => {
   };
 
   const changeStatus = async (id, status) => {
-    const token = localStorage.getItem('hub_token');
-    await fetch(`${API_URL}/api/admin/orders/${id}/status?status=${status}`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    setOrders(prev => {
-        const updated = prev.map(o => o.id === id ? { ...o, status, updated_at: new Date().toISOString() } : o);
-        calculateStats(updated);
-        return updated;
-    });
+    try {
+      const token = localStorage.getItem('hub_token');
+      const res = await fetch(`${API_URL}/api/admin/orders/${id}/status?status=${status}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (res.status === 401) {
+        onAuthError(new Error('401 Unauthorized'));
+        return;
+      }
+      
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Error actualizando estado");
+      }
+
+      setOrders(prev => {
+          const updated = prev.map(o => o.id === id ? { ...o, status, updated_at: new Date().toISOString() } : o);
+          calculateStats(updated);
+          return updated;
+      });
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+      console.error(err);
+    }
   };
 
   useEffect(() => {
     const loadOrders = async () => {
-      const token = localStorage.getItem('hub_token');
-      const res = await fetch(`${API_URL}/api/admin/orders`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setOrders(data);
-        calculateStats(data);
+      try {
+        const token = localStorage.getItem('hub_token');
+        const res = await fetch(`${API_URL}/api/admin/orders`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.status === 401) {
+          onAuthError(new Error('401 Unauthorized'));
+          return;
+        }
+        if (res.ok) {
+          const data = await res.json();
+          setOrders(data);
+          calculateStats(data);
+        }
+      } catch (err) {
+        console.error("Load orders error:", err);
       }
     };
 
@@ -165,6 +210,12 @@ export const KanbanBoard = ({ tenantSlug }) => {
       ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         const payload = JSON.parse(event.data);
+        
+        // SEGURIDAD: Solo procesar si el pedido pertenece a este negocio
+        if (payload.tenant_id && config?.id && payload.tenant_id !== config.id) {
+            return;
+        }
+
         if (payload.type === 'NEW_ORDER') {
             if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
             playAlert();
@@ -180,26 +231,52 @@ export const KanbanBoard = ({ tenantSlug }) => {
   }, [tenantSlug]);
 
   const printOrder = (order) => {
-    let itemsStr = "";
-    if(order.items && order.items.length) {
-      itemsStr = order.items.map(i => `${i.quantity}x ${i.product_name}`).join('\n');
-    }
-    const ticket = `====== TECH GASTRO HUB ======
-ORDEN #${order.id}
-Cliente: ${order.customer_name || 'Local'}
-Mesa: ${order.table_number || 'S/M'}
------------------------------
-${itemsStr || 'Productos no detallados'}
-=============================
-Total: $${order.total_price ? order.total_price.toLocaleString() : '0'}
-=============================`;
-    console.log("Imprimiendo ticket:\n", ticket);
-    alert(`🖨️ Simulando impresión térmica para Orden #${order.id}`);
+    const items = typeof order.items_json === 'string' ? JSON.parse(order.items_json) : (order.items_json || []);
+    
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    const itemsHtml = items.map(i => `
+      <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-family: monospace; font-size: 12px;">
+        <span>${i.qty}x ${i.name}</span>
+        <span>${i.price}</span>
+      </div>
+    `).join('');
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Ticket #${order.id}</title>
+          <style>
+            body { font-family: 'Courier New', Courier, monospace; padding: 20px; color: #000; }
+            .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
+            .footer { text-align: center; border-top: 1px dashed #000; padding-top: 10px; margin-top: 20px; font-size: 10px; }
+            .total { font-weight: bold; font-size: 16px; margin-top: 10px; text-align: right; }
+          </style>
+        </head>
+        <body onload="window.print(); window.close();">
+          <div class="header">
+            <h2 style="margin: 0; font-size: 18px;">TECH GASTRO HUB</h2>
+            <p style="margin: 5px 0; font-size: 10px;">Comanda de Cocina</p>
+          </div>
+          <p style="font-size: 12px;"><b>ORDEN:</b> #${order.id}</p>
+          <p style="font-size: 12px;"><b>CLIENTE:</b> ${order.customer_name || 'Local'}</p>
+          <p style="font-size: 12px;"><b>MESA/ENTREGA:</b> ${order.table_number || 'S/M'}</p>
+          <div style="margin: 15px 0; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            ${itemsHtml}
+          </div>
+          <div class="total">TOTAL: $${order.total_price?.toLocaleString()}</div>
+          <div class="footer">
+            <p>Generado por HUB SaaS</p>
+            <p>${new Date().toLocaleString()}</p>
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
-  const pending = orders.filter(o => o.status === 'pending');
-  const cooking = orders.filter(o => o.status === 'cooking');
-  const served = orders.filter(o => o.status === 'served');
+  const pending   = orders.filter(o => o.status === 'pending');
+  const preparing = orders.filter(o => o.status === 'preparing');
+  const ready     = orders.filter(o => o.status === 'ready');
 
   return (
     <div className="h-full flex flex-col pt-4 max-w-6xl mx-auto z-10 relative">
@@ -220,9 +297,9 @@ Total: $${order.total_price ? order.total_price.toLocaleString() : '0'}
         </div>
       </div>
       <div className="flex flex-nowrap w-full gap-6 overflow-x-auto overflow-y-hidden pb-6 snap-x snap-mandatory touch-pan-x" style={{ WebkitOverflowScrolling: 'touch', minHeight: '65vh' }}>
-        <KanbanColumn title="Ingreso" items={pending} nextStatus="cooking" color="#f59e0b" icon="🔥" changeStatus={changeStatus} printOrder={printOrder} />
-        <KanbanColumn title="Cocina" items={cooking} nextStatus="served" color="#3b82f6" icon="🍳" changeStatus={changeStatus} printOrder={printOrder} />
-        <KanbanColumn title="Despacho" items={served} nextStatus={null} color="#10b981" icon="✅" changeStatus={changeStatus} printOrder={printOrder} />
+        <KanbanColumn title="Ingreso" items={pending} nextStatus="preparing" color="#f59e0b" icon="🔔" changeStatus={changeStatus} printOrder={printOrder} />
+        <KanbanColumn title="Cocina" items={preparing} nextStatus="ready" color="#3b82f6" icon="🍳" changeStatus={changeStatus} printOrder={printOrder} />
+        <KanbanColumn title="Despacho" items={ready} nextStatus="paid" color="#10b981" icon="🚀" changeStatus={changeStatus} printOrder={printOrder} />
       </div>
     </div>
   );

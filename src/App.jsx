@@ -137,12 +137,15 @@ const HubLoader = () => {
   return <MainApp config={config} />;
 };
 
+import { RegisterBusiness } from './RegisterBusiness';
+
 /* ── ROUTER ── */
 export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/register" element={<RegisterBusiness />} />
         <Route path="/superadmin" element={<SuperAdmin />} />
         <Route path="/admin/:tenantSlug" element={<AdminDashboard />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
