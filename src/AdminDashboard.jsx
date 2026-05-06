@@ -1165,7 +1165,7 @@ function SedesView({ branches }) {
 
 
 /* ── AI STRATEGIC BRIEFING PANEL ── */
-const AIBriefingPanel = ({ onClose }) => {
+const AIBriefingPanel = ({ onClose, suggestions = [] }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -1248,19 +1248,38 @@ const AIBriefingPanel = ({ onClose }) => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      key={i} 
-                      className="bg-dark/5 p-6 rounded-3xl border border-dark/5 hover:border-amber-500/20 transition-all group"
+                      key={i}
+                      className="group p-6 rounded-3xl bg-white border border-dark/5 hover:border-amber-500/20 hover:shadow-xl transition-all cursor-pointer"
+                      onClick={() => handleExecuteAction(tip)}
                     >
-                       <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-500 mb-2 group-hover:translate-x-1 transition-transform">0{i+1} — {tip.title}</p>
-                       <p className="text-xs text-dark/70 leading-relaxed font-medium mb-4">{tip.action}</p>
-                       <button 
-                         onClick={() => handleExecuteAction(tip)}
-                         className="text-[9px] font-black uppercase tracking-widest text-dark py-2 px-4 bg-amber-500 rounded-lg hover:scale-105 transition-transform"
-                       >
-                         Ejecutar Acción ➔
-                       </button>
+                       <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-2">{tip.title}</p>
+                       <p className="text-xs text-dark/70 font-medium leading-normal">{tip.action}</p>
                     </motion.div>
                   ))}
+
+                  {/* Sugerencias Automatizadas Reales */}
+                  {suggestions.length > 0 && (
+                    <>
+                      <h3 className="text-[10px] font-black uppercase tracking-widest text-red-500/40 border-b border-red-500/10 pb-4 mt-12">Alertas Estratégicas (Activas)</h3>
+                      {suggestions.map((s, i) => (
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          key={s.id}
+                          className="p-6 rounded-3xl bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 transition-all"
+                        >
+                           <div className="flex items-center gap-2 mb-2">
+                             <span className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                             <p className="text-[10px] font-black uppercase tracking-widest text-red-500">Acción Requerida</p>
+                           </div>
+                           <p className="text-xs text-dark/90 font-bold leading-normal mb-4">{s.message}</p>
+                           <button className="w-full py-3 bg-red-500 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-red-600 transition-colors shadow-lg">
+                              EJECUTAR OPTIMIZACIÓN
+                           </button>
+                        </motion.div>
+                      ))}
+                    </>
+                  )}
                </div>
 
                <div className="pt-10">
@@ -1326,9 +1345,23 @@ export const AdminDashboard = () => {
     }
   }, [tenantSlug]);
 
+  const [suggestions, setSuggestions] = useState([]);
+  
+  const fetchSuggestions = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('hub_token');
+      const res = await fetch(`${API_URL}/api/admin/suggestions`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) setSuggestions(await res.json());
+    } catch (err) { console.warn("Suggestions fetch error:", err); }
+  }, [tenantSlug]);
+
   useEffect(() => { 
     if (isAuthenticated && tenantSlug) {
       fetchProducts(); 
+      fetchSuggestions();
+      
       fetch(`${API_URL}/api/v1/tenant/${tenantSlug}`)
         .then(r => {
           if (!r.ok) throw new Error("Tenant fetch failed");
@@ -1339,8 +1372,11 @@ export const AdminDashboard = () => {
           setConfig(data);
         })
         .catch(err => console.warn("Config fetch error:", err));
+        
+      const interval = setInterval(fetchSuggestions, 30000);
+      return () => clearInterval(interval);
     }
-  }, [isAuthenticated, fetchProducts, tenantSlug]);
+  }, [isAuthenticated, fetchProducts, fetchSuggestions, tenantSlug]);
 
   const { toggleAvailability, magicSnap, loading: productLoading } = useProducts();
   const { logout: authLogout } = useAuth();
@@ -1424,9 +1460,14 @@ export const AdminDashboard = () => {
 
           <button 
             onClick={() => setShowBriefing(true)}
-            className="flex items-center gap-2 bg-amber-500/10 text-amber-600 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all border border-amber-500/20 ml-6 animate-pulse"
+            className="relative flex items-center gap-2 bg-amber-500/10 text-amber-600 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all border border-amber-500/20 ml-6 animate-pulse"
           >
             ✦ Briefing IA
+            {suggestions.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] flex items-center justify-center rounded-full border-2 border-white animate-bounce">
+                    {suggestions.length}
+                </span>
+            )}
           </button>
           <button 
             onClick={handleLogout}
@@ -1483,7 +1524,7 @@ export const AdminDashboard = () => {
       <AnimatePresence>
         {showAddModal && <AddProductModal onClose={() => setShowAddModal(false)} onProductAdded={fetchProducts} />}
         {showAIModal && <AIIngestModal onClose={() => setShowAIModal(false)} onSuccess={fetchProducts} />}
-        {showBriefing && <AIBriefingPanel onClose={() => setShowBriefing(false)} />}
+        {showBriefing && <AIBriefingPanel suggestions={suggestions} onClose={() => setShowBriefing(false)} />}
         {showOnboarding && <OnboardingTour onComplete={handleOnboardingComplete} />}
       </AnimatePresence>
     </motion.div>

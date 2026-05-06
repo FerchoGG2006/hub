@@ -934,16 +934,34 @@ def check_instagram_schedules():
 
 def run_background_analytics():
     from database import SessionLocal
+    from core.events.consumers import process_analytics
     db = SessionLocal()
     try:
         process_analytics(db)
     finally:
         db.close()
 
+def run_background_automation():
+    from database import SessionLocal
+    from core.events.consumers import process_automation
+    db = SessionLocal()
+    try:
+        process_automation(db)
+    finally:
+        db.close()
+
 scheduler = BackgroundScheduler()
 scheduler.add_job(check_instagram_schedules, 'interval', minutes=1)
-scheduler.add_job(run_background_analytics, 'interval', hours=1) # Procesa analytics cada hora
+scheduler.add_job(run_background_analytics, 'interval', hours=1)
+scheduler.add_job(run_background_automation, 'interval', minutes=5)
 scheduler.start()
+@app.get("/api/admin/suggestions")
+def get_business_suggestions(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    return db.query(models.Suggestion).filter_by(
+        tenant_id=current_user.tenant_id, 
+        status="pending"
+    ).order_by(models.Suggestion.created_at.desc()).all()
+
 @app.get("/api/admin/ai/briefing")
 def get_ai_strategic_briefing(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     # 1. Recopilar Data Real

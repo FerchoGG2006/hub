@@ -33,9 +33,20 @@ def process_analytics(db: Session):
     # Aquí guardaríamos en una tabla de 'daily_analytics' o similar
     # print(f"[Analytics] Procesados {len(events)} eventos para {len(stats)} negocios.")
 
+from core.automation import automation_service
+
+def process_automation(db: Session):
+    """
+    Consumidor que evalúa reglas de negocio sobre los eventos más recientes.
+    """
+    since = datetime.utcnow() - timedelta(minutes=5)
+    events = db.query(models.BusinessEvent).filter(models.BusinessEvent.created_at >= since).all()
+    
+    for ev in events:
+        automation_service.evaluate_rules(db, ev.tenant_id, ev.type, ev.payload)
+
 def recommendation_engine(db: Session):
     """
     Prepara la estructura para recomendaciones basadas en comportamiento.
     """
-    # Futura implementación de filtrado colaborativo o IA
     pass
