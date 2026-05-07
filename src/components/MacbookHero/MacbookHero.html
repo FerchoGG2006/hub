@@ -31,7 +31,7 @@
                             <!-- Workspace Windows -->
                             
                             <!-- Window 1: Analytics -->
-                            <div class="workspace-window" style="top: 40px; left: 40px; width: 280px;">
+                            <div class="workspace-window window-analytics">
                                 <div class="window-header">
                                     <div class="window-dot dot-red"></div>
                                     <div class="window-dot dot-yellow"></div>
@@ -42,18 +42,18 @@
                                         <span class="metric-label">Monthly Revenue</span>
                                         <span class="metric-value" data-value="128450">$0</span>
                                         <div class="chart-container">
-                                            <div class="chart-bar" data-height="40%" style="height: 0;"></div>
-                                            <div class="chart-bar" data-height="65%" style="height: 0;"></div>
-                                            <div class="chart-bar" data-height="45%" style="height: 0;"></div>
-                                            <div class="chart-bar" data-height="80%" style="height: 0;"></div>
-                                            <div class="chart-bar" data-height="95%" style="height: 0;"></div>
+                                            <div class="chart-bar bar-1" data-height="40%"></div>
+                                            <div class="chart-bar bar-2" data-height="65%"></div>
+                                            <div class="chart-bar bar-3" data-height="45%"></div>
+                                            <div class="chart-bar bar-4" data-height="80%"></div>
+                                            <div class="chart-bar bar-5" data-height="95%"></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Window 2: Active Users -->
-                            <div class="workspace-window" style="top: 180px; left: 340px; width: 220px;">
+                            <div class="workspace-window window-users">
                                 <div class="window-header">
                                     <div class="window-dot dot-red"></div>
                                     <div class="window-dot dot-yellow"></div>
@@ -62,21 +62,21 @@
                                 <div class="window-content">
                                     <div class="metric-card">
                                         <span class="metric-label">Active Users</span>
-                                        <span class="metric-value" data-value="1240" style="color: #27c93f; -webkit-text-fill-color: #27c93f;">0</span>
-                                        <p style="font-size: 0.6rem; color: #666; margin-top: 5px;">↑ 12% vs last hour</p>
+                                        <span class="metric-value metric-users" data-value="1240">0</span>
+                                        <p class="metric-trend">↑ 12% vs last hour</p>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Window 3: Terminal/Code (Glassy) -->
-                            <div class="workspace-window" style="top: 60px; right: 40px; width: 200px; background: rgba(0,0,0,0.4);">
+                            <div class="workspace-window window-terminal">
                                 <div class="window-header">
                                     <div class="window-dot dot-red"></div>
                                     <div class="window-dot dot-yellow"></div>
                                     <div class="window-dot dot-green"></div>
                                 </div>
                                 <div class="window-content">
-                                    <code style="font-size: 0.7rem; color: #00ff00; font-family: monospace;">
+                                    <code class="terminal-code">
                                         > node deploy.js<br>
                                         [OK] Optimized...<br>
                                         [OK] CDN Push...
@@ -96,7 +96,7 @@
     </section>
 
     <!-- Content for scroll demonstration -->
-    <div style="height: 100vh; background: #000; display: flex; align-items: center; justify-content: center; color: #444; font-family: sans-serif;">
+    <div class="scroll-hint-footer">
         <p>Scroll up to open the MacBook</p>
     </div>
 

@@ -228,7 +228,7 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
       console.error(err);
     }
     return () => { if (ws) ws.close(); };
-  }, [tenantSlug]);
+  }, [tenantSlug, config?.id, onAuthError]);
 
   const printOrder = (order) => {
     const items = typeof order.items_json === 'string' ? JSON.parse(order.items_json) : (order.items_json || []);

@@ -1,0 +1,35 @@
+{
+  "extends": [
+    "react-accessibility",
+    "development"
+  ],
+  "rules": {
+    "missing-animation-on-interactivity": {
+      "level": "warning"
+    },
+    "no-long-prompts": {
+      "level": "info",
+      "maxLength": 150
+    }
+  },
+  "browserslist": [
+    "defaults",
+    "not ie 11",
+    "not and_ff <= 150",
+    "not firefox <= 150",
+    "not opera <= 131",
+    "not and_ff <= 150",
+    "not firefox <= 150",
+    "not opera <= 131"
+  ],
+  "hints": {
+    "compat-api/html": [
+      "default",
+      {
+        "ignore": [
+          "meta[name=theme-color]"
+        ]
+      }
+    ]
+  }
+}

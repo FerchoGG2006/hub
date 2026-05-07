@@ -1261,7 +1261,7 @@ const AIBriefingPanel = ({ onClose, suggestions = [] }) => {
                   {suggestions.length > 0 && (
                     <>
                       <h3 className="text-[10px] font-black uppercase tracking-widest text-red-500/40 border-b border-red-500/10 pb-4 mt-12">Alertas Estratégicas (Activas)</h3>
-                      {suggestions.map((s, i) => (
+                      {suggestions.map((s) => (
                         <motion.div 
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
@@ -1355,7 +1355,7 @@ export const AdminDashboard = () => {
       });
       if (res.ok) setSuggestions(await res.json());
     } catch (err) { console.warn("Suggestions fetch error:", err); }
-  }, [tenantSlug]);
+  }, []);
 
   useEffect(() => { 
     if (isAuthenticated && tenantSlug) {
@@ -1378,7 +1378,7 @@ export const AdminDashboard = () => {
     }
   }, [isAuthenticated, fetchProducts, fetchSuggestions, tenantSlug]);
 
-  const { toggleAvailability, magicSnap, loading: productLoading } = useProducts();
+  const { toggleAvailability, magicSnap } = useProducts();
   const { logout: authLogout } = useAuth();
 
   const handleLogout = useCallback(() => {

@@ -145,12 +145,13 @@
 .workspace-window {
   position: absolute;
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   cursor: grab;
+  -webkit-user-select: none;
   user-select: none;
   animation: windowEntry 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   opacity: 0;
@@ -224,6 +225,28 @@
   border-radius: 2px 2px 0 0;
   opacity: 0.6;
   transition: height 1s ease;
+}
+
+/* Window Positioning and Sizing */
+.window-analytics { top: 40px; left: 40px; width: 280px; }
+.window-users { top: 180px; left: 340px; width: 220px; }
+.window-terminal { top: 60px; right: 40px; width: 200px; background: rgba(0,0,0,0.4); }
+
+.metric-users { color: #27c93f; -webkit-text-fill-color: #27c93f; }
+.metric-trend { font-size: 0.6rem; color: #666; margin-top: 5px; }
+
+.terminal-code { font-size: 0.7rem; color: #00ff00; font-family: monospace; }
+
+.chart-bar { height: 0; } /* Reset for JS animation */
+
+.scroll-hint-footer {
+  height: 100vh;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #444;
+  font-family: sans-serif;
 }
 
 /* Animations */
