@@ -222,3 +222,36 @@ class Suggestion(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     tenant = relationship("Tenant")
+
+class PaymentSession(Base):
+    """Sesiones de pago para integración con pasarelas (Wompi)."""
+    __tablename__ = "payment_sessions"
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    business_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    reference = Column(String(100), unique=True, index=True, nullable=False)
+    amount = Column(Integer, nullable=False)
+    currency = Column(String(10), default="COP")
+    gateway = Column(String(50), default="wompi")
+    status = Column(String(20), default="pending") # pending, paid, failed, expired
+    payment_url = Column(Text, nullable=True)
+    qr_data = Column(Text, nullable=True)
+    expires_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    order = relationship("Order")
+    business = relationship("Tenant")
+
+class Payment(Base):
+    """Registros de transacciones de pago reales confirmadas."""
+    __tablename__ = "payments"
+    id = Column(Integer, primary_key=True, index=True)
+    payment_session_id = Column(Integer, ForeignKey("payment_sessions.id"), nullable=False)
+    gateway_transaction_id = Column(String(100), unique=True, nullable=True)
+    amount = Column(Integer, nullable=False)
+    method = Column(String(50), nullable=True)
+    status = Column(String(20), nullable=False)
+    raw_response = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    session = relationship("PaymentSession")

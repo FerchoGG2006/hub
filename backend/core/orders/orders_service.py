@@ -13,9 +13,11 @@ logging.basicConfig(level=logging.INFO)
 
 VALID_STATUS_TRANSITIONS = {
     "pending": ["preparing", "cancelled"],
+    "pending_payment": ["paid", "cancelled"],
+    "paid": ["preparing", "cancelled"],
     "preparing": ["ready", "cancelled"],
-    "ready": ["paid", "cancelled"],
-    "paid": [],
+    "ready": ["completed", "cancelled"],
+    "completed": [],
     "cancelled": []
 }
 
@@ -59,13 +61,21 @@ def create_order(db: Session, tenant_id: int, order_data: dict) -> models.Order:
         if table_number and not has_module(db, tenant_id, "tables"):
             table_number = None
 
+        # Determinar estado inicial basado en método de pago
+        initial_status = "pending"
+        payment_method = order_data.get("payment_method", "transferencia")
+        
+        # Si es transferencia/digital, iniciamos en espera de pago real
+        if payment_method in ["transferencia", "wompi", "nequi", "pse"]:
+            initial_status = "pending_payment"
+
         nuevo_pedido = models.Order(
             tenant_id=tenant_id,
             delivery_method=order_data.get("delivery_method", "mesa"),
-            payment_method=order_data.get("payment_method", "transferencia"),
+            payment_method=payment_method,
             total_price=order_data.get("total_price"),
             items_json=order_data.get("items_json"),
-            status="pending",
+            status=initial_status,
             table_number=table_number,
             phone=order_data.get("phone"),
             customer_name=order_data.get("customer_name"),

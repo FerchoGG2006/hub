@@ -2,11 +2,11 @@ from sqlalchemy.orm import Session
 import models
 import json
 from datetime import datetime
+from core.events import dispatcher
 
 def emit_event(db: Session, tenant_id: int, event_type: str, payload: dict):
     """
-    Registra un evento en la base de datos de forma síncrona.
-    Próximamente puede extenderse para enviar a una cola (Redis/RabbitMQ).
+    Registra un evento en la base de datos y dispara el dispatcher para efectos secundarios.
     """
     try:
         nuevo_evento = models.BusinessEvent(
@@ -16,7 +16,10 @@ def emit_event(db: Session, tenant_id: int, event_type: str, payload: dict):
         )
         db.add(nuevo_evento)
         db.commit()
-        # Aquí se podrían disparar consumidores asíncronos en el futuro
+        
+        # FASE 7 & 10 — DISPATCHER ( Side Effects )
+        dispatcher.dispatch_event(db, tenant_id, event_type, payload)
+        
         return nuevo_evento
     except Exception as e:
         print(f"[EventBus] Error emitiendo evento {event_type}: {e}")

@@ -9,6 +9,7 @@ from typing import List
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import logging
+from apscheduler.schedulers.background import BackgroundScheduler
 
 # Configuración de logs
 logger = logging.getLogger("tech-gastro-hub")
@@ -22,6 +23,7 @@ import auth
 from events import router as events_router
 from core.events.event_bus import emit_event
 from core.events.consumers import process_analytics
+from core.payments.webhook_handler import router as payments_router
 
 from core.orders import orders_service
 from schemas.order import OrderRequest
@@ -33,6 +35,12 @@ if os.getenv("GEMINI_API_KEY"):
 
 # Crear tablas si no existen
 models.Base.metadata.create_all(bind=engine)
+
+# FASE 9 — TIMEOUTS (Scheduler)
+from core.payments.payment_service import handle_payment_expiration
+scheduler = BackgroundScheduler()
+scheduler.add_job(lambda: handle_payment_expiration(next(get_db())), 'interval', minutes=1)
+scheduler.start()
 
 app = FastAPI(
     title="HUB SaaS API",
@@ -47,6 +55,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Router de Pagos
+app.include_router(payments_router)
 
 # Router de Eventos Especiales
 app.include_router(events_router)
@@ -72,6 +83,10 @@ class ConnectionManager:
                 pass
 
 manager = ConnectionManager()
+
+# Inyectar manager en el dispatcher de eventos
+from core.events import dispatcher
+dispatcher.ws_manager = manager
 
 @app.websocket("/ws/menu")
 async def websocket_menu(websocket: WebSocket):
@@ -553,7 +568,29 @@ async def receive_order(slug: str, req: OrderRequest, db: Session = Depends(get_
             "items_json": nuevo.items_json
         }
     })
-    return {"status": "ok", "order_id": nuevo.id}
+
+    # FASE 3 — CREATE ORDER
+    # Retornamos solo el orderId como solicita la arquitectura
+    return {
+        "status": "ok", 
+        "orderId": nuevo.id
+    }
+
+@app.get("/api/v1/tenant/{slug}/orders/{order_id}")
+def get_public_order_status(slug: str, order_id: int, db: Session = Depends(get_db)):
+    """
+    Endpoint público para que el cliente consulte el estado de su pedido (Polling).
+    """
+    order = db.query(models.Order).filter_by(id=order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Pedido no encontrado")
+    
+    # Solo devolvemos datos mínimos por seguridad
+    return {
+        "id": order.id,
+        "status": order.status,
+        "total_price": order.total_price
+    }
 
 @app.get("/api/admin/orders")
 def get_orders(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):

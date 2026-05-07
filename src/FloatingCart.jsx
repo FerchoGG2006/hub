@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from './useCart';
-import { CheckoutView } from './CheckoutView';
+import { CheckoutPanel } from './CheckoutPanel';
 import { useViewport916 } from './useViewport916';
 
 export const FloatingCart = ({ config, branch }) => {
@@ -70,7 +70,7 @@ export const FloatingCart = ({ config, branch }) => {
       </motion.div>
 
       <AnimatePresence>
-        {checkoutOpen && <CheckoutView config={config} branch={branch} isOpen={checkoutOpen} onClose={() => setCheckoutOpen(false)} />}
+        {checkoutOpen && <CheckoutPanel config={config} branch={branch} onClose={() => setCheckoutOpen(false)} />}
       </AnimatePresence>
     </>
   );
