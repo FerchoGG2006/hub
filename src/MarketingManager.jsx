@@ -26,7 +26,7 @@ export const MarketingManager = () => {
         setCampaign(data);
       } else {
         const errData = await res.json().catch(() => ({}));
-        alert(`Error de IA: ${errData.detail || 'Error interno del servidor. ¿Falta la API Key?'}`);
+        alert(`Error al generar: ${errData.detail || 'No se pudo crear la campaña. Verifica tu conexión.'}`);
       }
     } catch(err) {
       console.error(err);
@@ -70,15 +70,15 @@ export const MarketingManager = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
           <div className="bg-dark/5 border border-emerald-500/30 rounded-[2.5rem] p-8 relative overflow-hidden">
              <div className="absolute top-0 right-0 p-6 text-4xl opacity-10">🧠</div>
-             <h4 className="text-[10px] uppercase tracking-widest text-emerald-600 mb-6 font-bold">Campaña Generada (AI_PROCESSED_OK)</h4>
+             <h4 className="text-[10px] uppercase tracking-widest text-emerald-600 mb-6 font-bold">Campaña Generada (Lista para enviar)</h4>
              
              <div className="space-y-6">
                 <div>
-                  <span className="text-[9px] uppercase tracking-[0.2em] text-dark/40 block mb-2 font-mono">[ MSG_SMS_OUTGOING ]</span>
+                  <span className="text-[9px] uppercase tracking-[0.2em] text-dark/40 block mb-2 font-mono">[ Mensaje de texto (SMS) ]</span>
                   <p className="p-4 bg-bone rounded-xl text-sm italic border border-dark/10 text-dark/80">"{campaign.sms_text}"</p>
                 </div>
                 <div>
-                  <span className="text-[9px] uppercase tracking-[0.2em] text-dark/40 block mb-2 font-mono">[ SUBJECT_EMAIL_HEADER ]</span>
+                  <span className="text-[9px] uppercase tracking-[0.2em] text-dark/40 block mb-2 font-mono">[ Asunto del correo ]</span>
                   <p className="p-4 bg-bone rounded-xl text-sm italic border border-dark/10 font-bold text-dark">"{campaign.email_subject}"</p>
                 </div>
                 <div className="flex gap-4">
@@ -93,7 +93,7 @@ export const MarketingManager = () => {
                 </div>
                 
                 <button 
-                  onClick={() => alert("🚀 Lote de 1,240 mensajes enviado con éxito a la base de datos de clientes via Global-Socket.")}
+                  onClick={() => alert("🚀 ¡Campaña enviada con éxito a 1,240 clientes!")}
                   className="w-full py-4 bg-dark text-bone text-[10px] uppercase font-black tracking-widest rounded-2xl transition-all border border-dark/10 hover:bg-dark/90 tactile-button">
                   📡 Lanzar Campaña a Clientes
                 </button>

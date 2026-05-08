@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParams } from 'react-router-dom';
 
 export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => {
-  const { tenantSlug } = useParams();
+  // const { tenantSlug } = useParams();
   const [step, setStep] = useState(1); // 1: Loading, 2: QR/Portal, 3: Verifying, 4: Success
   const [paymentData, setPaymentData] = useState(null);
   const [timeLeft, setTimeLeft] = useState(900); // 15 minutes
@@ -12,9 +12,10 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
     if (!isOpen || !orderId) return;
 
     const initPayment = async () => {
+      if (paymentData) return; // Evitar re-inicializar si ya tenemos datos
       setStep(1);
       try {
-        const baseUrl = import.meta.env.VITE_API_URL || '';
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
         const res = await fetch(`${baseUrl}/payments/session`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -29,17 +30,21 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
     };
 
     initPayment();
+  }, [isOpen, orderId]);
+
+  // Effect 2: Status Monitoring (Polling + WS)
+  useEffect(() => {
+    if (!isOpen || !paymentData?.reference) return;
 
     // WebSocket listener
-    const wsUrl = window.location.protocol === 'https:' 
-      ? `wss://${window.location.host}/ws/menu` 
-      : `ws://localhost:8000/ws/menu`;
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const wsUrl = baseUrl.replace('http', 'ws') + '/ws/menu';
     const ws = new WebSocket(wsUrl);
 
+    // POLLING FALLBACK
     const pollInterval = setInterval(async () => {
       try {
-        const baseUrl = import.meta.env.VITE_API_URL || '';
-        const res = await fetch(`${baseUrl}/api/v1/tenant/${tenantSlug}/orders/${orderId}`);
+        const res = await fetch(`${baseUrl}/payments/status/${paymentData.reference}`);
         const data = await res.json();
         
         if (data.status === 'paid') {
@@ -49,18 +54,21 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
             onSuccess();
             onClose();
           }, 3000);
+        } else if (data.status === 'failed' || data.status === 'expired') {
+          alert("El pago no pudo completarse. Por favor intenta de nuevo.");
+          onClose();
         }
       } catch (err) {
         console.error("Polling error:", err);
       }
-    }, 3000); // Check every 3 seconds (as per optimized infra plan)
+    }, 3000);
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'ORDER_UPDATED' && data.order_id === orderId) {
         if (data.status === 'paid') {
           setStep(4);
-          clearInterval(pollInterval); // Stop polling if WS confirms
+          clearInterval(pollInterval);
           setTimeout(() => {
             onSuccess();
             onClose();
@@ -69,16 +77,20 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
       }
     };
 
+    return () => {
+      ws.close();
+      clearInterval(pollInterval);
+    };
+  }, [isOpen, paymentData?.reference, orderId, onSuccess, onClose]);
+
+  // Effect 3: Timer
+  useEffect(() => {
+    if (!isOpen) return;
     const timer = setInterval(() => {
       setTimeLeft(prev => prev > 0 ? prev - 1 : 0);
     }, 1000);
-
-    return () => {
-      ws.close();
-      clearInterval(timer);
-      clearInterval(pollInterval);
-    };
-  }, [isOpen, orderId]);
+    return () => clearInterval(timer);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

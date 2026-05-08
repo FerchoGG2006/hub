@@ -12,17 +12,23 @@
 ## ✨ Características Principales
 
 ### 📱 Experiencia del Comensal (Frontend)
+<br/>
+
 - **Menú Interactivo "Page-Flip":** Una experiencia táctil y visual premium que emula una carta física.
 - **Carrito Flotante & Checkout:** Sistema de pedidos fluido con integración de datos de entrega y contacto.
 - **Detección de Mesa por QR:** Identificación automática de la ubicación del cliente mediante parámetros dinámicos.
 - **Estética "Ivory Gold":** Diseño minimalista con gradientes dorados vibrantes y efectos de glassmorphism.
 
 ### 🤖 Automatización e Inteligencia Artificial
+<br/>
+
 - **Instagram Autopilot:** Sincronización automática de contenido y gestión de mensajes directos mediante IA.
 - **Integración con Gemini AI:** Motores de respuesta inteligente para atención al cliente y generación de contenido gastronómico.
 - **Webhooks de Meta:** Conectividad en tiempo real con WhatsApp y Messenger.
 
 ### 🛠️ Administración y Control (Dashboard)
+<br/>
+
 - **Multi-Tenant:** Soporte para múltiples restaurantes con configuraciones personalizadas por sede.
 - **Gestión de Inventario & Kanban:** Control total sobre productos, categorías y flujo de pedidos.
 - **Generador de QR Masivo:** Herramienta para desplegar códigos QR físicos en mesas de forma eficiente.
@@ -33,6 +39,8 @@
 ## 🛠️ Stack Tecnológico
 
 ### Frontend
+<br/>
+
 - **Framework:** React 19 + Vite
 - **Animaciones:** Framer Motion
 - **Estilos:** TailwindCSS / CSS Moderno
@@ -40,6 +48,8 @@
 - **Utilidades:** html2canvas, jsPDF, React Router 7
 
 ### Backend
+<br/>
+
 - **Framework:** FastAPI (Python)
 - **Base de Datos:** PostgreSQL + SQLAlchemy (Async)
 - **IA:** Google Generative AI (Gemini)
@@ -51,37 +61,53 @@
 ## 🚀 Instalación y Configuración
 
 ### Requisitos Previos
+<br/>
+
 - Node.js (v18+)
 - Python (v3.10+)
 - PostgreSQL
 
 ### Configuración del Frontend
+<br/>
+
 1. Entra al directorio raíz:
+
    ```bash
    npm install
    ```
+
 2. Crea un archivo `.env` basado en las necesidades del proyecto:
+
    ```env
    VITE_API_URL=http://localhost:8000
    ```
+
 3. Inicia el servidor de desarrollo:
+
    ```bash
    npm run dev
    ```
 
 ### Configuración del Backend
+<br/>
+
 1. Navega a la carpeta `backend`:
+
    ```bash
    cd backend
    ```
+
 2. Crea un entorno virtual e instala dependencias:
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # En Windows: venv\Scripts\activate
    pip install -r requirements.txt
    ```
+
 3. Configura las variables de entorno en `backend/.env` (DB URL, Cloudinary, Gemini API Key).
 4. Inicia el servidor:
+
    ```bash
    uvicorn main:app --reload
    ```

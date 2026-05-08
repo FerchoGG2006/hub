@@ -12,6 +12,7 @@ import { InstagramAutopilot } from './InstagramAutopilot';
 import { OnboardingTour } from './OnboardingTour';
 import { PhoneInput } from './PhoneInput';
 import { EventsManager } from './EventsManager';
+import { AdminPayments } from './AdminPayments';
 import { useAuth } from './core/auth/useAuth';
 import { useProducts } from './core/products/useProducts';
 import { authService } from './core/auth/authService';
@@ -168,8 +169,8 @@ export const LiveMonitor = ({ onLogout }) => {
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10"
     >
       <header className="mb-4 mt-4 flex justify-between items-end">
-        <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none">
-          Live <br /><span className="text-amber-500">Monitor</span>
+        <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
+          VENTAS <br /><span className="text-amber-500">DE HOY</span>
         </h2>
         <button onClick={onLogout} className="text-[9px] uppercase tracking-widest text-dark/30 hover:text-dark/80 transition-colors">Logout / Salir</button>
       </header>
@@ -179,16 +180,16 @@ export const LiveMonitor = ({ onLogout }) => {
         {/* Tech Decor */}
         <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-dark/20 rounded-tr-[2.5rem]" />
         
-        <p className="text-[9px] text-dark/40 uppercase tracking-[0.3em] mb-2 font-mono">[ REAL_TIME_VOL_TRACKER ]</p>
+        <p className="text-[9px] text-dark/40 uppercase tracking-[0.3em] mb-2 font-bold">Ventas en tiempo real</p>
         <div className="flex items-baseline gap-2">
           <span className="text-4xl sm:text-6xl font-black italic text-dark tracking-tighter">${totalFormat}</span>
-          <span className="text-emerald-600 text-[10px] font-mono whitespace-nowrap bg-emerald-500/10 px-2 py-0.5 rounded-full animate-pulse">+2%_SYNCED</span>
+          <span className="text-emerald-600 text-[10px] font-bold whitespace-nowrap bg-emerald-500/10 px-3 py-1 rounded-full animate-pulse">+2% vs ayer</span>
         </div>
       </div>
 
       {/* Listado de "Hot Items" (Los más clickeados) */}
       <section>
-        <h3 className="text-[10px] text-dark/40 uppercase tracking-widest mb-6 px-2">Top Interacción Táctil (Tiempo Real)</h3>
+        <h3 className="text-[10px] text-dark/40 uppercase tracking-widest mb-6 px-2 font-bold">Platos más buscados por clientes</h3>
         {stats.length === 0 && <p className="text-xs text-dark/30 text-center italic">Esperando actividad...</p>}
         
         <div className="space-y-4">
@@ -202,7 +203,7 @@ export const LiveMonitor = ({ onLogout }) => {
                 <motion.div layout key={item.id} className="space-y-2">
                   <div className="flex justify-between text-[10px] uppercase font-bold tracking-tighter px-2">
                     <span>{item.name}</span>
-                    <span className="text-dark/40">{item.hits} Clics</span>
+                    <span className="text-dark/40">{item.hits} vistas</span>
                   </div>
                   {/* Barra de energía estilo HUD */}
                   <div className="h-1.5 w-full bg-dark/5 rounded-full overflow-hidden">
@@ -325,12 +326,11 @@ const QRTerminal = ({ config }) => {
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12 flex flex-col items-center pb-20">
       <div className="text-center mt-4 relative">
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[8px] font-mono text-dark/20 uppercase tracking-[0.5em]">QR_DEPLOY_MODULE</div>
         <h2 className="text-4xl font-light tracking-tight text-dark mb-2">
-          Terminal <span className="italic font-serif text-amber-500">QR</span>
+          Generador de <span className="italic font-serif text-amber-500">QR</span>
         </h2>
         <p className="text-[10px] text-dark/40 font-bold leading-relaxed tracking-[0.4em] uppercase">
-          Ecosistema Digital Unificado
+          Acceso digital para tus mesas
         </p>
       </div>
       
@@ -343,7 +343,7 @@ const QRTerminal = ({ config }) => {
           onChange={(e) => setTable(e.target.value)}
           className="w-full bg-dark/5 border border-dark/10 rounded-2xl py-3 px-5 text-sm text-center outline-none focus:border-amber-500 transition-colors placeholder-dark/30"
         />
-        <p className="text-[9px] text-dark/30 text-center uppercase tracking-widest mt-2 font-mono">{table ? `GEN_QR_TABLE_${table}_LOADED` : 'GENERAL_QR_ACTIVE'}</p>
+        <p className="text-[9px] text-dark/30 text-center uppercase tracking-widest mt-2 font-mono">{table ? `Mesa ${table} configurada` : 'Código general'}</p>
       </div>
 
       <div  
@@ -376,7 +376,7 @@ const QRTerminal = ({ config }) => {
           ↓ Bajar PNG
         </button>
         <button onClick={handleDownloadPDF} disabled={isGenerating} className="flex-1 py-4 bg-dark text-bone font-black flex items-center justify-center gap-2 rounded-2xl text-[9px] uppercase tracking-[0.3em] transition-transform shadow-xl tactile-button">
-          {isGenerating ? 'DESPLEGANDO...' : '📄 Print PDF'}
+          {isGenerating ? 'Generando...' : '📄 Imprimir PDF'}
         </button>
       </div>
 
@@ -396,7 +396,7 @@ const QRTerminal = ({ config }) => {
               className="w-1/3 bg-dark/5 border border-dark/10 rounded-2xl py-4 px-2 text-center text-sm outline-none focus:border-amber-500 transition-colors placeholder-dark/20 text-dark font-mono"
             />
             <button onClick={handleDownloadBatchPDF} disabled={isGenerating || !tableCount} className="flex-1 py-4 bg-dark text-bone font-black flex items-center justify-center gap-2 rounded-2xl text-[10px] uppercase tracking-[0.3em] shadow-xl hover:scale-[1.02] transition-transform disabled:opacity-50 tactile-button">
-              {isGenerating ? 'SYNC_BATCH_PDF...' : '🖨️ Generar PDF Completo'}
+              {isGenerating ? 'Generando PDF...' : '🖨️ Crear archivos'}
             </button>
           </div>
         </div>
@@ -440,28 +440,27 @@ const InventoryManager = ({ products, toggleProduct, magicSnap, onLogout }) => {
               <span className="w-5 h-px bg-amber-500/50"></span> {(tenantSlug || 'DASHBOARD').toUpperCase()}
             </p>
             {/* Tech tag */}
-            <div className="absolute -top-4 -left-2 text-[7px] font-mono text-amber-500/30">v3.4.0_STABLE</div>
           </div>
           <div className="flex flex-col items-start sm:items-end gap-1.5 text-[9px] font-mono tracking-[0.15em] uppercase bg-dark/5 p-5 rounded-[2rem] border border-dark/10 backdrop-blur-md">
-            <p className="text-dark/40">ADMIN: <span className="text-dark font-black ml-2">{localStorage.getItem('hub_tenant') || window.location.pathname.split("/")[2]?.toUpperCase()}</span></p>
-            <p className="text-dark/40">STATUS: <span className="text-emerald-600 font-black ml-2">LINKED_SECURE</span></p>
-            <p className="text-dark/40">ROLE: <span className="text-dark/80 ml-2 font-bold">{localStorage.getItem('hub_role') || 'ADMIN'}</span></p>
+            <p className="text-dark/40">Negocio: <span className="text-dark font-black ml-2">{localStorage.getItem('hub_tenant')?.toUpperCase() || 'Restaurante'}</span></p>
+            <p className="text-dark/40">Conexión: <span className="text-emerald-600 font-black ml-2">Segura</span></p>
+            <p className="text-dark/40">Perfil: <span className="text-dark/80 ml-2 font-bold">Administrador</span></p>
           </div>
         </div>
 
         <div className="flex justify-between items-end">
           <div className="max-w-[400px]">
             <h2 className="text-3xl font-light tracking-tighter text-dark">
-              Gestión de <span className="italic font-serif text-amber-500">Colecciones</span>
+              Gestión del <span className="italic font-serif text-amber-500">Menú Digital</span>
             </h2>
             <p className="text-[10px] text-dark/50 mt-3 font-medium leading-relaxed tracking-widest uppercase">
-              Sincronización de activos digitales en red.
+              Actualiza tus platos, precios y disponibilidad al instante.
             </p>
           </div>
           <div className="flex gap-4">
              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600 border border-amber-500/20 px-6 py-3 rounded-2xl bg-amber-500/5 hover:bg-amber-500/10 cursor-pointer transition-all flex items-center gap-2 group">
                 <span className="text-lg group-hover:rotate-12 transition-transform">📸</span>
-                <span>Magic Snap (AI)</span>
+                <span>Foto-Plato (IA)</span>
                 <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
                   const file = e.target.files[0];
                   if (!file) return;
@@ -475,7 +474,7 @@ const InventoryManager = ({ products, toggleProduct, magicSnap, onLogout }) => {
                 }} />
              </label>
              <button onClick={onLogout} className="text-[10px] font-black uppercase tracking-[0.3em] text-dark/40 hover:text-dark transition-all border border-dark/10 px-6 py-3 rounded-2xl hover:bg-dark/5 tactile-button">
-                Terminar_Sesión
+                Cerrar sesión
              </button>
           </div>
         </div>
@@ -483,7 +482,7 @@ const InventoryManager = ({ products, toggleProduct, magicSnap, onLogout }) => {
       
       {products.length === 0 && (
         <div className="text-center p-8 text-dark/30 uppercase tracking-[0.4em] text-[9px] font-mono font-bold">
-          [ SYNCING_HUB_DATABASE... ]
+          [ CARGANDO INFORMACIÓN DEL MENÚ... ]
         </div>
       )}
 
@@ -513,7 +512,7 @@ const InventoryManager = ({ products, toggleProduct, magicSnap, onLogout }) => {
               <div className="w-11 h-6 bg-white/10 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/30 peer-checked:after:bg-amber-500 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500/20"></div>
             </label>
             <span className={`text-[8px] uppercase tracking-tighter ${item.is_available ? 'text-amber-500/80 shadow-amber-500' : 'text-red-500/80'}`}>
-              {item.is_available ? 'Online' : 'Offline'}
+              {item.is_available ? 'Disponible' : 'Agotado'}
             </span>
           </div>
         </div>
@@ -616,7 +615,7 @@ const BrandingSettings = () => {
   return (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 max-w-6xl mx-auto">
       <header className="mb-8 border-b border-dark/10 pb-6">
-        <h2 className="text-3xl font-light text-dark mb-2 tracking-tight">Branding <span className="text-amber-500 font-serif italic">& Estilo</span></h2>
+        <h2 className="text-3xl font-light text-dark mb-2 tracking-tight">Diseño y <span className="text-amber-500 font-serif italic">Colores</span></h2>
         <p className="text-[10px] uppercase tracking-widest text-dark/40">Personaliza la experiencia visual de tus clientes</p>
       </header>
 
@@ -692,7 +691,7 @@ const BrandingSettings = () => {
           </div>
 
           <button type="submit" disabled={loading} className="w-full py-5 text-[11px] uppercase tracking-[0.3em] font-black text-bone bg-dark rounded-[2rem] tactile-button shadow-xl" >
-            {loading ? 'Aplicando...' : 'Actualizar Marca Globalmente'}
+            {loading ? 'Aplicando...' : 'Guardar cambios de diseño'}
           </button>
         </form>
 
@@ -742,7 +741,7 @@ const BrandingSettings = () => {
                 
                 {/* Visual Hint */}
                 <motion.div animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute -right-8 top-1/2 bg-gold-gradient text-dark text-[9px] font-black uppercase px-3 py-1.5 rounded shadow-lg transform rotate-90 origin-right shadow-amber-500/20">
-                    Carta Interactiva
+                    Vista del Menú
                 </motion.div>
             </div>
         </div>
@@ -804,10 +803,10 @@ const BillingManager = () => {
 
         <div className="space-y-2">
           <h3 className={`text-2xl font-black italic uppercase tracking-tighter ${isSuspended ? 'text-red-500' : 'text-emerald-500'}`}>
-             {isSuspended ? 'SISTEMA_SUSPENDIDO' : 'ACCESO_GARANTIZADO'}
+             {isSuspended ? 'Pago Pendiente' : 'Suscripción Activa'}
           </h3>
-          <p className="text-[9px] font-mono text-dark/40 uppercase tracking-[0.3em]">
-             Validación: {bData.valid_until ? new Date(bData.valid_until).toLocaleDateString() : 'LIFETIME_CORE_LICENSE'}
+          <p className="text-[9px] text-dark/40 uppercase tracking-[0.3em] font-bold">
+             Vencimiento: {bData.valid_until ? new Date(bData.valid_until).toLocaleDateString() : 'Acceso Vitalicio'}
           </p>
         </div>
         
@@ -820,7 +819,7 @@ const BillingManager = () => {
 
       <div className="bg-dark/5 p-10 rounded-[2.5rem] border border-dark/10 flex flex-col items-center relative group">
          <div className="absolute top-4 left-6">
-            <span className="text-[8px] font-mono text-dark/20 uppercase tracking-widest">Pricing_Module_v2.0</span>
+            <span className="text-[8px] text-dark/20 uppercase tracking-widest font-bold">Suscripción Premium</span>
          </div>
          
          <div className="text-center mb-8">
@@ -831,7 +830,7 @@ const BillingManager = () => {
          </div>
          
          <button onClick={handleSubscribe} className="w-full py-5 uppercase font-black tracking-[0.3em] text-[10px] rounded-2xl transition-all flex justify-center items-center gap-3 bg-dark text-bone hover:bg-dark/90 shadow-2xl tactile-button">
-            <span className="text-lg">💳</span> Pagar Renovación Segura
+            <span className="text-lg">💳</span> Renovar plan ahora
          </button>
       </div>
 
@@ -938,15 +937,15 @@ const AddProductModal = ({ onClose, onProductAdded }) => {
         {/* PANEL IZQUIERDO: Editor de Contenido */}
         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-black italic uppercase tracking-tighter text-amber-500">Nuevo Enlace <span className="text-[10px] text-dark/20 font-mono font-normal ml-2">PROD_UUID_GEN</span></h3>
+            <h3 className="text-xl font-black italic uppercase tracking-tighter text-amber-500">Nuevo Producto</h3>
             <button type="button" onClick={handleMagicEdit} disabled={aiGenerating} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/5 border border-indigo-500/20 text-indigo-600 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-indigo-500/10 transition-all">
-               {aiGenerating ? 'Optimizando...' : '🪄 Magic AI Edit'}
+               {aiGenerating ? 'Mejorando...' : '🪄 Mejorar con IA'}
             </button>
           </div>
 
           <form id="product-form" onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="text-[9px] uppercase tracking-[0.2em] text-dark/40 block mb-2 font-bold font-mono">[ ASSET_UPLOAD_01 ]</label>
+              <label className="text-[9px] uppercase tracking-[0.2em] text-dark/40 block mb-2 font-bold">Imagen del producto</label>
               <input type="file" accept="image/*" onChange={handleFileChange}
                 className="w-full text-xs file:bg-dark/5 file:text-dark/60 file:border file:border-dark/10 file:px-4 file:py-2 file:rounded-full file:font-bold file:cursor-pointer" />
             </div>
@@ -975,7 +974,8 @@ const AddProductModal = ({ onClose, onProductAdded }) => {
         {/* PANEL DERECHO: Simulador iOS (Live Preview) */}
         <div className="hidden sm:flex flex-col items-center justify-center bg-dark/5 p-6 border border-dark/10 rounded-[2.5rem] relative overflow-hidden flex-shrink-0 w-[400px]">
            <div className="absolute top-4 left-4 flex gap-1.5"><div className="w-2 h-2 rounded-full bg-red-400"></div><div className="w-2 h-2 rounded-full bg-amber-400"></div><div className="w-2 h-2 rounded-full bg-emerald-400"></div></div>
-           <p className="text-[9px] uppercase tracking-widest text-dark/30 font-black mb-6 absolute top-4 font-mono">DEBUG_SIM_ENV_v1.0</p>
+           <span className="text-[9px] uppercase tracking-widest text-emerald-600/60 font-black">+2% vs ayer</span>
+           <p className="text-[9px] uppercase tracking-widest text-dark/30 font-black mb-6 absolute top-4">Vista previa en tiempo real</p>
            
            <div className="w-[320px] rounded-[3rem] border-[10px] border-dark/10 bg-bone overflow-hidden shadow-2xl relative">
               {/* Fake iPhone Notch */}
@@ -1003,7 +1003,7 @@ const AddProductModal = ({ onClose, onProductAdded }) => {
       {/* Botón Flotante para Confirmar Formulario */}
       <button type="submit" form="product-form" disabled={loading}
         className="fixed bottom-6 z-[110] w-[90%] sm:w-[400px] py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] text-bone bg-dark shadow-[0_15px_40px_rgba(0,0,0,0.3)] transition-all hover:scale-[1.02] active:scale-95 tactile-button">
-        {loading ? 'PUBLICANDO_EN_HUB...' : 'DESPLEGAR_EN_RED'}
+        {loading ? 'Guardando...' : 'Guardar Producto'}
       </button>
       
     </motion.div>
@@ -1067,7 +1067,7 @@ const AIIngestModal = ({ onClose, onSuccess }) => {
           <div className="flex gap-3 mt-10">
             <button onClick={onClose} disabled={loading} className="flex-1 py-4 bg-dark/5 text-dark/40 uppercase text-[10px] font-black rounded-2xl tracking-widest hover:bg-dark/10 tactile-button">Cancelar</button>
             <button onClick={handleIngest} disabled={loading} className="flex-1 py-4 font-black uppercase tracking-[0.3em] text-[10px] text-bone bg-dark rounded-2xl shadow-xl transition-all tactile-button">
-              {loading ? 'PROCESANDO...' : 'MIGRAR_AHORA'}
+              {loading ? 'PROCESANDO...' : 'Migrar Ahora'}
             </button>
           </div>
         </div>
@@ -1091,8 +1091,8 @@ function SedesView({ branches }) {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-dark/5 p-8 rounded-[2.5rem] border border-dark/10 relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-dark/10 rounded-tr-[2.5rem]" />
         <div>
-           <h2 className="text-3xl font-black italic uppercase tracking-tighter text-dark">Gestión de Sedes</h2>
-           <p className="text-[9px] uppercase tracking-[0.4em] text-dark/40 mt-2 font-mono font-bold">NODE_TENANT_v2.0_MASTER</p>
+           <h2 className="text-3xl font-black italic uppercase tracking-tighter text-dark" style={{ fontFamily: "'Playfair Display', serif" }}>GESTIÓN DE SEDES</h2>
+           <p className="text-[9px] uppercase tracking-[0.4em] text-dark/40 mt-2 font-bold">Administra tus puntos de venta activos</p>
         </div>
         <button 
           onClick={() => setIsAdding(true)}
@@ -1107,21 +1107,21 @@ function SedesView({ branches }) {
           <div key={b.id} className="bg-dark/5 border border-dark/10 p-8 rounded-[2.5rem] relative group hover:bg-dark/10 transition-all shadow-sm">
              <div className="absolute top-4 left-6 flex gap-1">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[7px] font-mono text-dark/30 font-bold uppercase tracking-widest">LIVE_BRANCH</span>
+                <span className="text-[7px] text-emerald-600/60 font-bold uppercase tracking-widest">Sede activa</span>
              </div>
              <div className="flex items-start justify-between mt-4">
                 <div>
                    <h3 className="font-black text-2xl text-dark italic tracking-tighter uppercase leading-none mb-3">{b.name}</h3>
-                   <span className="text-[9px] bg-dark text-bone px-3 py-1 rounded-full uppercase font-black tracking-[0.2em]">Slug: {b.slug}</span>
+                   <span className="text-[9px] bg-dark/5 text-dark/40 px-3 py-1 rounded-full uppercase font-black tracking-[0.2em]">Enlace: {b.slug}</span>
                 </div>
                 <div className="text-right space-y-1">
-                   <p className="text-[9px] text-dark/40 font-mono font-bold uppercase tracking-tighter">WP_TERM: {b.whatsapp_number}</p>
+                   <p className="text-[9px] text-dark/40 font-bold uppercase tracking-tighter">WhatsApp: {b.whatsapp_number}</p>
                    <p className="text-[9px] text-dark/40 font-mono italic tracking-tighter">{b.address}</p>
                 </div>
              </div>
              <div className="mt-8 pt-6 border-t border-dark/10 flex gap-6">
-                <button className="text-[9px] uppercase font-black tracking-widest text-dark/30 hover:text-dark transition-colors">CONFIG_SEDE</button>
-                <button className="text-[9px] uppercase font-black tracking-widest text-dark/30 hover:text-dark transition-colors">DATA_LOGS</button>
+                <button className="text-[9px] uppercase font-black tracking-widest text-dark/30 hover:text-dark transition-colors">Configurar</button>
+                <button className="text-[9px] uppercase font-black tracking-widest text-dark/30 hover:text-dark transition-colors">Ver ventas</button>
              </div>
           </div>
         ))}
@@ -1131,19 +1131,18 @@ function SedesView({ branches }) {
         {isAdding && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[200] bg-dark/60 backdrop-blur-xl flex items-center justify-center p-6">
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-bone border border-dark/10 p-10 rounded-[2.5rem] w-full max-w-md shadow-[0_40px_100px_rgba(0,0,0,0.25)] relative">
-               <div className="absolute top-4 left-1/2 -translate-x-1/2 text-[7px] font-mono text-dark/20 uppercase tracking-[0.5em]">BRANCH_DEPLOY_UNIT</div>
                <h3 className="text-2xl font-black italic uppercase text-dark mb-8 tracking-tighter mt-4">Añadir Nueva Sede</h3>
                <div className="space-y-6">
                   <div>
-                    <label className="text-[9px] uppercase tracking-[0.2em] text-dark/40 mb-3 block font-black font-mono">[ INPUT_NAME ]</label>
+                    <label className="text-[9px] uppercase tracking-[0.2em] text-dark/40 mb-3 block font-black">Nombre de la sede</label>
                     <input type="text" placeholder="Ej: Sede Norte" className="w-full bg-dark/5 border border-dark/10 rounded-2xl p-5 text-sm outline-none focus:border-amber-500 text-dark font-medium" value={newBranch.name} onChange={e => setNewBranch({...newBranch, name: e.target.value})} />
                   </div>
                   <div>
-                    <label className="text-[9px] uppercase tracking-[0.2em] text-dark/40 mb-3 block font-black font-mono">[ INPUT_SLUG ]</label>
+                    <label className="text-[9px] uppercase tracking-[0.2em] text-dark/40 mb-3 block font-black">Enlace amigable (Slug)</label>
                     <input type="text" placeholder="norte" className="w-full bg-dark/5 border border-dark/10 rounded-2xl p-5 text-sm outline-none focus:border-amber-500 text-dark font-medium" value={newBranch.slug} onChange={e => setNewBranch({...newBranch, slug: e.target.value})} />
                   </div>
                   <div>
-                    <label className="text-[9px] uppercase tracking-[0.2em] text-dark/40 mb-3 block font-black font-mono">[ INPUT_WP_CONN ]</label>
+                    <label className="text-[9px] uppercase tracking-[0.2em] text-dark/40 mb-3 block font-black">Número de WhatsApp</label>
                     <PhoneInput 
                       value={newBranch.whatsapp_number} 
                       onChange={(val) => setNewBranch({...newBranch, whatsapp_number: val})} 
@@ -1152,7 +1151,7 @@ function SedesView({ branches }) {
                   </div>
                   <div className="flex gap-4 pt-6">
                     <button onClick={() => setIsAdding(false)} className="flex-1 py-5 rounded-2xl text-[10px] font-black uppercase text-dark/30 border border-dark/10 hover:bg-dark/5 transition-all">Cancelar</button>
-                    <button onClick={handleAdd} className="flex-1 py-5 bg-dark text-bone rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-xl tactile-button">GUARDAR_REGISTRO</button>
+                    <button onClick={handleAdd} className="flex-1 py-5 bg-dark text-bone rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-xl tactile-button">Guardar Sede</button>
                   </div>
                </div>
             </motion.div>
@@ -1217,10 +1216,10 @@ const AIBriefingPanel = ({ onClose, suggestions = [] }) => {
           <header className="mb-10 pt-4">
              <div className="flex items-center gap-3 mb-4">
                 <span className="text-2xl animate-pulse">✦</span>
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-500 font-mono">ESTRATÉGICO_IA</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-500 font-mono">ASISTENTE_AUTOMÁTICO</span>
              </div>
              <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none text-dark">
-                AI Briefing <br /><span className="text-dark/30">Business Suite</span>
+                Resumen de <br /><span className="text-dark/30">Desempeño</span>
              </h2>
           </header>
 
@@ -1242,7 +1241,7 @@ const AIBriefingPanel = ({ onClose, suggestions = [] }) => {
                </div>
 
                <div className="space-y-6">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-dark/30 border-b border-dark/5 pb-4">Consejos Accionables (Top 3)</h3>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-dark/30 border-b border-dark/5 pb-4">Sugerencias para tu negocio</h3>
                   {data?.tips?.map((tip, i) => (
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
@@ -1274,7 +1273,7 @@ const AIBriefingPanel = ({ onClose, suggestions = [] }) => {
                            </div>
                            <p className="text-xs text-dark/90 font-bold leading-normal mb-4">{s.message}</p>
                            <button className="w-full py-3 bg-red-500 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-red-600 transition-colors shadow-lg">
-                              EJECUTAR OPTIMIZACIÓN
+                              Optimizar Ahora
                            </button>
                         </motion.div>
                       ))}
@@ -1284,7 +1283,7 @@ const AIBriefingPanel = ({ onClose, suggestions = [] }) => {
 
                <div className="pt-10">
                   <button onClick={onClose} className="w-full py-5 bg-dark text-bone rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-xl tactile-button">
-                    ENTENDIDO_SYNC
+                    ENTENDIDO
                   </button>
                </div>
             </div>
@@ -1437,10 +1436,10 @@ export const AdminDashboard = () => {
           <img src="/logo.png" alt="HUB" className="h-6 lg:h-8 object-contain" />
         </div>
         <div className="flex gap-10 flex-shrink-0 whitespace-nowrap pr-12">
-          {['kanban', 'inventory', 'stats', 'sedes', 'qr', 'marketing', 'autopilot', 'eventos', 'settings', 'billing'].map(m => (
+          {['kanban', 'inventory', 'stats', 'payments', 'sedes', 'qr', 'marketing', 'autopilot', 'eventos', 'settings', 'billing'].map(m => (
             <button key={m} onClick={() => setView(m)}
               className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all relative py-3 ${view === m ? 'text-gold-gradient' : 'text-dark/30 hover:text-dark/60'}`}>
-              {m === 'kanban' ? 'Pedidos Live' : m === 'inventory' ? 'Suministros' : m === 'stats' ? 'Monitor' : m === 'sedes' ? 'Sedes' : m === 'qr' ? 'Punto QR' : m === 'marketing' ? 'Marketing AI' : m === 'autopilot' ? 'IG Autopilot' : m === 'eventos' ? '🎉 Eventos' : m === 'settings' ? 'Branding' : 'Billing'}
+              {m === 'kanban' ? 'Pedidos Actuales' : m === 'inventory' ? 'Inventario' : m === 'stats' ? 'Ventas en Vivo' : m === 'payments' ? '💰 Pagos' : m === 'sedes' ? 'Sucursales' : m === 'qr' ? 'Códigos QR' : m === 'marketing' ? 'Promociones' : m === 'autopilot' ? 'Redes Sociales' : m === 'eventos' ? '🎉 Reservas' : m === 'settings' ? 'Diseño' : 'Mi Plan'}
               {view === m && (
                 <motion.div 
                   layoutId="hud-nav" 
@@ -1450,11 +1449,11 @@ export const AdminDashboard = () => {
             </button>
           ))}
           <div className="flex flex-col items-end ml-auto">
-             <p className="text-[7px] font-mono text-dark/30 uppercase tracking-widest">Linked_Session</p>
+             <p className="text-[7px] font-mono text-dark/30 uppercase tracking-widest">Negocio conectado</p>
              <p className="text-[9px] font-black text-amber-600/60 uppercase tracking-tighter">
-                {localStorage.getItem('hub_tenant')?.toUpperCase() || 'EXTERNAL_USER'} 
+                {localStorage.getItem('hub_tenant')?.toUpperCase() || 'RESTAURANTE'} 
                 <span className="mx-2 text-dark/10">|</span> 
-                ID_{config?.id || '?'}
+                Ref: {config?.id || '?'}
              </p>
           </div>
 
@@ -1462,7 +1461,7 @@ export const AdminDashboard = () => {
             onClick={() => setShowBriefing(true)}
             className="relative flex items-center gap-2 bg-amber-500/10 text-amber-600 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all border border-amber-500/20 ml-6 animate-pulse"
           >
-            ✦ Briefing IA
+            ✦ Resumen de hoy
             {suggestions.length > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] flex items-center justify-center rounded-full border-2 border-white animate-bounce">
                     {suggestions.length}
@@ -1473,7 +1472,7 @@ export const AdminDashboard = () => {
             onClick={handleLogout}
             className="text-[9px] font-black uppercase tracking-widest text-red-500/40 hover:text-red-500 transition-colors ml-6"
           >
-            SALIR_SYNC ✕
+            Cerrar sesión ✕
           </button>
         </div>
       </nav>
@@ -1498,6 +1497,8 @@ export const AdminDashboard = () => {
             <EventsManager key="eventos" tenantSlug={tenantSlug} />
           ) : view === 'settings' ? (
             <BrandingSettings key="settings" />
+          ) : view === 'payments' ? (
+            <AdminPayments key="payments" />
           ) : (
             <BillingManager key="billing" />
           )}
@@ -1510,13 +1511,13 @@ export const AdminDashboard = () => {
            <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowAddModal(true)}
              className="h-14 px-8 rounded-2xl text-bone bg-dark flex items-center justify-center gap-3 transition-all hover:bg-dark/90 tactile-button shadow-lg">
              <span className="text-xl font-black leading-none">+</span>
-             <span className="text-[10px] font-black uppercase tracking-[0.3em] hidden sm:block">Añadir Carga</span>
+             <span className="text-[10px] font-black uppercase tracking-[0.3em] hidden sm:block">Añadir Producto</span>
            </motion.button>
   
            <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowAIModal(true)}
              className="h-14 px-6 rounded-2xl text-dark bg-dark/5 flex items-center justify-center gap-3 transition-all hover:bg-dark/10 border border-dark/10 tactile-button">
              <span className="text-lg">✦</span>
-             <span className="text-[10px] font-black uppercase tracking-[0.3em] hidden sm:block">Migrar con IA</span>
+             <span className="text-[10px] font-black uppercase tracking-[0.3em] hidden sm:block">Cargar desde foto</span>
            </motion.button>
         </div>
       )}

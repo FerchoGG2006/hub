@@ -142,11 +142,10 @@ export const InstagramAutopilot = () => {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
       <header className="mb-8 border-b border-dark/10 pb-6 relative">
-        <div className="absolute -top-4 left-0 text-[7px] font-mono text-dark/20 uppercase tracking-[0.5em]">META_SYNC_V1.9</div>
         <h2 className="text-3xl font-light text-dark mb-2 tracking-tight">
-          Piloto Automático <span className="text-pink-600 font-serif italic">Meta</span>
+          Asistente de <span className="text-pink-600 font-serif italic">Redes Sociales</span>
         </h2>
-        <p className="text-[10px] uppercase tracking-[0.3em] text-dark/40 font-bold">Sincronización de Biografía en Tiempo Real</p>
+        <p className="text-[10px] uppercase tracking-[0.3em] text-dark/40 font-bold">Actualización automática de tu perfil</p>
       </header>
 
       {!isLinked ? (
@@ -158,12 +157,12 @@ export const InstagramAutopilot = () => {
                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
             </div>
             <div className="space-y-4">
-               <h3 className="text-3xl font-black text-dark italic tracking-tighter uppercase leading-none">VENDE MIENTRAS DUERMES</h3>
-               <p className="text-sm text-dark/60 leading-relaxed font-medium">Conecta tu cuenta de Instagram con un solo clic. <br/> HUB cambiará automáticamente tu bio a 'Abierto' o 'Cerrado' según tus horarios.</p>
+               <h3 className="text-3xl font-black text-dark italic tracking-tighter uppercase leading-none">TU NEGOCIO SIEMPRE ACTIVO</h3>
+               <p className="text-sm text-dark/60 leading-relaxed font-medium">Conecta tu cuenta de Instagram con un solo clic. <br/> El asistente cambiará automáticamente tu estado a 'Abierto' o 'Cerrado'.</p>
             </div>
             <button onClick={handleFBLogin} disabled={loading} className="w-full py-5 text-[12px] uppercase tracking-[0.4em] font-black text-bone rounded-2xl hover:scale-[1.02] transition-all shadow-[0_15px_40px_rgba(0,0,0,0.15)] bg-dark flex items-center justify-center gap-3 tactile-button">
                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-               {loading ? 'SINCRONIZANDO NÚCLEO...' : ' VINCULAR INSTAGRAM HUB'}
+               {loading ? 'Conectando...' : 'Vincular Instagram'}
             </button>
         </div>
       ) : (
@@ -182,13 +181,13 @@ export const InstagramAutopilot = () => {
                             <h3 className="text-xl font-bold text-dark">@{mainProfile.ig_username || tenantSlug}</h3>
                         </div>
                     </div>
-                    <button onClick={() => setIsLinked(false)} className="text-[9px] uppercase tracking-widest text-red-500/50 hover:text-red-500 border border-red-500/20 px-4 py-2 rounded-full font-bold">TERMINAR_VÍNCULO</button>
+                    <button onClick={() => setIsLinked(false)} className="text-[9px] uppercase tracking-widest text-red-500/50 hover:text-red-500 border border-red-500/20 px-4 py-2 rounded-full font-bold">Desvincular</button>
                 </div>
 
                 {/* Configuration Area */}
                 <div className="bg-dark/5 p-8 rounded-[2.5rem] border border-dark/10 space-y-6">
                     <div className="flex flex-col gap-4 pb-6 border-b border-dark/10">
-                        <h4 className="text-xs font-black text-dark uppercase tracking-[0.2em] font-mono">[ SET_TIME_SYNC ]</h4>
+                        <h4 className="text-xs font-black text-dark uppercase tracking-[0.2em]">Configuración de horarios</h4>
                         
                         <label className="flex items-center gap-3 cursor-pointer p-4 rounded-2xl bg-dark/5 border border-dark/5 hover:bg-dark/10 transition-colors">
                             <input type="checkbox" className="w-4 h-4 rounded border-dark/20 text-pink-500 focus:ring-pink-500 bg-transparent" checked={syncAll} onChange={(e) => setSyncAll(e.target.checked)} />

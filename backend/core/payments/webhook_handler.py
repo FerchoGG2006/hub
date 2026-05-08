@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from core.payments import payment_service, wompi_provider
+import models
 import logging
 import json
 
@@ -46,6 +47,24 @@ async def wompi_webhook(request: Request, db: Session = Depends(get_db)):
         logger.error(f"❌ Error Webhook: {str(e)}")
         # Retornamos 200 para que Wompi no reintente en caso de errores controlados
         return {"status": "error", "message": str(e)}
+
+@router.get("/status/{reference}")
+def get_payment_status(reference: str, db: Session = Depends(get_db)):
+    """
+    FASE 9 — PAYMENT OBSERVABILITY
+    Endpoint para consultar el estado real de una sesión de pago.
+    """
+    session = db.query(models.PaymentSession).filter_by(reference=reference).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Sesión de pago no encontrada")
+    
+    return {
+        "reference": session.reference,
+        "status": session.status, # pending, paid, failed, expired
+        "order_id": session.order_id,
+        "amount": session.amount,
+        "expires_at": session.expires_at.isoformat() if session.expires_at else None
+    }
 
 @router.post("/session")
 async def create_session(req: dict, db: Session = Depends(get_db)):

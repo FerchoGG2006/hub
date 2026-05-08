@@ -47,7 +47,7 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
     >
       {o.is_priority && (
         <div className="absolute top-0 left-0 bg-amber-500 text-white text-[8px] font-black px-3 py-1 rounded-br-2xl uppercase tracking-widest z-10">
-          PRIORITY_VIP
+          Prioridad Alta
         </div>
       )}
       
@@ -282,24 +282,24 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
     <div className="h-full flex flex-col pt-4 max-w-6xl mx-auto z-10 relative">
       <div className="mb-8 flex justify-between items-end">
         <div>
-            <h2 className="text-3xl font-light">Live <span className="font-serif italic text-amber-500">Kitchen</span></h2>
-            <p className="text-sm text-white/40">Órdenes recibidas vía 4D Socket.</p>
+            <h2 className="text-3xl font-light">Monitor de <span className="font-serif italic text-amber-500">Cocina</span></h2>
+            <p className="text-sm text-dark/40 italic">Los pedidos aparecen aquí automáticamente.</p>
         </div>
-        <div className="flex gap-8 bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-xl">
+        <div className="flex gap-8 bg-dark/5 p-4 rounded-2xl border border-dark/10">
             <div className="text-center">
-                <p className="text-[8px] uppercase tracking-widest text-white/40 mb-1">AVG_PREP_TIME</p>
+                <p className="text-[8px] uppercase tracking-widest text-dark/40 mb-1">Tiempo promedio</p>
                 <p className="text-xl font-black text-amber-500 font-mono">{stats.avgPrep}</p>
             </div>
             <div className="text-center">
-                <p className="text-[8px] uppercase tracking-widest text-white/40 mb-1">TOTAL_SERVED</p>
+                <p className="text-[8px] uppercase tracking-widest text-dark/40 mb-1">Entregados hoy</p>
                 <p className="text-xl font-black text-emerald-500 font-mono">{stats.totalServed}</p>
             </div>
         </div>
       </div>
       <div className="flex flex-nowrap w-full gap-6 overflow-x-auto overflow-y-hidden pb-6 snap-x snap-mandatory touch-pan-x" style={{ WebkitOverflowScrolling: 'touch', minHeight: '65vh' }}>
-        <KanbanColumn title="Ingreso" items={pending} nextStatus="preparing" color="#f59e0b" icon="🔔" changeStatus={changeStatus} printOrder={printOrder} />
-        <KanbanColumn title="Cocina" items={preparing} nextStatus="ready" color="#3b82f6" icon="🍳" changeStatus={changeStatus} printOrder={printOrder} />
-        <KanbanColumn title="Despacho" items={ready} nextStatus="paid" color="#10b981" icon="🚀" changeStatus={changeStatus} printOrder={printOrder} />
+        <KanbanColumn title="Nuevos" items={pending} nextStatus="preparing" color="#f59e0b" icon="🔔" changeStatus={changeStatus} printOrder={printOrder} />
+        <KanbanColumn title="En preparación" items={preparing} nextStatus="ready" color="#3b82f6" icon="🍳" changeStatus={changeStatus} printOrder={printOrder} />
+        <KanbanColumn title="Listos para salir" items={ready} nextStatus="paid" color="#10b981" icon="🚀" changeStatus={changeStatus} printOrder={printOrder} />
       </div>
     </div>
   );

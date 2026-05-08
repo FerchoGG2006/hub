@@ -91,7 +91,7 @@ export const CheckoutPanel = ({ onClose }) => {
     };
 
     try {
-      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const res = await fetch(`${baseUrl}/api/v1/tenant/${tenantSlug}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -248,7 +248,7 @@ export const CheckoutPanel = ({ onClose }) => {
         {/* ── Items summary ── */}
         <section>
           <p className="text-[10px] text-dark/35 uppercase tracking-[0.3em] mb-3 font-semibold">
-            Resumen
+            RESUMEN
           </p>
           <div className="space-y-4">
             {cart.map((item) => (
@@ -296,7 +296,7 @@ export const CheckoutPanel = ({ onClose }) => {
           {/* Total */}
           <div className="flex items-center justify-between mt-3 pt-3"
             style={{ borderTop: '1px solid rgba(197, 160, 89, 0.2)' }}>
-            <span className="text-xs text-dark/50 uppercase tracking-widest font-bold">Total</span>
+            <span className="text-xs text-dark/50 uppercase tracking-widest font-bold">TOTAL</span>
             <span className="text-xl font-black text-amber-700"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               ${(totalPrice / 1000).toFixed(0)}k
@@ -307,7 +307,7 @@ export const CheckoutPanel = ({ onClose }) => {
         {/* ── Delivery method ── */}
         <section>
           <p className="text-[10px] text-dark/35 uppercase tracking-[0.3em] mb-3 font-semibold">
-            {isQrTable ? "Mesa Asignada" : "¿Dónde recibes?"}
+            {isQrTable ? "MESA ASIGNADA" : "¿DÓNDE RECIBES?"}
           </p>
           <div className={`grid ${isQrTable ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
             {(isQrTable ? DELIVERY_OPTIONS.filter(o => o.id === 'mesa') : DELIVERY_OPTIONS.filter(o => o.id !== 'mesa')).map(opt => (
@@ -349,7 +349,7 @@ export const CheckoutPanel = ({ onClose }) => {
         {/* ── Payment method ── */}
         <section>
           <p className="text-[10px] text-dark/35 uppercase tracking-[0.3em] mb-3 font-semibold">
-            ¿Cómo pagas?
+            ¿CÓMO PAGAS?
           </p>
           <div className="grid grid-cols-2 gap-2">
             {PAYMENT_OPTIONS.map(opt => (

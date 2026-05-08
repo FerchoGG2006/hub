@@ -61,59 +61,85 @@ def create_payment_session(db: Session, order_id: int, provider: str = "wompi"):
 
 def process_webhook_payment(db: Session, reference: str, gateway_data: dict):
     """
-    FASE 6 — WEBHOOKS
+    FASE 6 — WEBHOOKS (HARDENED)
     Actualiza estados y emite eventos tras confirmación real.
+    Implementa Idempotencia y validación de estado de orden.
     """
+    transaction_id = gateway_data.get("id")
+    logger.info(f"📡 Procesando Webhook para Ref: {reference}, Transacción: {transaction_id}")
+
+    # 1. Recuperar la sesión
     session = db.query(models.PaymentSession).filter_by(reference=reference).first()
     if not session:
-        logger.error(f"Webhook recibido para referencia inexistente: {reference}")
+        logger.error(f"❌ Error: Webhook recibido para referencia inexistente: {reference}")
         return False
 
+    # 2. IDEMPOTENCIA: Verificar si esta transacción de pasarela ya fue procesada
+    existing_payment = db.query(models.Payment).filter_by(gateway_transaction_id=transaction_id).first()
+    if existing_payment:
+        logger.warning(f"⚠️ Aviso: La transacción {transaction_id} ya fue procesada previamente. Ignorando duplicado.")
+        return True
+
+    # 3. Verificar estado de la sesión y la orden
     if session.status == "paid":
+        logger.info(f"ℹ️ Información: La sesión {reference} ya está marcada como pagada.")
         return True
 
     status = gateway_data.get("status")
+    logger.info(f"🔄 Estado reportado por Pasarela: {status}")
     
-    if status == "APPROVED":
-        # 1. Actualizar Sesión
-        session.status = "paid"
-        
-        # 2. Actualizar Pedido
-        order = db.query(models.Order).filter_by(id=session.order_id).first()
-        if order:
-            order.status = "paid"
+    try:
+        if status == "APPROVED":
+            # Actualizar Sesión
+            session.status = "paid"
             
-            # 3. Crear Registro de Pago (Auditoría)
-            payment = models.Payment(
-                payment_session_id=session.id,
-                gateway_transaction_id=gateway_data.get("id"),
-                amount=gateway_data.get("amount_in_cents", 0) / 100,
-                method=gateway_data.get("payment_method_type"),
-                status="APPROVED",
-                raw_response=gateway_data
-            )
-            db.add(payment)
+            # Actualizar Pedido (Source of Truth)
+            order = db.query(models.Order).filter_by(id=session.order_id).first()
+            if order:
+                if order.status == "paid":
+                    logger.warning(f"⚠️ Alerta: El pedido #{order.id} ya figura como pagado. Posible discrepancia.")
+                else:
+                    order.status = "paid"
+                    logger.info(f"✅ Pedido #{order.id} marcado como PAGADO.")
+                
+                # Crear Registro de Pago (Auditoría / Idempotencia)
+                payment = models.Payment(
+                    payment_session_id=session.id,
+                    gateway_transaction_id=transaction_id,
+                    amount=gateway_data.get("amount_in_cents", 0) / 100,
+                    method=gateway_data.get("payment_method_type"),
+                    status="APPROVED",
+                    raw_response=gateway_data
+                )
+                db.add(payment)
 
-            # 4. Emitir evento centralizado (FASE 10)
-            emit_event(db, order.tenant_id, "payment_confirmed", {
-                "order_id": order.id,
-                "amount": payment.amount,
+                # Emitir evento centralizado (Sincronización de Sistemas)
+                emit_event(db, order.tenant_id, "payment_confirmed", {
+                    "order_id": order.id,
+                    "amount": payment.amount,
+                    "reference": reference,
+                    "method": payment.method,
+                    "transaction_id": transaction_id
+                })
+                
+                logger.info(f"🎊 ÉXITO: Pago confirmado para Orden #{order.id}")
+
+        elif status in ["DECLINED", "ERROR", "VOIDED"]:
+            session.status = "failed"
+            logger.error(f"❌ Pago FALLIDO: Referencia {reference} marcada como {status}")
+            emit_event(db, session.business_id, "payment_failed", {
+                "order_id": session.order_id,
                 "reference": reference,
-                "method": payment.method
+                "reason": status
             })
-            
-            logger.info(f"✅ Pago CONFIRMADO: Orden #{order.id}, Ref: {reference}")
 
-    elif status in ["DECLINED", "ERROR", "VOIDED"]:
-        session.status = "failed"
-        emit_event(db, session.business_id, "payment_failed", {
-            "order_id": session.order_id,
-            "reference": reference,
-            "reason": status
-        })
+        db.commit()
+        return True
 
-    db.commit()
-    return True
+    except Exception as e:
+        db.rollback()
+        logger.error(f"💥 ERROR CRÍTICO procesando webhook: {str(e)}")
+        return False
 
 def handle_payment_expiration(db: Session):
     """

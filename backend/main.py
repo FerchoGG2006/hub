@@ -16,7 +16,7 @@ logger = logging.getLogger("tech-gastro-hub")
 logging.basicConfig(level=logging.INFO)
 
 import models
-from database import get_db, engine
+from database import get_db, engine, SessionLocal
 from utils.storage import upload_product_image
 from utils.gemini_extractor import extract_menu_from_image
 import auth
@@ -38,8 +38,16 @@ models.Base.metadata.create_all(bind=engine)
 
 # FASE 9 — TIMEOUTS (Scheduler)
 from core.payments.payment_service import handle_payment_expiration
+
+def run_job_with_db(job_func):
+    db = SessionLocal()
+    try:
+        job_func(db)
+    finally:
+        db.close()
+
 scheduler = BackgroundScheduler()
-scheduler.add_job(lambda: handle_payment_expiration(next(get_db())), 'interval', minutes=1)
+scheduler.add_job(lambda: run_job_with_db(handle_payment_expiration), 'interval', minutes=1)
 scheduler.start()
 
 app = FastAPI(
@@ -463,7 +471,7 @@ async def create_product(
     image_url = None
     if image is not None and image.filename != "":
         # Sube a un espacio en la nube (ej: Cloudinary o ImgBB) configurado en utils.storage
-        image_url = await upload_product_image(image)
+        image_url = upload_product_image(image)
 
     new_prod = models.Product(
         tenant_id=cat.tenant_id,
@@ -607,6 +615,32 @@ def get_orders(db: Session = Depends(get_db), current_user: models.User = Depend
             "created_at": o.created_at.isoformat(),
             "branch_id": o.branch_id,
             "branch_name": o.branch.name if o.branch else "Central"
+        })
+    return result
+
+@app.get("/api/admin/payments")
+def get_admin_payments(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    """
+    FASE 9 — PAYMENT OBSERVABILITY (ADMIN)
+    Lista todas las sesiones de pago del negocio para auditoría.
+    """
+    sessions = db.query(models.PaymentSession).filter_by(business_id=current_user.tenant_id).order_by(models.PaymentSession.created_at.desc()).all()
+    result = []
+    for s in sessions:
+        # Buscar si hay un pago confirmado asociado
+        payment = db.query(models.Payment).filter_by(payment_session_id=s.id).first()
+        
+        result.append({
+            "id": s.id,
+            "reference": s.reference,
+            "order_id": s.order_id,
+            "customer_name": s.order.customer_name if s.order else "Desconocido",
+            "amount": s.amount,
+            "status": s.status,
+            "gateway": s.gateway,
+            "created_at": s.created_at.isoformat(),
+            "transaction_id": payment.gateway_transaction_id if payment else None,
+            "payment_method": payment.method if payment else None
         })
     return result
 
@@ -1091,7 +1125,7 @@ async def vision_product_creation(
     image_url = None
     try:
         file.file.seek(0)
-        image_url = await upload_product_image(file)
+        image_url = upload_product_image(file)
     except:
         pass
 
