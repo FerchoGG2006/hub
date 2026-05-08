@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useParams } from 'react-router-dom';
 
 export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => {
   // const { tenantSlug } = useParams();
@@ -30,7 +29,7 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
     };
 
     initPayment();
-  }, [isOpen, orderId]);
+  }, [isOpen, orderId, paymentData]);
 
   // Effect 2: Status Monitoring (Polling + WS)
   useEffect(() => {
