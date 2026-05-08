@@ -5,7 +5,7 @@ from core.payments import payment_service, wompi_provider
 import logging
 import json
 
-router = APIRouter(prefix="/api/payments", tags=["payments"])
+router = APIRouter(prefix="/payments", tags=["payments"])
 logger = logging.getLogger("tech-gastro-hub")
 
 @router.post("/webhook")

@@ -91,7 +91,7 @@ export const CheckoutPanel = ({ onClose }) => {
     };
 
     try {
-      const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
+      const baseUrl = import.meta.env.VITE_API_URL || '';
       const res = await fetch(`${baseUrl}/api/v1/tenant/${tenantSlug}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

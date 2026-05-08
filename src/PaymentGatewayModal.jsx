@@ -14,8 +14,8 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
     const initPayment = async () => {
       setStep(1);
       try {
-        const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
-        const res = await fetch(`${baseUrl}/api/payments/session`, {
+        const baseUrl = import.meta.env.VITE_API_URL || '';
+        const res = await fetch(`${baseUrl}/payments/session`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ orderId, provider: 'wompi' })
@@ -36,10 +36,9 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
       : `ws://localhost:8000/ws/menu`;
     const ws = new WebSocket(wsUrl);
 
-    // FASE 9 — POLLING FALLBACK (Reliability)
     const pollInterval = setInterval(async () => {
       try {
-        const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
+        const baseUrl = import.meta.env.VITE_API_URL || '';
         const res = await fetch(`${baseUrl}/api/v1/tenant/${tenantSlug}/orders/${orderId}`);
         const data = await res.json();
         
@@ -54,7 +53,7 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
       } catch (err) {
         console.error("Polling error:", err);
       }
-    }, 7000); // Check every 7 seconds
+    }, 3000); // Check every 3 seconds (as per optimized infra plan)
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);

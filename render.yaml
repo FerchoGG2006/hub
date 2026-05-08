@@ -20,6 +20,14 @@ services:
         value: 2be64dd59233f0a37d88c7026bc6a142
       - key: META_VERIFY_TOKEN
         value: hub_secret_token_2026
+      - key: WOMPI_PUBLIC_KEY
+        sync: false
+      - key: WOMPI_PRIVATE_KEY
+        sync: false
+      - key: WOMPI_EVENTS_SECRET
+        sync: false
+      - key: WOMPI_ENV
+        value: sandbox
 
   # ─── FRONTEND (React + Vite served via Node) ───
   - type: web
