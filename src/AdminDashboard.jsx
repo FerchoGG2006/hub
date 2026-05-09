@@ -161,7 +161,7 @@ export const LiveMonitor = ({ onLogout }) => {
     return () => { if (ws) ws.close() };
   }, [fetchTopStats]);
 
-  const totalFormat = (totalHits * 32000).toLocaleString('es-CO'); // Estimación de dinero base para HUD
+  const totalFormat = (totalHits * 32000).toLocaleString('es-CO'); // Estimación de dinero base para Platorin
   const topProduct = stats.length > 0 ? stats[0] : null;
 
   return (
@@ -261,7 +261,7 @@ const QRTerminal = ({ config }) => {
     pdf.setFont('helvetica', 'bold');
     if (table) pdf.text(`MESA ${table}`, 105, 35, { align: "center" });
     pdf.setTextColor(197, 160, 89);
-    pdf.text("Descubre nuestra Carta 4D", 105, 50, { align: "center" });
+    pdf.text("Sistema Operativo Gastronómico", 105, 50, { align: "center" });
 
     // Subtitulo
     pdf.setTextColor(26, 26, 26);
@@ -277,7 +277,7 @@ const QRTerminal = ({ config }) => {
     // Footer
     pdf.setFontSize(10);
     pdf.setTextColor(100, 100, 100);
-    pdf.text(`Powered by HUB SaaS - tenant: ${tenantSlug}`, 105, 280, { align: "center" });
+    pdf.text(`Powered by Platorin OS - id: ${tenantSlug}`, 105, 280, { align: "center" });
 
     pdf.save(`${tenantSlug}-kit-digital${table ? '-mesa-'+table : ''}.pdf`);
     setIsGenerating(false);
@@ -305,7 +305,7 @@ const QRTerminal = ({ config }) => {
        pdf.setFont('helvetica', 'bold');
        pdf.text(`MESA ${i}`, 105, 35, { align: "center" });
        pdf.setTextColor(197, 160, 89);
-       pdf.text("Descubre nuestra Carta 4D", 105, 50, { align: "center" });
+       pdf.text("Sistema Operativo Gastronómico", 105, 50, { align: "center" });
        pdf.setTextColor(26, 26, 26);
        pdf.setAlpha(0.6);
        pdf.setFontSize(16);
@@ -315,7 +315,7 @@ const QRTerminal = ({ config }) => {
        pdf.addImage(imgData, 'PNG', 55, 90, 100, 100);
        pdf.setFontSize(10);
        pdf.setTextColor(100, 100, 100);
-       pdf.text(`Powered by HUB SaaS - tenant: ${tenantSlug}`, 105, 280, { align: "center" });
+       pdf.text(`Powered by Platorin OS - tenant: ${tenantSlug}`, 105, 280, { align: "center" });
     }
     
     pdf.save(`${tenantSlug}-lote-mesas-1-a-${count}.pdf`);
@@ -442,7 +442,7 @@ const InventoryManager = ({ products, toggleProduct, magicSnap, onLogout }) => {
             {/* Tech tag */}
           </div>
           <div className="flex flex-col items-start sm:items-end gap-1.5 text-[9px] font-mono tracking-[0.15em] uppercase bg-dark/5 p-5 rounded-[2rem] border border-dark/10 backdrop-blur-md">
-            <p className="text-dark/40">Negocio: <span className="text-dark font-black ml-2">{localStorage.getItem('hub_tenant')?.toUpperCase() || 'Restaurante'}</span></p>
+            <p className="text-dark/40">Negocio: <span className="text-dark font-black ml-2">{localStorage.getItem('hub_tenant')?.toUpperCase() || 'RESTAURANTE'}</span></p>
             <p className="text-dark/40">Conexión: <span className="text-emerald-600 font-black ml-2">Segura</span></p>
             <p className="text-dark/40">Perfil: <span className="text-dark/80 ml-2 font-bold">Administrador</span></p>
           </div>
@@ -789,7 +789,7 @@ const BillingManager = () => {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <header className="mb-8 border-b border-dark/10 pb-6">
         <h2 className="text-3xl font-light text-dark mb-2 tracking-tight">Facturación & <span className="text-amber-500 font-serif italic">Planes</span></h2>
-        <p className="text-[10px] uppercase tracking-widest text-dark/40">Pago y Control de tu Sistema HUB SaaS</p>
+        <p className="text-[10px] uppercase tracking-widest text-dark/40">Pago y Control de tu Sistema Platorin OS</p>
       </header>
       
       <div className={`p-8 rounded-[2.5rem] border flex flex-col items-center text-center gap-6 relative overflow-hidden ${isSuspended ? 'bg-red-500/5 border-red-500/20' : 'bg-emerald-500/5 border-emerald-500/20'}`}>

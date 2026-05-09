@@ -99,7 +99,7 @@ const HubLoader = () => {
       <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-6 text-center space-y-4">
         <span className="text-5xl">🚫</span>
         <h1 className="text-2xl font-black uppercase tracking-widest text-[#f59e0b]">Servicio Suspendido</h1>
-        <p className="text-xs text-white/50 tracking-wider">El acceso a la carta interactiva está inactivo temporalmente.<br/>El administrador del restaurante puede reactivar su suscripción en el panel HUB.</p>
+        <p className="text-xs text-white/50 tracking-wider">El acceso a la carta interactiva está inactivo temporalmente.<br/>El administrador del restaurante puede reactivar su suscripción en el panel Platorin.</p>
       </div>
     );
   }
@@ -110,7 +110,7 @@ const HubLoader = () => {
         <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10 shadow-2xl">
           <span className="text-2xl">🔍</span>
         </div>
-        <h2 className="text-xl font-black uppercase tracking-widest text-white mb-2">HUB NO ENCONTRADO</h2>
+        <h2 className="text-xl font-black uppercase tracking-widest text-white mb-2">NEGOCIO NO ENCONTRADO</h2>
         <p className="text-[10px] text-white/30 uppercase tracking-[0.3em] max-w-xs leading-relaxed">
           No pudimos localizar la carta de <span className="text-amber-500">{cleanSlug}</span>. <br/>
           Verifica que el link sea correcto o contacta al administrador.
@@ -129,7 +129,7 @@ const HubLoader = () => {
             <div className="absolute inset-0 border-2 border-amber-500/10 rounded-full"></div>
             <div className="absolute inset-0 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
          </div>
-         <p className="mt-6 text-[8px] uppercase tracking-[0.5em] text-white/20 animate-pulse">Sincronizando HUB...</p>
+         <p className="mt-6 text-[8px] uppercase tracking-[0.5em] text-white/20 animate-pulse">Sincronizando Platorin...</p>
       </div>
     );
   }

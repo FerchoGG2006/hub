@@ -1,38 +1,36 @@
-# 🚀 Hub Dynamic Infrastructure
+# 🚀 Platorin OS | Sistema Operativo para Restaurantes
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![React](https://img.shields.io/badge/Frontend-React%2019-blue.svg)](https://react.dev/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
 [![Gemini AI](https://img.shields.io/badge/AI-Gemini%201.5-orange.svg)](https://deepmind.google/technologies/gemini/)
 
-**Tech Gastro Hub** es una plataforma SaaS multitenant de última generación diseñada para revolucionar la experiencia gastronómica digital. Combina menús interactivos de alta fidelidad, automatización con IA y una gestión administrativa integral en una interfaz elegante con estética "Ivory Gold".
+**Platorin** es la plataforma de operación y ventas diseñada para modernizar negocios gastronómicos. No es solo una carta digital; es un sistema operativo integral que unifica pedidos, pagos, cocina y automatización en una experiencia moderna de alta fidelidad.
 
 ---
 
-## ✨ Características Principales
+## ✨ Transformación Operacional
 
-### 📱 Experiencia del Comensal (Frontend)
+### 📈 Maximiza tus Ventas
 <br/>
 
-- **Menú Interactivo "Page-Flip":** Una experiencia táctil y visual premium que emula una carta física.
-- **Carrito Flotante & Checkout:** Sistema de pedidos fluido con integración de datos de entrega y contacto.
-- **Detección de Mesa por QR:** Identificación automática de la ubicación del cliente mediante parámetros dinámicos.
-- **Estética "Ivory Gold":** Diseño minimalista con gradientes dorados vibrantes y efectos de glassmorphism.
+- **Pedidos & Pagos Digitales:** Reduce tiempos de espera y optimiza la rotación de mesas con autogestión fluida.
+- **WhatsApp & Social Commerce:** Convierte conversaciones en ventas directas sincronizadas con tu inventario.
+- **Recomendaciones con IA:** Motor inteligente que sugiere productos para aumentar el ticket promedio de forma invisible.
 
-### 🤖 Automatización e Inteligencia Artificial
+### ⚡ Optimiza tu Operación
 <br/>
 
-- **Instagram Autopilot:** Sincronización automática de contenido y gestión de mensajes directos mediante IA.
-- **Integración con Gemini AI:** Motores de respuesta inteligente para atención al cliente y generación de contenido gastronómico.
-- **Webhooks de Meta:** Conectividad en tiempo real con WhatsApp y Messenger.
+- **Kanban de Cocina en Tiempo Real:** Visualiza y gestiona el flujo de pedidos sin caos ni papeles.
+- **Control Multi-Sede:** Monitorea y administra todos tus locales desde un dashboard unificado y profesional.
+- **Analytics Estratégico:** Toma decisiones basadas en datos reales de consumo y comportamiento de clientes.
 
-### 🛠️ Administración y Control (Dashboard)
+### 🤖 Inteligencia & Automatización
 <br/>
 
-- **Multi-Tenant:** Soporte para múltiples restaurantes con configuraciones personalizadas por sede.
-- **Gestión de Inventario & Kanban:** Control total sobre productos, categorías y flujo de pedidos.
-- **Generador de QR Masivo:** Herramienta para desplegar códigos QR físicos en mesas de forma eficiente.
-- **SuperAdmin:** Panel global para monitoreo de métricas, gestión de suscripciones y control de inquilinos.
+- **Automatización de Marketing:** Sincronización con Instagram y TikTok para atraer clientes de forma autónoma.
+- **Gestión de Inventario Inteligente:** Alertas y sugerencias automáticas basadas en la demanda proyectada.
+- **Infraestructura Moderna:** Basado en WebSockets para sincronización instantánea en todos los dispositivos.
 
 ---
 

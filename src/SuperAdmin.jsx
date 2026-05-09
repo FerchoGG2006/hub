@@ -44,8 +44,9 @@ export const SuperAdmin = () => {
       ></div>
 
       <div className="mb-12 flex items-center justify-start relative z-10">
-        <img src="/logo.png" alt="HUB" className="h-[4.5rem] object-contain drop-shadow-xl invert" />
-        <span className="text-amber-500/50 italic text-2xl ml-4 font-serif self-end pb-2">Network</span>
+        <div className="w-12 h-12 bg-amber-500 rounded-lg flex items-center justify-center text-bone font-black text-xl shadow-lg shadow-amber-500/20">P</div>
+        <span className="text-dark font-black tracking-tighter text-3xl ml-3">Platorin</span>
+        <span className="text-amber-500/50 italic text-2xl ml-4 font-serif self-end pb-1">Network</span>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
@@ -95,7 +96,7 @@ export const SuperAdmin = () => {
           onClick={() => setShowAIModal(true)}
           className="bg-transparent border border-dashed border-dark/20 rounded-[2rem] p-8 flex flex-col items-center justify-center text-dark/30 hover:text-amber-500 hover:border-amber-500/30 hover:bg-amber-500/5 cursor-pointer transition-all min-h-[300px] backdrop-blur-sm">
           <span className="text-4xl mb-4 font-light text-dark">+</span>
-          <span className="text-[10px] uppercase tracking-[0.2em] text-dark/30">Desplegar Nuevo HUB</span>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-dark/30">Desplegar Nueva Instancia</span>
         </div>
       </div>
 
@@ -195,7 +196,7 @@ const AIOnboardingModal = ({ onClose, onSuccess }) => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 relative z-10">
             <div className="space-y-4">
               <div className="group">
-                <label className="text-[9px] uppercase tracking-[0.2em] text-dark/30 ml-2 mb-1 block font-bold">Identidad del HUB</label>
+                <label className="text-[9px] uppercase tracking-[0.2em] text-dark/30 ml-2 mb-1 block font-bold">Identidad del Negocio</label>
                 <input 
                   type="text" 
                   placeholder="Nombre Comercial (ej: Sushi Master)" 

@@ -102,7 +102,10 @@ export const LandingPage = () => {
       <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled ? 'bg-bone/80 backdrop-blur-2xl border-b border-dark/5 py-4' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-6 lg:px-12 flex justify-between items-center">
           <div className="flex items-center gap-3">
-             <img src="/logo.png" alt="HUB" className="h-8 object-contain" />
+             <div className="flex items-center gap-2">
+               <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-bone font-black text-xs shadow-lg shadow-amber-500/20">P</div>
+               <span className="font-sans font-black tracking-tighter text-xl text-dark">Platorin</span>
+             </div>
           </div>
           <div className="flex items-center gap-4 md:gap-8">
             <button onClick={() => setShowLogin(true)} className="text-[10px] font-bold uppercase tracking-[0.2em] text-dark/50 hover:text-dark transition-colors">
@@ -145,8 +148,8 @@ export const LandingPage = () => {
                 </div>
               </div>
 
-              <h3 className="text-center text-[10px] font-black uppercase tracking-[0.5em] text-amber-500 mb-1">Hub Operativo</h3>
-              <p className="text-center text-[9px] uppercase tracking-[0.3em] text-dark/30 mb-8">Terminal de Acceso</p>
+              <h3 className="text-center text-[10px] font-black uppercase tracking-[0.5em] text-amber-500 mb-1">Platorin OS</h3>
+              <p className="text-center text-[9px] uppercase tracking-[0.3em] text-dark/30 mb-8">Terminal de Operaciones</p>
 
               <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 <input 
@@ -188,19 +191,19 @@ export const LandingPage = () => {
             
             <motion.div 
                initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: "easeOut" }}
-               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm"
+               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-dark/10 bg-white/5 backdrop-blur-sm"
             >
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              <span className="text-[9px] uppercase tracking-[0.3em] font-bold text-dark/70">HUB Operativo v2.0 Live</span>
+              <span className="text-[9px] uppercase tracking-[0.3em] font-bold text-dark/70">Platorin Operating System v2.0 Live</span>
             </motion.div>
             
             <motion.h1 
                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
                className="text-6xl md:text-8xl font-sans tracking-tighter text-dark leading-[1.05]"
             >
-              La Operativa Perfecta. <br className="hidden md:block"/>
+              Vende más. <br className="hidden md:block"/>
               <span className="italic font-serif text-gold-gradient drop-shadow-sm">
-                Sin intermediarios.
+                Gestiona menos.
               </span>
             </motion.h1>
             
@@ -208,7 +211,7 @@ export const LandingPage = () => {
                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
                className="max-w-2xl text-dark/50 md:text-xl tracking-wide font-light mx-auto leading-relaxed"
             >
-              Crea tu menú interactivo en 10 segundos impulsado por Inteligencia Artificial. Conviértelo en un modelo 4D físico-digital que tus usuarios aman hojear.
+              Platorin es el sistema operativo diseñado para modernizar la operación y ventas de tu negocio gastronómico. Todo bajo control, desde los pedidos hasta la cocina.
             </motion.p>
 
             <motion.div 
@@ -240,10 +243,10 @@ export const LandingPage = () => {
               className="md:w-1/3 text-left space-y-8"
             >
               <h2 className="text-5xl md:text-7xl font-bold tracking-tight text-dark leading-[1.1]">
-                Controla tu <br/> <span className="italic font-serif text-gold-gradient">operación</span> <br/> en tiempo real.
+                Unifica tu <br/> <span className="italic font-serif text-gold-gradient">operación</span> <br/> y maximiza ventas.
               </h2>
               <p className="text-xl text-dark/50 font-light leading-relaxed max-w-lg">
-                Todo tu negocio sincronizado en tiempo real: pedidos, analítica, usuarios y operaciones desde un solo dashboard.
+                Pedidos, pagos, cocina, analytics y automatización sincronizados en tiempo real desde una sola plataforma profesional.
               </p>
             </motion.div>
 
@@ -272,39 +275,39 @@ export const LandingPage = () => {
               <div className="md:col-span-8 rounded-[2rem] bg-gradient-to-br from-dark/[0.03] to-dark/[0.01] border border-dark/[0.05] p-8 md:p-12 relative overflow-hidden group hover:border-amber-500/20 transition-all">
                 <div className="absolute top-1/2 left-3/4 -translate-y-1/2 w-64 h-64 bg-amber-500/10 rounded-full blur-[80px]"></div>
                 <div className="relative z-10 w-full md:w-2/3 flex flex-col h-full justify-center space-y-4">
-                   <div className="w-12 h-12 rounded-full border border-dark/10 bg-dark/5 flex items-center justify-center text-xl mb-2">🤖</div>
-                   <h3 className="text-2xl font-black uppercase tracking-tight">Ingesta 0-Click (AI Base)</h3>
-                   <p className="text-sm font-light text-dark/50 leading-relaxed">Arrastra una foto chueca del menú antiguo en papel de tu cliente. Nuestro LLM lee la estructura, identifica familias, ajusta precios y genera el ecosistema en menos de 10 segundos.</p>
+                   <div className="w-12 h-12 rounded-full border border-dark/10 bg-dark/5 flex items-center justify-center text-xl mb-2">⚡</div>
+                   <h3 className="text-2xl font-black uppercase tracking-tight">Reduce Tiempos de Atención</h3>
+                   <p className="text-sm font-light text-dark/50 leading-relaxed">Automatiza la toma de pedidos y pagos con códigos QR inteligentes. Elimina filas, evita errores operativos y permite que tu equipo se enfoque en la hospitalidad.</p>
                 </div>
               </div>
 
               {/* Feature 2 */}
               <div className="md:col-span-4 rounded-[2rem] bg-amber-500/5 border border-amber-500/10 p-8 md:p-12 relative overflow-hidden flex flex-col justify-between group hover:bg-amber-500/10 transition-all">
-                <h3 className="text-xl font-medium tracking-tight text-amber-500">Magic Edit</h3>
+                <h3 className="text-xl font-medium tracking-tight text-amber-500">Vende más con IA</h3>
                 <div className="text-sm font-light text-dark/60 space-y-2">
-                  <p className="line-through opacity-50">"Hamburguesa simple con queso."</p>
-                  <p className="font-serif italic text-dark/90">"Jugosa carne Angus madurada, fundida en queso cheddar sobre pan brioche artesanal tostado a la mantequilla."</p>
+                  <p className="text-xs uppercase tracking-widest font-bold text-dark/30">Optimización Automática</p>
+                  <p className="font-serif italic text-dark/90">Recomendaciones inteligentes de productos basadas en comportamiento de clientes para aumentar el ticket promedio.</p>
                 </div>
               </div>
 
               {/* Feature 3 */}
               <div className="md:col-span-5 rounded-[2rem] bg-gradient-to-bl from-dark/[0.03] to-dark/[0.01] border border-dark/[0.05] p-8 md:p-12 flex flex-col justify-between group">
-                <div className="flex justify-between items-start">
-                   <h3 className="text-2xl font-black uppercase tracking-tight">Live Monitor</h3>
-                   <div className="flex gap-1 h-3 mt-2">
-                     <span className="w-1 bg-amber-500 rounded-full animate-[pulse_1s_ease-in-out_infinite]"></span>
-                     <span className="w-1 bg-amber-500 rounded-full animate-[pulse_1.2s_ease-in-out_infinite]"></span>
-                     <span className="w-1 bg-amber-500 rounded-full animate-[pulse_0.8s_ease-in-out_infinite]"></span>
-                   </div>
-                </div>
-                <p className="text-sm font-light text-dark/50 leading-relaxed">No esperes al final del mes. Sabrás exactamente sobre qué ítem dudó el cliente y cuál añadió usando WebSockets ultra-rápidos.</p>
+                 <div className="flex justify-between items-start">
+                    <h3 className="text-2xl font-black uppercase tracking-tight">Control Total</h3>
+                    <div className="flex gap-1 h-3 mt-2">
+                      <span className="w-1 bg-amber-500 rounded-full animate-[pulse_1s_ease-in-out_infinite]"></span>
+                      <span className="w-1 bg-amber-500 rounded-full animate-[pulse_1.2s_ease-in-out_infinite]"></span>
+                      <span className="w-1 bg-amber-500 rounded-full animate-[pulse_0.8s_ease-in-out_infinite]"></span>
+                    </div>
+                 </div>
+                 <p className="text-sm font-light text-dark/50 leading-relaxed">Gestiona múltiples sedes, monitorea inventarios y visualiza el rendimiento de tu negocio en tiempo real desde cualquier dispositivo.</p>
               </div>
 
               {/* Feature 4 */}
               <div className={`md:col-span-7 rounded-[2rem] bg-[url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="n"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23n)" opacity="0.05"/%3E%3C/svg%3E')] border border-dark/[0.05] p-8 md:p-12 relative overflow-hidden flex flex-col justify-end group hover:border-dark/20 transition-all`}>
                 <div className="absolute -top-32 -right-10 text-[200px] opacity-[0.02] transform rotate-12 group-hover:rotate-6 transition-transform duration-1000">📖</div>
-                <h3 className="text-3xl font-light tracking-tight mb-2">Motor Render <span className="font-serif italic text-gold-gradient">4D</span></h3>
-                <p className="text-sm font-light text-dark/50 leading-relaxed max-w-sm">No es un PDF. Es un motor pseudo-físico que engaña al dedo imitando la fricción e inercia real del papel impreso usando matemática Framer y React.</p>
+                <h3 className="text-3xl font-light tracking-tight mb-2">Motor de Gestión <span className="font-serif italic text-gold-gradient">UX</span></h3>
+                <p className="text-sm font-light text-dark/50 leading-relaxed max-w-sm">Diseñado para ser intuitivo. La interfaz de Platorin reduce el tiempo de capacitación de tu personal y aumenta la agilidad operativa.</p>
               </div>
 
            </motion.div>
@@ -318,10 +321,10 @@ export const LandingPage = () => {
              <div className="flex-1 space-y-6">
                 <h2 className="text-4xl font-light tracking-tight">Escalado simple. <br/><span className="text-gold-gradient font-serif italic">Un solo plan.</span></h2>
                 <ul className="space-y-4 text-sm font-light text-dark/60">
-                   <li className="flex items-center gap-3"><span className="text-amber-500 text-lg">✦</span> Plataforma Tenant Activa 24/7</li>
-                   <li className="flex items-center gap-3"><span className="text-amber-500 text-lg">✦</span> Actualizaciones AI Inlimitadas</li>
-                   <li className="flex items-center gap-3"><span className="text-amber-500 text-lg">✦</span> Soporte 1-Clic Auto-Gestionado</li>
-                   <li className="flex items-center gap-3"><span className="text-amber-500 text-lg">✦</span> Kit Físico (PDF) Dinámico QR</li>
+                   <li className="flex items-center gap-3"><span className="text-amber-500 text-lg">✦</span> Sistema Operativo Activo 24/7</li>
+                   <li className="flex items-center gap-3"><span className="text-amber-500 text-lg">✦</span> Actualizaciones de Producto</li>
+                   <li className="flex items-center gap-3"><span className="text-amber-500 text-lg">✦</span> Soporte a la Operación</li>
+                   <li className="flex items-center gap-3"><span className="text-amber-500 text-lg">✦</span> Reportes de Venta en Tiempo Real</li>
                 </ul>
              </div>
              
@@ -329,14 +332,14 @@ export const LandingPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div className="relative z-10 text-center space-y-8">
                   <div className="inline-block px-4 py-1.5 rounded-full bg-dark/10 text-dark text-[9px] font-bold tracking-widest uppercase">
-                    Full Access License
+                    Platorin Full Access
                   </div>
                   <div>
                     <p className="text-6xl font-black italic tracking-tighter text-dark">$35</p>
                     <p className="text-[10px] uppercase font-bold tracking-widest text-dark/40 mt-2">Dólares / Mensual</p>
                   </div>
                   <button onClick={() => document.getElementById('demo').scrollIntoView({ behavior: 'smooth' })} className="w-full py-4 text-bone bg-amber-500 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-[0_10px_20px_rgba(245,158,11,0.3)] hover:brightness-110">
-                    Abrir Tenant Ahora
+                    Activar Operación
                   </button>
                 </div>
              </div>
@@ -347,12 +350,12 @@ export const LandingPage = () => {
         <section id="demo" className="py-24 px-6 border-t border-dark/5 relative bg-bone">
           <div className="max-w-xl mx-auto text-center space-y-12">
              <div className="space-y-4">
-               <h2 className="text-3xl md:text-5xl font-sans tracking-tight">
-                 Estás a un formulario <br/>de la <span className="font-serif italic text-gold-gradient">era digital</span>.
-               </h2>
-               <p className="text-sm text-dark/50 font-light mx-auto max-w-sm leading-relaxed">
-                 Pruébalo gratis. Llena los datos y activaremos tu cuenta maestra en nuestro hub en cuestión de minutos.
-               </p>
+                 <h2 className="text-3xl md:text-5xl font-sans tracking-tight">
+                   Moderniza tu <br/><span className="font-serif italic text-gold-gradient">negocio</span> hoy.
+                 </h2>
+                 <p className="text-sm text-dark/50 font-light mx-auto max-w-sm leading-relaxed">
+                   Pruébalo gratis. Llena los datos y activaremos tu cuenta maestra de Platorin en cuestión de minutos.
+                 </p>
              </div>
              
              <form onSubmit={handleContactSubmit} className="text-left space-y-3">
@@ -381,7 +384,7 @@ export const LandingPage = () => {
                </div>
                <div className="pt-4">
                  <button type="submit" className="w-full py-5 rounded-2xl border border-dark/20 bg-dark text-bone font-black uppercase tracking-[0.2em] text-[10px] hover:bg-amber-500 hover:border-amber-500 transition-colors shadow-2xl">
-                   Arrancar Operaciones Hoy
+                   Comenzar Transformación
                  </button>
                </div>
              </form>
@@ -393,7 +396,7 @@ export const LandingPage = () => {
       {/* ─── FOOTER ─── */}
       <footer className="py-12 border-t border-dark/5 text-center px-6 relative z-10 bg-bone">
         <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-dark/30">
-          © {new Date().getFullYear()} HUB SaaS. Infraestructura Dinámica.
+          © {new Date().getFullYear()} Platorin OS. El sistema operativo para restaurantes modernos.
         </p>
       </footer>
 
@@ -418,12 +421,12 @@ export const LandingPage = () => {
               </div>
 
               <h3 className="text-center text-2xl font-black text-dark tracking-tighter italic uppercase mb-2">¡BIEVENIDO, {welcomeModal.name.toUpperCase()}!</h3>
-              <p className="text-center text-[10px] text-dark/40 font-bold uppercase tracking-[0.2em] mb-8">Tu hub <span className="text-amber-600">{welcomeModal.restaurant}</span> está listo para el despliegue.</p>
+              <p className="text-center text-[10px] text-dark/40 font-bold uppercase tracking-[0.2em] mb-8">Tu instancia de <span className="text-amber-600">{welcomeModal.restaurant}</span> en Platorin está lista.</p>
 
               {/* Access Info Cards */}
               <div className="space-y-4 mb-8">
                 <div className="bg-dark/5 border border-dark/10 rounded-2xl p-6">
-                  <p className="text-[9px] uppercase tracking-[0.4em] text-amber-600 font-black mb-3 font-mono">🔗 HUB_ADMIN_PORTAL</p>
+                  <p className="text-[9px] uppercase tracking-[0.4em] text-amber-600 font-black mb-3 font-mono">🔗 PLATORIN_ADMIN_PORTAL</p>
                   <p className="text-xs text-dark font-mono break-all select-all bg-bone px-4 py-3 rounded-xl border border-dark/10 shadow-sm">{welcomeModal.adminUrl}</p>
                 </div>
 

@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 
 export const CoverPage = ({ onOpen, config }) => {
   const logoUrl = config?.logo_url;
-  const brandName = config?.name || 'HUB RESTAURANT';
+  const brandName = config?.name || 'PLATORIN RESTAURANT';
 
   return (
     <div className="min-h-svh w-full flex items-center justify-center bg-[#030303] relative overflow-hidden" style={{ touchAction: 'none' }}>
@@ -90,7 +90,7 @@ export const CoverPage = ({ onOpen, config }) => {
 
       {/* Footer Branding */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.2 }} transition={{ delay: 1 }} className="absolute bottom-8 inset-x-0 text-center z-10 pointer-events-none">
-         <p className="text-[9px] font-black uppercase tracking-[0.8em] text-white">Tech Gastro Hub</p>
+         <p className="text-[9px] font-black uppercase tracking-[0.8em] text-white">Platorin OS</p>
       </motion.div>
     </div>
   );
