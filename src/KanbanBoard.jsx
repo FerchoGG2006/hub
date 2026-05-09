@@ -102,9 +102,16 @@ const KanbanColumn = ({ title, items, nextStatus, color, icon, changeStatus, pri
     </h3>
     <div className="space-y-5 overflow-y-auto custom-scrollbar flex-1 pb-10 px-1">
       <AnimatePresence>
-        {items.map(o => (
-          <OrderCard key={o.id} o={o} nextStatus={nextStatus} color={color} changeStatus={changeStatus} printOrder={printOrder} />
-        ))}
+        {items.length > 0 ? (
+          items.map(o => (
+            <OrderCard key={o.id} o={o} nextStatus={nextStatus} color={color} changeStatus={changeStatus} printOrder={printOrder} />
+          ))
+        ) : (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col items-center justify-center text-center p-8 space-y-3">
+             <span className="text-3xl grayscale opacity-20">{icon}</span>
+             <p className="text-[10px] text-dark/30 uppercase tracking-[0.2em] font-bold">Sin pedidos en este estado</p>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   </div>
@@ -254,8 +261,8 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
         </head>
         <body onload="window.print(); window.close();">
           <div class="header">
-            <h2 style="margin: 0; font-size: 18px;">TECH GASTRO HUB</h2>
-            <p style="margin: 5px 0; font-size: 10px;">Comanda de Cocina</p>
+            <h2 style="margin: 0; font-size: 18px;">${config?.name?.toUpperCase() || 'PLATÓRIN'}</h2>
+            <p style="margin: 5px 0; font-size: 10px;">Orden de Cocina</p>
           </div>
           <p style="font-size: 12px;"><b>ORDEN:</b> #${order.id}</p>
           <p style="font-size: 12px;"><b>CLIENTE:</b> ${order.customer_name || 'Local'}</p>
@@ -265,7 +272,7 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
           </div>
           <div class="total">TOTAL: $${order.total_price?.toLocaleString()}</div>
           <div class="footer">
-            <p>Generado por HUB SaaS</p>
+            <p>Gestionado con Platorin OS</p>
             <p>${new Date().toLocaleString()}</p>
           </div>
         </body>
@@ -282,8 +289,8 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
     <div className="h-full flex flex-col pt-4 max-w-6xl mx-auto z-10 relative">
       <div className="mb-8 flex justify-between items-end">
         <div>
-            <h2 className="text-3xl font-light">Monitor de <span className="font-serif italic text-amber-500">Cocina</span></h2>
-            <p className="text-sm text-dark/40 italic">Los pedidos aparecen aquí automáticamente.</p>
+            <h2 className="text-3xl font-light">Pedidos en <span className="font-serif italic text-amber-500">Cocina</span></h2>
+            <p className="text-sm text-dark/40 italic">Controla el flujo de platos en tiempo real.</p>
         </div>
         <div className="flex gap-8 bg-dark/5 p-4 rounded-2xl border border-dark/10">
             <div className="text-center">
@@ -296,11 +303,29 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
             </div>
         </div>
       </div>
-      <div className="flex flex-nowrap w-full gap-6 overflow-x-auto overflow-y-hidden pb-6 snap-x snap-mandatory touch-pan-x" style={{ WebkitOverflowScrolling: 'touch', minHeight: '65vh' }}>
-        <KanbanColumn title="Nuevos" items={pending} nextStatus="preparing" color="#f59e0b" icon="🔔" changeStatus={changeStatus} printOrder={printOrder} />
-        <KanbanColumn title="En preparación" items={preparing} nextStatus="ready" color="#3b82f6" icon="🍳" changeStatus={changeStatus} printOrder={printOrder} />
-        <KanbanColumn title="Listos para salir" items={ready} nextStatus="paid" color="#10b981" icon="🚀" changeStatus={changeStatus} printOrder={printOrder} />
-      </div>
+      {orders.length === 0 ? (
+         <div className="flex-1 flex flex-col items-center justify-center text-center p-20 bg-dark/5 rounded-[3rem] border border-dashed border-dark/10 space-y-6">
+            <div className="w-24 h-24 bg-white rounded-full shadow-xl flex items-center justify-center text-5xl">🛎️</div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold text-dark italic font-serif">¡Todo listo para vender!</h3>
+              <p className="text-xs text-dark/40 uppercase tracking-[0.2em] max-w-sm mx-auto leading-relaxed">
+                Cuando tus clientes hagan un pedido, sonará una campana y aparecerá aquí automáticamente.
+              </p>
+            </div>
+            <div className="pt-4 flex flex-col items-center gap-4">
+               <div className="px-6 py-3 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse">
+                  Esperando tu primer pedido...
+               </div>
+               <p className="text-[10px] text-dark/30 font-bold uppercase tracking-widest">Asegúrate de haber compartido tu código QR.</p>
+            </div>
+         </div>
+      ) : (
+        <div className="flex flex-nowrap w-full gap-6 overflow-x-auto overflow-y-hidden pb-6 snap-x snap-mandatory touch-pan-x" style={{ WebkitOverflowScrolling: 'touch', minHeight: '65vh' }}>
+          <KanbanColumn title="Nuevos" items={pending} nextStatus="preparing" color="#f59e0b" icon="🔔" changeStatus={changeStatus} printOrder={printOrder} />
+          <KanbanColumn title="En preparación" items={preparing} nextStatus="ready" color="#3b82f6" icon="🍳" changeStatus={changeStatus} printOrder={printOrder} />
+          <KanbanColumn title="Listos para salir" items={ready} nextStatus="paid" color="#10b981" icon="🚀" changeStatus={changeStatus} printOrder={printOrder} />
+        </div>
+      )}
     </div>
   );
 };

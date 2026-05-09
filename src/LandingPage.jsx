@@ -351,10 +351,10 @@ export const LandingPage = () => {
           <div className="max-w-xl mx-auto text-center space-y-12">
              <div className="space-y-4">
                  <h2 className="text-3xl md:text-5xl font-sans tracking-tight">
-                   Moderniza tu <br/><span className="font-serif italic text-gold-gradient">negocio</span> hoy.
+                   Activa tu negocio <br/><span className="font-serif italic text-gold-gradient">en 30 segundos</span>.
                  </h2>
                  <p className="text-sm text-dark/50 font-light mx-auto max-w-sm leading-relaxed">
-                   Pruébalo gratis. Llena los datos y activaremos tu cuenta maestra de Platorin en cuestión de minutos.
+                   Sin configuraciones complejas. Solo dinos qué vendes y nosotros preparamos todo por ti.
                  </p>
              </div>
              
@@ -368,19 +368,33 @@ export const LandingPage = () => {
                </div>
                <div className="bg-dark/[0.02] border border-dark/5 rounded-3xl p-2 flex flex-col md:flex-row gap-2">
                  <div className="flex-1 flex flex-col sm:flex-row gap-2 border-b sm:border-b-0 sm:border-r border-dark/5">
-                   <input 
-                     required value={form.restaurant} onChange={e=>setForm({...form, restaurant: e.target.value})} 
-                     type="text" placeholder="Restaurante" 
-                     className="flex-1 bg-transparent px-6 py-4 text-sm text-dark outline-none placeholder-dark/30" 
-                   />
+                   <select 
+                      required
+                      className="flex-1 bg-transparent px-6 py-4 text-sm text-dark outline-none appearance-none cursor-pointer"
+                      defaultValue=""
+                   >
+                      <option value="" disabled>¿Qué tipo de negocio tienes?</option>
+                      <option value="restaurante">Restaurante</option>
+                      <option value="bar">Bar / Pub</option>
+                      <option value="cafeteria">Cafetería</option>
+                      <option value="licorera">Licorera</option>
+                      <option value="otro">Otro</option>
+                   </select>
                  </div>
                  <div className="flex-1">
                    <input 
-                     required value={form.email} onChange={e=>setForm({...form, email: e.target.value})} 
-                     type="email" placeholder="Correo de Contacto" 
+                     required value={form.restaurant} onChange={e=>setForm({...form, restaurant: e.target.value})} 
+                     type="text" placeholder="Nombre de tu negocio" 
                      className="w-full bg-transparent px-6 py-4 text-sm text-dark outline-none placeholder-dark/30" 
                    />
                  </div>
+               </div>
+               <div className="bg-dark/[0.02] border border-dark/5 rounded-3xl p-2 flex flex-col md:flex-row gap-2">
+                 <input 
+                   required value={form.email} onChange={e=>setForm({...form, email: e.target.value})} 
+                   type="email" placeholder="Tu correo electrónico" 
+                   className="w-full bg-transparent px-6 py-4 text-sm text-dark outline-none placeholder-dark/30" 
+                 />
                </div>
                <div className="pt-4">
                  <button type="submit" className="w-full py-5 rounded-2xl border border-dark/20 bg-dark text-bone font-black uppercase tracking-[0.2em] text-[10px] hover:bg-amber-500 hover:border-amber-500 transition-colors shadow-2xl">
@@ -420,8 +434,8 @@ export const LandingPage = () => {
                 </motion.div>
               </div>
 
-              <h3 className="text-center text-2xl font-black text-dark tracking-tighter italic uppercase mb-2">¡BIEVENIDO, {welcomeModal.name.toUpperCase()}!</h3>
-              <p className="text-center text-[10px] text-dark/40 font-bold uppercase tracking-[0.2em] mb-8">Tu instancia de <span className="text-amber-600">{welcomeModal.restaurant}</span> en Platorin está lista.</p>
+              <h3 className="text-center text-2xl font-black text-dark tracking-tighter italic uppercase mb-2">¡LISTO, {welcomeModal.name.split(' ')[0].toUpperCase()}!</h3>
+              <p className="text-center text-[10px] text-dark/40 font-bold uppercase tracking-[0.2em] mb-8">Ya preparamos <span className="text-amber-600">{welcomeModal.restaurant}</span>. Solo falta entrar.</p>
 
               {/* Access Info Cards */}
               <div className="space-y-4 mb-8">
@@ -436,8 +450,8 @@ export const LandingPage = () => {
                 </div>
 
                 <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-6">
-                  <p className="text-[9px] uppercase tracking-[0.4em] text-amber-600 font-black mb-3 font-mono">📧 CREDENTIALS_SENT</p>
-                  <p className="text-[10px] text-dark/60 leading-relaxed font-bold uppercase">Recibirás tu <span className="text-dark">USER_ID</span> y <span className="text-dark">PASSCODE</span> encriptados una vez activemos tu nodo maestro.</p>
+                  <p className="text-[9px] uppercase tracking-[0.4em] text-amber-600 font-black mb-3 font-mono">🔑 TUS CLAVES</p>
+                  <p className="text-[10px] text-dark/60 leading-relaxed font-bold uppercase">Te enviamos tu <span className="text-dark">USUARIO</span> y <span className="text-dark">CONTRASEÑA</span> al correo para que no los pierdas.</p>
                 </div>
               </div>
 

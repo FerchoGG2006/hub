@@ -172,7 +172,7 @@ export const LiveMonitor = ({ onLogout }) => {
         <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
           VENTAS <br /><span className="text-amber-500">DE HOY</span>
         </h2>
-        <button onClick={onLogout} className="text-[9px] uppercase tracking-widest text-dark/30 hover:text-dark/80 transition-colors">Logout / Salir</button>
+        <button onClick={onLogout} className="text-[9px] uppercase tracking-widest text-dark/30 hover:text-dark/80 transition-colors">Cerrar Sesión</button>
       </header>
 
       {/* KPI Principal: Ventas del Día */}
@@ -180,7 +180,7 @@ export const LiveMonitor = ({ onLogout }) => {
         {/* Tech Decor */}
         <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-dark/20 rounded-tr-[2.5rem]" />
         
-        <p className="text-[9px] text-dark/40 uppercase tracking-[0.3em] mb-2 font-bold">Ventas en tiempo real</p>
+        <p className="text-[9px] text-dark/40 uppercase tracking-[0.3em] mb-2 font-bold">Total recibido hoy</p>
         <div className="flex items-baseline gap-2">
           <span className="text-4xl sm:text-6xl font-black italic text-dark tracking-tighter">${totalFormat}</span>
           <span className="text-emerald-600 text-[10px] font-bold whitespace-nowrap bg-emerald-500/10 px-3 py-1 rounded-full animate-pulse">+2% vs ayer</span>
@@ -189,8 +189,14 @@ export const LiveMonitor = ({ onLogout }) => {
 
       {/* Listado de "Hot Items" (Los más clickeados) */}
       <section>
-        <h3 className="text-[10px] text-dark/40 uppercase tracking-widest mb-6 px-2 font-bold">Platos más buscados por clientes</h3>
-        {stats.length === 0 && <p className="text-xs text-dark/30 text-center italic">Esperando actividad...</p>}
+        <h3 className="text-[10px] text-dark/40 uppercase tracking-widest mb-6 px-2 font-bold">Lo más buscado por tus clientes</h3>
+        {stats.length === 0 && (
+          <div className="bg-dark/5 p-12 rounded-[2rem] border border-dashed border-dark/10 text-center space-y-4">
+             <span className="text-4xl grayscale opacity-50 block">📉</span>
+             <p className="text-xs text-dark/40 uppercase tracking-widest font-bold">Aún no hay actividad hoy</p>
+             <p className="text-[10px] text-dark/30 max-w-[200px] mx-auto leading-relaxed">Cuando tus clientes vean tu menú, aquí verás qué platos les interesan más.</p>
+          </div>
+        )}
         
         <div className="space-y-4">
           <AnimatePresence>
@@ -277,7 +283,7 @@ const QRTerminal = ({ config }) => {
     // Footer
     pdf.setFontSize(10);
     pdf.setTextColor(100, 100, 100);
-    pdf.text(`Powered by Platorin OS - id: ${tenantSlug}`, 105, 280, { align: "center" });
+    pdf.text(`Generado con Platorin OS`, 105, 280, { align: "center" });
 
     pdf.save(`${tenantSlug}-kit-digital${table ? '-mesa-'+table : ''}.pdf`);
     setIsGenerating(false);
@@ -330,7 +336,7 @@ const QRTerminal = ({ config }) => {
           Generador de <span className="italic font-serif text-amber-500">QR</span>
         </h2>
         <p className="text-[10px] text-dark/40 font-bold leading-relaxed tracking-[0.4em] uppercase">
-          Acceso digital para tus mesas
+          Tus clientes escanean esto para ver el menú
         </p>
       </div>
       
@@ -451,10 +457,10 @@ const InventoryManager = ({ products, toggleProduct, magicSnap, onLogout }) => {
         <div className="flex justify-between items-end">
           <div className="max-w-[400px]">
             <h2 className="text-3xl font-light tracking-tighter text-dark">
-              Gestión del <span className="italic font-serif text-amber-500">Menú Digital</span>
+              Mis <span className="italic font-serif text-amber-500">Productos</span>
             </h2>
             <p className="text-[10px] text-dark/50 mt-3 font-medium leading-relaxed tracking-widest uppercase">
-              Actualiza tus platos, precios y disponibilidad al instante.
+              Agrega o cambia platos, precios y fotos al instante.
             </p>
           </div>
           <div className="flex gap-4">
@@ -481,8 +487,21 @@ const InventoryManager = ({ products, toggleProduct, magicSnap, onLogout }) => {
       </header>
       
       {products.length === 0 && (
-        <div className="text-center p-8 text-dark/30 uppercase tracking-[0.4em] text-[9px] font-mono font-bold">
-          [ CARGANDO INFORMACIÓN DEL MENÚ... ]
+        <div className="bg-dark/5 p-16 rounded-[3rem] border border-dashed border-dark/10 text-center space-y-6">
+          <div className="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-4xl">🍳</span>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold text-dark italic font-serif">Tu menú está vacío</h3>
+            <p className="text-[10px] text-dark/40 uppercase tracking-[0.2em] max-w-xs mx-auto leading-relaxed">
+              Agrega tu primer plato usando el botón de arriba para que tus clientes puedan verlo.
+            </p>
+          </div>
+          <div className="pt-4">
+             <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 text-amber-500 rounded-full text-[9px] font-black uppercase tracking-widest animate-bounce">
+                Paso 1: Agrega un plato ↓
+             </div>
+          </div>
         </div>
       )}
 
@@ -615,8 +634,8 @@ const BrandingSettings = () => {
   return (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 max-w-6xl mx-auto">
       <header className="mb-8 border-b border-dark/10 pb-6">
-        <h2 className="text-3xl font-light text-dark mb-2 tracking-tight">Diseño y <span className="text-amber-500 font-serif italic">Colores</span></h2>
-        <p className="text-[10px] uppercase tracking-widest text-dark/40">Personaliza la experiencia visual de tus clientes</p>
+        <h2 className="text-3xl font-light text-dark mb-2 tracking-tight">Mi <span className="text-amber-500 font-serif italic">Marca</span></h2>
+        <p className="text-[10px] uppercase tracking-widest text-dark/40">Cambia los colores y redes sociales de tu negocio</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
@@ -1390,6 +1409,54 @@ export const AdminDashboard = () => {
         handleLogout();
     }
   }, [handleLogout]);
+  
+  /* ── COMPONENTE: GUÍA DE INICIO ── */
+  const OnboardingChecklist = ({ products, config }) => {
+    const hasProducts = products.length > 0;
+    const hasColor = config?.brand_color && config.brand_color !== '#f59e0b';
+    const hasWhatsapp = !!config?.whatsapp_number;
+
+    const steps = [
+      { id: 1, label: 'Agrega tu primer producto', done: hasProducts, hint: 'Usa el botón "📸 Foto-Plato" para hacerlo rápido.' },
+      { id: 2, label: 'Configura tu marca y WhatsApp', done: hasColor && hasWhatsapp, hint: 'En la sección "Diseño" para que te contacten.' },
+      { id: 3, label: 'Imprime tus códigos QR', done: false, hint: 'Descarga el PDF en "Códigos QR" y ponlo en tus mesas.' },
+      { id: 4, label: 'Recibe tu primer pedido', done: false, hint: 'Abre tu menú escaneando el QR y haz una prueba.' },
+    ];
+
+    const completedCount = steps.filter(s => s.done).length;
+
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }} 
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-amber-500/5 border border-amber-500/20 rounded-[2.5rem] p-8 mb-12 relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 p-8 opacity-10">
+           <span className="text-6xl italic font-serif">Paso {completedCount + 1}</span>
+        </div>
+        
+        <div className="relative z-10">
+          <h3 className="text-xl font-bold text-dark italic font-serif mb-2">¡Empecemos a vender!</h3>
+          <p className="text-[10px] text-dark/40 uppercase tracking-[0.2em] font-bold mb-8">Sigue estos pasos para activar tu negocio</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {steps.map(s => (
+              <div key={s.id} className={`p-5 rounded-2xl border transition-all ${s.done ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-white/50 border-dark/5'}`}>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${s.done ? 'bg-emerald-500 text-white' : 'bg-dark/5 text-dark/30'}`}>
+                    {s.done ? '✓' : s.id}
+                  </div>
+                  <span className={`text-[11px] font-bold uppercase tracking-tight ${s.done ? 'text-emerald-700' : 'text-dark/60'}`}>{s.label}</span>
+                </div>
+                <p className="text-[10px] text-dark/40 leading-relaxed">{s.hint}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
 
   const toggleProduct = async (id, currentStatus) => {
     try {
@@ -1449,11 +1516,8 @@ export const AdminDashboard = () => {
             </button>
           ))}
           <div className="flex flex-col items-end ml-auto">
-             <p className="text-[7px] font-mono text-dark/30 uppercase tracking-widest">Negocio conectado</p>
              <p className="text-[9px] font-black text-amber-600/60 uppercase tracking-tighter">
-                {localStorage.getItem('hub_tenant')?.toUpperCase() || 'RESTAURANTE'} 
-                <span className="mx-2 text-dark/10">|</span> 
-                Ref: {config?.id || '?'}
+                {localStorage.getItem('hub_tenant')?.toUpperCase() || 'MI NEGOCIO'} 
              </p>
           </div>
 
@@ -1484,7 +1548,10 @@ export const AdminDashboard = () => {
           ) : view === 'sedes' ? (
             <SedesView key="sedes" branches={branches} tenantSlug={tenantSlug} />
           ) : view === 'inventory' ? (
-            <InventoryManager key="inv" products={products} toggleProduct={toggleProduct} magicSnap={magicSnap} onLogout={handleLogout} />
+            <div key="inv" className="space-y-12">
+               {products.length === 0 && <OnboardingChecklist products={products} config={config} />}
+               <InventoryManager products={products} toggleProduct={toggleProduct} magicSnap={magicSnap} onLogout={handleLogout} />
+            </div>
           ) : view === 'stats' ? (
             <LiveMonitor key="stats" onLogout={handleLogout} />
           ) : view === 'qr' ? (
