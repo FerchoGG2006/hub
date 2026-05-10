@@ -1,138 +1,182 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --amber: #F59E0B;
-  --bone: #F7F3E9;
-  --dark: #1A1A1A;
-  --gold: #FCD34D;
-  --gold-gradient: linear-gradient(to right, rgb(252, 211, 77) 0%, #F59E0B 100%);
-  --gold-shadow: 0 10px 30px rgba(252, 211, 77, 0.25);
+  --cream: #F5F0E8;
+  --cream-deep: #EDE6D6;
+  --cream-mid: #E5DDD0;
+  --ink: #1A1208;
+  --ink-50: rgba(26, 18, 8, 0.5);
+  --ink-30: rgba(26, 18, 8, 0.3);
+  --green: #1A5C36;
+  --green-mid: #237848;
+  --green-light: #EAF3EE;
+  --wa: #25D366;
+  --wa-dark: #1DAE55;
+  --gold: #C8891A;
+  --gold-light: #FBF3E2;
+  --wompi: #5F35CD;
+  --wompi-light: #F0EBFF;
+  --border: rgba(26, 18, 8, 0.1);
+  
+  --r-sm: 10px;
+  --r-md: 18px;
+  --r-lg: 28px;
+  --r-xl: 44px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html {
-  min-height: -webkit-fill-available;
-  min-height: 100%;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  height: 100%;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  background: var(--bone);
-  color: var(--dark);
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  width: 100%;
-  min-height: -webkit-fill-available;
-  min-height: 100vh;
+  background-color: var(--cream);
+  color: var(--ink);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
   overflow-x: hidden;
+  margin: 0;
 }
 
-#root {
-  min-height: 100svh;
-  width: 100%;
+/* ─── GLOBAL DESIGN SYSTEM (Alineado con Landing) ─── */
+
+.serif-italic {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 600;
 }
 
-/* ─── ESCENARIO DE LA CARTA ─── */
-.perspective-container {
-  width: 100vw;
-  height: 100svh;
-  display: flex;
+.heading-editorial {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  color: var(--ink);
+}
+
+.text-sub {
+  font-size: 0.95rem;
+  color: var(--ink-50);
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+/* ─── BUTTONS ─── */
+
+.btn-editorial {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  background: radial-gradient(ellipse at 25% 50%, #f2f0e4 0%, var(--bone) 70%);
+  gap: 0.5rem;
+  background: var(--green);
+  color: white;
+  padding: 0.8rem 1.6rem;
+  border-radius: var(--r-xl);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.01em;
 }
 
-/* ─── ESTILOS PARA PAGE-FLIP (ALTA FIDELIDAD) ─── */
-.stf__parent {
-  background-color: transparent !important;
-  box-shadow: none !important;
+.btn-editorial:hover {
+  background: var(--green-mid);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(26, 92, 54, 0.15);
 }
 
-.stf__block {
-  background-color: transparent !important;
+.btn-editorial-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--ink-50);
+  padding: 0.8rem 1.6rem;
+  border-radius: var(--r-xl);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
 }
 
-/* ─── Sombra de flip (la hoja que se levanta) ─── */
-.stf__item {
-  box-shadow: 0 15px 40px rgba(26, 26, 26, 0.12) !important;
+.btn-editorial-outline:hover {
+  border-color: var(--ink-50);
+  color: var(--ink);
 }
 
-.page-item {
-  box-shadow: none;
-  background-color: #fdfcf7;
-  color: var(--dark);
+/* ─── CARDS & SURFACES ─── */
+
+.surface-editorial {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: 0 10px 40px -10px rgba(26, 18, 8, 0.05);
+  padding: 2rem;
 }
 
-/* Lomo izquierdo — glassmorfismo Ivory Gold */
-.page-item::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 40px;
-  background: linear-gradient(to right, rgba(242, 240, 228, 0.85) 0%, rgba(247, 243, 233, 0.4) 50%, transparent 100%);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  z-index: 10;
-  pointer-events: none;
-  border-right: 1px solid rgba(26, 26, 26, 0.04);
+.surface-ink {
+  background: var(--ink);
+  color: white;
+  border-radius: var(--r-lg);
+  padding: 2rem;
 }
 
 /* ─── UTILITIES ─── */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-.glass-card {
-  background: rgba(255,255,255,0.03);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.08);
+.tag-editorial {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border-bottom: 1px solid var(--gold);
+  padding-bottom: 0.15rem;
+  margin-bottom: 1rem;
 }
 
-/* Animación de Shimmer para elementos Gold */
-.gold-shimmer {
-  background: linear-gradient(90deg, #A68648, #C5A059 40%, #E4D87B 55%, #C5A059 70%, #A68648);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shimmer 4s linear infinite;
+.glass-editorial {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Tactile Depth Utility */
-.tactile-button {
-  background: var(--gold-gradient);
-  box-shadow: var(--gold-shadow);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* ── PHONE INPUT OVERRIDES ── */
+.react-tel-input .flag-dropdown {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 12px 0 0 12px !important;
 }
-
-.bg-gold-gradient {
-  background: var(--gold-gradient) !important;
+.react-tel-input .selected-flag {
+  background: transparent !important;
+  border-radius: 12px 0 0 12px !important;
+  width: 45px !important;
 }
-
-.text-gold-gradient {
-  background: var(--gold-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.react-tel-input .country-list {
+  background: var(--cream) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 50px rgba(26, 18, 8, 0.15) !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
-
-.tactile-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(197, 160, 89, 0.3);
-  filter: brightness(1.1);
+.react-tel-input .country-list .country:hover {
+  background: var(--cream-deep) !important;
 }
-
-.tactile-button:active {
-  transform: translateY(1px);
-}
-
-@keyframes shimmer {
-  from { background-position: -200% center; }
-  to { background-position: 200% center; }
+.react-tel-input .country-list .country.highlight {
+  background: var(--gold) !important;
+  color: white !important;
 }

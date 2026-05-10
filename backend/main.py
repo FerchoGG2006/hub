@@ -12,7 +12,7 @@ import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # Configuración de logs
-logger = logging.getLogger("tech-gastro-hub")
+logger = logging.getLogger("platorin")
 logging.basicConfig(level=logging.INFO)
 
 import models
@@ -56,9 +56,17 @@ app = FastAPI(
     version="2.0.0",
 )
 
+origins = [
+    os.getenv("FRONTEND_URL", "http://localhost:3000"),
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv("FRONTEND_URL", "*"), "*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -308,84 +316,88 @@ def onboard_new_tenant(
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    # 1. Crear el nuevo Tenant en la base de datos
-    nuevo_tenant = models.Tenant(
-        slug=slug,
-        name=name,
-        brand_color=brand_color,
-        whatsapp_number=whatsapp_number,
-        enabled_modules=["orders", "products", "tables", "inventory"] # Módulos iniciales pro
-    )
-    db.add(nuevo_tenant)
-    db.commit()
-    db.refresh(nuevo_tenant)
-    
-    # 2. Generar usuario administrador para el negocio
-    import secrets
-    import string
-    generated_pass = ''.join(secrets.choice(string.digits) for i in range(6)) # Passcode de 6 dígitos para simplicidad
-    
-    hashed_password = auth.get_password_hash(generated_pass)
-    nuevo_usuario = models.User(
-        username=email or f"admin@{slug}.com",
-        hashed_password=hashed_password,
-        role="admin",
-        tenant_id=nuevo_tenant.id
-    )
-    db.add(nuevo_usuario)
-    db.commit()
-
-    # 3. Procesar menú con IA (Gemini Flash)
     try:
-        image_bytes = file.file.read()
-        menu_data = extract_menu_from_image(image_bytes)
+        # 1. Crear el nuevo Tenant en la base de datos
+        nuevo_tenant = models.Tenant(
+            slug=slug,
+            name=name,
+            brand_color=brand_color,
+            whatsapp_number=whatsapp_number,
+            enabled_modules=["orders", "products", "tables", "inventory"] # Módulos iniciales pro
+        )
+        db.add(nuevo_tenant)
+        db.commit()
+        db.refresh(nuevo_tenant)
         
-        for category_data in menu_data:
-            cat_name = category_data.get("category", "Miscelaneo")
-            cat_icon = category_data.get("icon", "🍽️")
+        # 2. Generar usuario administrador para el negocio
+        import secrets
+        import string
+        generated_pass = ''.join(secrets.choice(string.digits) for i in range(6)) # Passcode de 6 dígitos para simplicidad
+        
+        hashed_password = auth.get_password_hash(generated_pass)
+        nuevo_usuario = models.User(
+            username=email or f"admin@{slug}.com",
+            hashed_password=hashed_password,
+            role="admin",
+            tenant_id=nuevo_tenant.id
+        )
+        db.add(nuevo_usuario)
+        db.commit()
+
+        # 3. Procesar menú con IA (Gemini Flash)
+        try:
+            image_bytes = file.file.read()
+            menu_data = extract_menu_from_image(image_bytes)
             
-            nueva_cat = models.Category(
-                tenant_id=nuevo_tenant.id,
-                name=cat_name,
-                icon=cat_icon
-            )
-            db.add(nueva_cat)
-            db.commit()
-            db.refresh(nueva_cat)
-            
-            products = category_data.get("products", [])
-            for p in products:
-                nuevo_prod = models.Product(
+            for category_data in menu_data:
+                cat_name = category_data.get("category", "Miscelaneo")
+                cat_icon = category_data.get("icon", "🍽️")
+                
+                nueva_cat = models.Category(
                     tenant_id=nuevo_tenant.id,
-                    category_id=nueva_cat.id,
-                    name=p.get("name", "Plato Desconocido"),
-                    description=p.get("description", ""),
-                    price=str(p.get("price", "$0")),
-                    emoji=p.get("emoji", "🍽️")
+                    name=cat_name,
+                    icon=cat_icon
                 )
-                db.add(nuevo_prod)
-            db.commit()
-    except Exception as e:
-        print(f"Error procesando menú IA: {e}")
+                db.add(nueva_cat)
+                db.commit()
+                db.refresh(nueva_cat)
+                
+                products = category_data.get("products", [])
+                for p in products:
+                    nuevo_prod = models.Product(
+                        tenant_id=nuevo_tenant.id,
+                        category_id=nueva_cat.id,
+                        name=p.get("name", "Plato Desconocido"),
+                        description=p.get("description", ""),
+                        price=str(p.get("price", "$0")),
+                        emoji=p.get("emoji", "🍽️")
+                    )
+                    db.add(nuevo_prod)
+                db.commit()
+        except Exception as e:
+            logger.error(f"Error procesando menú IA: {e}")
 
-    # == HANDOVER KIT EMAIL ==
-    try:
-        front_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-        if email:
-            from utils.email_service import send_welcome_kit
-            send_welcome_kit(email, name, slug, generated_pass, front_url)
-    except Exception as e:
-        print(f"Error enviando kit de bienvenida: {e}")
+        # == HANDOVER KIT EMAIL ==
+        try:
+            front_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+            if email:
+                from utils.email_service import send_welcome_kit
+                send_welcome_kit(email, name, slug, generated_pass, front_url)
+        except Exception as e:
+            logger.error(f"Error enviando kit de bienvenida: {e}")
 
-    return {
-        "status": "success",
-        "message": "Negocio activado en tiempo récord",
-        "credentials": {
-            "user": nuevo_usuario.username,
-            "passcode": generated_pass
-        },
-        "url": f"https://techgastrohub.com/t/{slug}"
-    }
+        return {
+            "status": "success",
+            "message": "Negocio activado en tiempo récord",
+            "credentials": {
+                "user": nuevo_usuario.username,
+                "passcode": generated_pass
+            },
+            "url": f"https://techgastrohub.com/t/{slug}"
+        }
+    except Exception as e:
+        logger.error(f"FATAL ERROR ONBOARDING: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
 
 @app.put("/api/admin/products/{product_id}/toggle")
 async def toggle_product(product_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):

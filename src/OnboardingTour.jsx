@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const steps = [
   {
     title: "Bienvenido al Futuro",
-    description: "Has activado el Tech Gastro Hub. Este es tu centro de mando para dominar el mercado gastronómico con IA.",
+    description: "Has activado Platorin. Este es tu centro de mando para dominar el mercado gastronómico con IA.",
     icon: "🚀",
     target: "sidebar"
   },

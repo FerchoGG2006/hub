@@ -6,7 +6,7 @@ import models
 from core.events.event_bus import emit_event
 from core.payments import wompi_provider
 
-logger = logging.getLogger("tech-gastro-hub")
+logger = logging.getLogger("platorin")
 
 def create_payment_session(db: Session, order_id: int, provider: str = "wompi"):
     """

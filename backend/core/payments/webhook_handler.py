@@ -7,7 +7,7 @@ import logging
 import json
 
 router = APIRouter(prefix="/payments", tags=["payments"])
-logger = logging.getLogger("tech-gastro-hub")
+logger = logging.getLogger("platorin")
 
 @router.post("/webhook")
 async def wompi_webhook(request: Request, db: Session = Depends(get_db)):
@@ -25,10 +25,11 @@ async def wompi_webhook(request: Request, db: Session = Depends(get_db)):
         event = payload.get("event")
         
         # 2. Validar firma (Opcional en sandbox, obligatorio en prod)
-        # signature = request.headers.get("x-event-checksum")
-        # timestamp = request.headers.get("x-event-timestamp")
-        # if not wompi_provider.verify_webhook_signature(payload, timestamp, signature):
-        #     raise HTTPException(status_code=401, detail="Firma inválida")
+        signature = request.headers.get("x-event-checksum")
+        timestamp = request.headers.get("x-event-timestamp")
+        if not wompi_provider.verify_webhook_signature(payload, timestamp, signature):
+            logger.warning(f"⚠️ Firma de Webhook INVÁLIDA para Ref: {transaction.get('reference')}")
+            raise HTTPException(status_code=401, detail="Firma inválida")
 
         if event == "transaction.updated":
             reference = transaction.get("reference")

@@ -164,18 +164,24 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
       )}
 
       {/* ── Header ── */}
-      <header className="flex justify-between items-center px-6 pt-6 pb-4 flex-shrink-0"
-        style={{ borderBottom: '1px solid rgba(26, 26, 26, 0.07)' }}>
+      <header className="relative flex items-center px-8 pt-10 pb-6 flex-shrink-0"
+        style={{ borderBottom: '1px solid rgba(26, 26, 26, 0.05)' }}>
         <h2
-          className="text-2xl font-black text-dark italic uppercase tracking-tighter"
+          className="text-4xl font-black text-dark italic uppercase tracking-tighter"
         >
           Tu Pedido
         </h2>
+        
+        {/* Botón de Cerrar Absoluto */}
         <button
           onClick={onClose}
-          className="font-bold text-xs uppercase tracking-widest text-gold-gradient"
+          className="absolute top-8 right-8 group flex flex-col items-center gap-1 transition-all active:scale-90 z-[50]"
+          aria-label="Cerrar pedido"
         >
-          Cerrar ✕
+          <div className="w-12 h-12 bg-dark text-white rounded-full flex items-center justify-center shadow-lg shadow-dark/20 group-hover:bg-amber-500 transition-colors">
+            <span className="text-2xl font-light">✕</span>
+          </div>
+          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-dark/60 group-hover:text-dark transition-colors mt-1">Cerrar</span>
         </button>
       </header>
 

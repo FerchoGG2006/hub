@@ -36,73 +36,67 @@ export const LoginTerminal = ({ onAuth }) => {
   };
 
   return (
-    <div className="h-screen bg-bone flex flex-col items-center justify-center p-6 w-full fixed inset-0 z-[200]">
+    <div className="h-screen bg-[#F5F0E8] flex flex-col items-center justify-center p-6 w-full fixed inset-0 z-[200]">
       {/* ─── AMBIENT BACKGROUND GLOWS ─── */}
-      <div className="absolute top-0 inset-x-0 h-[100%] pointer-events-none opacity-30 z-0">
-         <div className="absolute top-[20%] left-[20%] w-[50vw] h-[50vw] rounded-full blur-[120px] mix-blend-multiply bg-gradient-to-r from-amber-500/10 to-orange-600/5"></div>
-         <div className="absolute top-[40%] right-[10%] w-[30vw] h-[30vw] rounded-full blur-[100px] mix-blend-multiply bg-gradient-to-l from-amber-300/5 to-transparent"></div>
+      <div className="absolute inset-0 pointer-events-none opacity-40 z-0">
+         <div className="absolute top-[10%] left-[10%] w-[40vw] h-[40vw] rounded-full blur-[120px] bg-amber-500/10"></div>
+         <div className="absolute bottom-[10%] right-[10%] w-[40vw] h-[40vw] rounded-full blur-[120px] bg-green-900/5"></div>
       </div>
-      {/* ─── DOT MATRIX PATTERN ─── */}
-      <div 
-         className="absolute inset-0 pointer-events-none z-0" 
-         style={{ backgroundImage: 'radial-gradient(rgba(26, 26, 26, 0.03) 1px, transparent 1px)', backgroundSize: '32px 32px' }}
-      ></div>
+      
       <motion.div 
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="relative w-48 h-48 flex items-center justify-center mb-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative z-10 w-full max-w-md bg-white border border-[#1A12081A] rounded-[2.5rem] p-12 shadow-2xl shadow-ink/5"
       >
-        <motion.div 
-          animate={{ rotate: 360 }}
-          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 border-2 border-dashed border-amber-500/30 rounded-full"
-        />
-        <motion.div 
-          animate={{ rotate: -360 }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-4 border border-dark/10 rounded-full"
-        />
-        <div className="text-center z-10">
-          <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }} className="flex justify-center mb-2">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-          </motion.div>
-          <h2 className="text-[10px] text-amber-500 uppercase tracking-[0.5em] font-black">Auth</h2>
+        <div className="text-center mb-10">
+          <h1 className="logo text-4xl mb-2">Plato<b>rin</b></h1>
+          <p className="tag-editorial">Acceso Administrativo</p>
+          <h2 className="heading-editorial text-2xl mt-4">Bienvenido a tu <br/><span className="serif-italic">Entorno Digital</span></h2>
         </div>
-      </motion.div>
 
-      <form onSubmit={handleLogin} className="flex flex-col gap-4 w-64">
-        <input 
-          type="text" 
-          placeholder="USER_ID" 
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="bg-transparent border-b border-dark/20 py-2 text-center text-dark tracking-[0.2em] outline-none focus:border-amber-500 transition-all font-mono"
-        />
-        <input 
-          type="password" 
-          placeholder="PASSCODE" 
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="bg-transparent border-b border-dark/20 py-2 text-center text-dark tracking-[0.5em] outline-none focus:border-amber-500 transition-all font-mono"
-        />
-        {error && <p className="text-red-500 text-[10px] text-center uppercase tracking-widest">{error}</p>}
-        <button 
-          type="submit" 
-          disabled={loading}
-          className="mt-6 py-3 bg-amber-500/10 text-gold font-black border border-amber-500/20 tactile-button uppercase text-[10px] tracking-widest transition-all rounded-full"
-        >
-          {loading ? 'Verificando...' : 'Enlazar'}
-        </button>
-      </form>
+        <form onSubmit={handleLogin} className="flex flex-col gap-6">
+          <div className="space-y-1.5">
+            <label className="text-[10px] uppercase tracking-widest font-bold text-ink-50">Usuario o Email</label>
+            <input 
+              type="text" 
+              placeholder="admin@tu-negocio.com" 
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full bg-cream-deep/30 border border-border rounded-2xl py-4 px-6 outline-none focus:border-green transition-all"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] uppercase tracking-widest font-bold text-ink-50">Código Passcode</label>
+            <input 
+              type="password" 
+              placeholder="••••••" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-cream-deep/30 border border-border rounded-2xl py-4 px-6 outline-none focus:border-green transition-all tracking-[0.5em]"
+            />
+          </div>
+          
+          {error && <p className="text-red-500 text-[10px] text-center uppercase tracking-widest font-bold">{error}</p>}
+          
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="btn-editorial w-full py-5 justify-center mt-4 text-xs tracking-widest uppercase"
+          >
+            {loading ? 'Verificando...' : 'Entrar al Panel'}
+          </button>
+        </form>
+
+        <p className="text-center mt-10 text-[10px] text-ink-30 uppercase tracking-widest leading-loose">
+          Si olvidaste tu acceso, solicita ayuda <br/> a soporte vía <a href="#" className="text-wa font-bold">WhatsApp</a>
+        </p>
+      </motion.div>
     </div>
   );
 };
 
 /* ── LIVE MONITOR (Analytics with WebSockets) ── */
-export const LiveMonitor = ({ onLogout }) => {
+export const LiveMonitor = () => {
   const { tenantSlug } = useParams();
   const [stats, setStats] = useState([]);
   const [totalHits, setTotalHits] = useState(0);
@@ -133,8 +127,6 @@ export const LiveMonitor = ({ onLogout }) => {
       ws.onmessage = (event) => {
         const payload = JSON.parse(event.data);
         if (payload.type === 'ANALYTICS_UPDATE' && payload.action === 'add_to_cart') {
-          // Un cliente picó el botón '+' en el front!
-          // Vibramos si hay feedback háptico (opcional)
           if (navigator.vibrate) navigator.vibrate(10);
           
           setStats(prev => {
@@ -142,12 +134,9 @@ export const LiveMonitor = ({ onLogout }) => {
             const idx = copy.findIndex(p => p.id === payload.product_id);
             if (idx >= 0) {
               copy[idx] = { ...copy[idx], hits: copy[idx].hits + 1 };
-              // Reordenar por clics más altos
               copy.sort((a, b) => b.hits - a.hits);
               return copy;
             } else {
-              // Si no estaba en el top local, mejor re-hacemos un fetch para no descincronizar
-              // Retornar prev no activa reactividad, así que la promesa de abajo lo arregla
               fetchTopStats();
               return prev;
             }
@@ -158,67 +147,71 @@ export const LiveMonitor = ({ onLogout }) => {
     } catch (e) {
        console.warn('WS LiveMonitor error:', e);
     }
-    return () => { if (ws) ws.close() };
+    return () => { 
+      if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+        ws.close();
+      }
+    };
   }, [fetchTopStats]);
 
-  const totalFormat = (totalHits * 32000).toLocaleString('es-CO'); // Estimación de dinero base para Platorin
+  const totalFormat = (totalHits * 32000).toLocaleString('es-CO'); 
   const topProduct = stats.length > 0 ? stats[0] : null;
 
   return (
     <motion.div 
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8"
     >
-      <header className="mb-4 mt-4 flex justify-between items-end">
-        <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
-          VENTAS <br /><span className="text-amber-500">DE HOY</span>
-        </h2>
-        <button onClick={onLogout} className="text-[9px] uppercase tracking-widest text-dark/30 hover:text-dark/80 transition-colors">Cerrar Sesión</button>
+      <header className="flex justify-between items-end">
+        <div>
+          <p className="text-[9px] text-ink/40 uppercase tracking-[0.4em] font-black mb-2">Métricas en vivo</p>
+          <h2 className="heading-editorial text-4xl">Ventas de <span className="serif-italic">Hoy</span></h2>
+        </div>
       </header>
 
       {/* KPI Principal: Ventas del Día */}
-      <div className="bg-dark/5 p-8 rounded-[2.5rem] border border-dark/10 relative overflow-hidden group">
-        {/* Tech Decor */}
-        <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-dark/20 rounded-tr-[2.5rem]" />
-        
-        <p className="text-[9px] text-dark/40 uppercase tracking-[0.3em] mb-2 font-bold">Total recibido hoy</p>
-        <div className="flex items-baseline gap-2">
-          <span className="text-4xl sm:text-6xl font-black italic text-dark tracking-tighter">${totalFormat}</span>
-          <span className="text-emerald-600 text-[10px] font-bold whitespace-nowrap bg-emerald-500/10 px-3 py-1 rounded-full animate-pulse">+2% vs ayer</span>
+      <div className="surface-editorial flex flex-col items-center justify-center text-center py-16">
+        <p className="text-[10px] text-ink-50 uppercase tracking-[0.4em] mb-4 font-bold">Total Recibido Hoy (Est.)</p>
+        <div className="flex flex-col items-center">
+          <span className="text-7xl font-black italic text-ink tracking-tighter leading-none mb-4">
+            ${totalFormat}
+          </span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-light text-green rounded-full">
+            <span className="w-1.5 h-1.5 bg-green rounded-full animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">+2.4% hoy</span>
+          </div>
         </div>
       </div>
 
-      {/* Listado de "Hot Items" (Los más clickeados) */}
+      {/* Listado de "Hot Items" */}
       <section>
-        <h3 className="text-[10px] text-dark/40 uppercase tracking-widest mb-6 px-2 font-bold">Lo más buscado por tus clientes</h3>
+        <h3 className="tag-editorial text-[10px] mb-8">Lo más buscado por tus clientes</h3>
         {stats.length === 0 && (
-          <div className="bg-dark/5 p-12 rounded-[2rem] border border-dashed border-dark/10 text-center space-y-4">
-             <span className="text-4xl grayscale opacity-50 block">📉</span>
-             <p className="text-xs text-dark/40 uppercase tracking-widest font-bold">Aún no hay actividad hoy</p>
-             <p className="text-[10px] text-dark/30 max-w-[200px] mx-auto leading-relaxed">Cuando tus clientes vean tu menú, aquí verás qué platos les interesan más.</p>
+          <div className="bg-cream-deep/40 p-16 rounded-[2.5rem] border border-dashed border-border text-center space-y-4">
+             <span className="text-4xl opacity-50 block">📉</span>
+             <p className="text-xs text-ink-50 uppercase tracking-widest font-bold">Sin actividad detectada</p>
+             <p className="text-[10px] text-ink-30 max-w-[200px] mx-auto leading-relaxed">Verás qué platos interesan más a tus clientes en tiempo real.</p>
           </div>
         )}
         
-        <div className="space-y-4">
+        <div className="grid gap-6">
           <AnimatePresence>
             {stats.map(item => {
-              // Calculamos el % de llenado para la barra de energía
               const maxHits = topProduct ? topProduct.hits : 1;
               const fillPercent = Math.max(5, (item.hits / maxHits) * 100);
               
               return (
-                <motion.div layout key={item.id} className="space-y-2">
-                  <div className="flex justify-between text-[10px] uppercase font-bold tracking-tighter px-2">
-                    <span>{item.name}</span>
-                    <span className="text-dark/40">{item.hits} vistas</span>
+                <motion.div layout key={item.id} className="space-y-3">
+                  <div className="flex justify-between text-[11px] uppercase font-bold tracking-tight px-1">
+                    <span className="text-ink">{item.name}</span>
+                    <span className="text-gold">{item.hits} vistas</span>
                   </div>
-                  {/* Barra de energía estilo HUD */}
-                  <div className="h-1.5 w-full bg-dark/5 rounded-full overflow-hidden">
+                  <div className="h-2 w-full bg-cream-deep/60 rounded-full overflow-hidden">
                     <motion.div 
                       key={`bar-${item.id}-${item.hits}`}
                       initial={{ width: 0 }}
                       animate={{ width: `${fillPercent}%` }}
-                      transition={{ duration: 0.8, ease: "circOut" }}
-                      className="h-full bg-gold-gradient shadow-[0_0_15px_rgba(252,211,77,0.4)]"
+                      transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+                      className="h-full bg-ink rounded-full"
                     />
                   </div>
                 </motion.div>
@@ -231,7 +224,7 @@ export const LiveMonitor = ({ onLogout }) => {
   );
 };
 
-/* ── QR DEPLOYMENT TERMINAL (FASE 1) ── */
+/* ── QR DEPLOYMENT TERMINAL ── */
 const QRTerminal = ({ config }) => {
   const enabledModules = config?.enabled_modules || ['orders', 'products'];
   const hasTables = enabledModules.includes('tables');
@@ -257,357 +250,184 @@ const QRTerminal = ({ config }) => {
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     
-    // Background
-    pdf.setFillColor(247, 243, 233); // Match new bone color
+    pdf.setFillColor(245, 240, 232); // --cream
     pdf.rect(0, 0, 210, 297, 'F');
-    
-    // Titulo
-    pdf.setTextColor(26, 26, 26);
+    pdf.setTextColor(26, 18, 8); // --ink
     pdf.setFontSize(32);
     pdf.setFont('helvetica', 'bold');
     if (table) pdf.text(`MESA ${table}`, 105, 35, { align: "center" });
-    pdf.setTextColor(197, 160, 89);
-    pdf.text("Sistema Operativo Gastronómico", 105, 50, { align: "center" });
-
-    // Subtitulo
-    pdf.setTextColor(26, 26, 26);
-    pdf.setAlpha(0.6);
-    pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text("Escanea el código con la cámara de tu celular", 105, 65, { align: "center" });
-    pdf.setAlpha(1.0);
-
-    // QR Image
+    pdf.setTextColor(200, 137, 26); // --gold
+    pdf.text("Menú Digital Platorin", 105, 50, { align: "center" });
     pdf.addImage(imgData, 'PNG', 55, 90, 100, 100);
-
-    // Footer
-    pdf.setFontSize(10);
-    pdf.setTextColor(100, 100, 100);
-    pdf.text(`Generado con Platorin OS`, 105, 280, { align: "center" });
-
-    pdf.save(`${tenantSlug}-kit-digital${table ? '-mesa-'+table : ''}.pdf`);
-    setIsGenerating(false);
-  };
-
-  const handleDownloadBatchPDF = async () => {
-    const count = parseInt(tableCount);
-    if (!count || count < 1) return alert("Ingresa una cantidad válida de mesas.");
-    
-    setIsGenerating(true);
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    
-    for (let i = 1; i <= count; i++) {
-       const el = document.getElementById(`qr-batch-${i}`);
-       if (!el) continue;
-       const canvas = await html2canvas(el, { scale: 3, backgroundColor: '#ffffff' });
-       const imgData = canvas.toDataURL('image/png');
-       
-       if (i > 1) pdf.addPage();
-       
-       pdf.setFillColor(247, 243, 233); 
-       pdf.rect(0, 0, 210, 297, 'F');
-       pdf.setTextColor(26, 26, 26);
-       pdf.setFontSize(32);
-       pdf.setFont('helvetica', 'bold');
-       pdf.text(`MESA ${i}`, 105, 35, { align: "center" });
-       pdf.setTextColor(197, 160, 89);
-       pdf.text("Sistema Operativo Gastronómico", 105, 50, { align: "center" });
-       pdf.setTextColor(26, 26, 26);
-       pdf.setAlpha(0.6);
-       pdf.setFontSize(16);
-       pdf.setFont('helvetica', 'normal');
-       pdf.text("Escanea el código con la cámara de tu celular", 105, 65, { align: "center" });
-       pdf.setAlpha(1.0);
-       pdf.addImage(imgData, 'PNG', 55, 90, 100, 100);
-       pdf.setFontSize(10);
-       pdf.setTextColor(100, 100, 100);
-       pdf.text(`Powered by Platorin OS - tenant: ${tenantSlug}`, 105, 280, { align: "center" });
-    }
-    
-    pdf.save(`${tenantSlug}-lote-mesas-1-a-${count}.pdf`);
+    pdf.save(`${tenantSlug}-qr${table ? '-mesa-'+table : ''}.pdf`);
     setIsGenerating(false);
   };
 
   const menuUrl = table ? `${window.location.origin}/t/${tenantSlug}?mesa=${table}` : `${window.location.origin}/t/${tenantSlug}`;
   return (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12 flex flex-col items-center pb-20">
-      <div className="text-center mt-4 relative">
-        <h2 className="text-4xl font-light tracking-tight text-dark mb-2">
-          Generador de <span className="italic font-serif text-amber-500">QR</span>
-        </h2>
-        <p className="text-[10px] text-dark/40 font-bold leading-relaxed tracking-[0.4em] uppercase">
-          Tus clientes escanean esto para ver el menú
-        </p>
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl mx-auto py-0 flex flex-col items-center gap-8">
+      <div className="text-center">
+        <span className="tag-editorial">Conexión con el cliente</span>
+        <h2 className="heading-editorial text-4xl">Generador de <span className="serif-italic">Códigos QR</span></h2>
+        <p className="text-sub mt-2">Descarga tus códigos para imprimir y colocar en las mesas.</p>
       </div>
       
-      {/* ── GENERACIÓN INDIVIDUAL ── */}
-      <div className="w-full max-w-xs mb-4">
-        <input 
-          type="text" 
-          placeholder="Ej: 1, 2, Terraza..." 
-          value={table}
-          onChange={(e) => setTable(e.target.value)}
-          className="w-full bg-dark/5 border border-dark/10 rounded-2xl py-3 px-5 text-sm text-center outline-none focus:border-amber-500 transition-colors placeholder-dark/30"
-        />
-        <p className="text-[9px] text-dark/30 text-center uppercase tracking-widest mt-2 font-mono">{table ? `Mesa ${table} configurada` : 'Código general'}</p>
-      </div>
-
-      <div  
-        ref={qrRef} 
-        className="bg-white p-8 rounded-3xl shadow-[0_0_50px_rgba(197,160,89,0.15)] flex flex-col items-center justify-center gap-6"
-        style={{ border: '4px solid #C5A059' }}
-      >
-        <QRCodeSVG 
-          value={menuUrl} 
-          size={220}
-          bgColor={"#ffffff"}
-          fgColor={"#050505"}
-          level={"Q"}
-          imageSettings={{
-            src: "/logo.png",
-            x: undefined,
-            y: undefined,
-            height: 50,
-            width: 50,
-            excavate: true,
-          }}
-        />
-        <p className="text-xs uppercase tracking-[0.4em] font-black text-black">
-          ESCANEA AQUÍ
-        </p>
-      </div>
-
-      <div className="flex gap-4 w-full max-w-sm">
-        <button onClick={handleDownloadPNG} className="flex-1 py-4 bg-dark/5 border border-dark/10 rounded-2xl text-[9px] uppercase tracking-widest text-dark font-black hover:bg-dark/10 transition-colors">
-          ↓ Bajar PNG
-        </button>
-        <button onClick={handleDownloadPDF} disabled={isGenerating} className="flex-1 py-4 bg-dark text-bone font-black flex items-center justify-center gap-2 rounded-2xl text-[9px] uppercase tracking-[0.3em] transition-transform shadow-xl tactile-button">
-          {isGenerating ? 'Generando...' : '📄 Imprimir PDF'}
-        </button>
-      </div>
-
-      {/* ── GENERACIÓN POR LOTE (BATCH) ── */}
-      {hasTables && (
-        <div className="w-full max-w-sm mt-8 border-t border-dark/10 pt-10 text-center space-y-6 relative">
-          <h3 className="text-xl font-black uppercase italic text-dark tracking-tighter">Despliegue Masivo</h3>
-          <p className="text-[10px] text-dark/40 uppercase tracking-[0.3em] px-4 font-medium">Generación automatizada de kits físicos por zona.</p>
-          
-          <div className="flex gap-3">
-            <input 
-              type="number" 
-              min="1" max="100"
-              placeholder="M_COUNT" 
-              value={tableCount}
-              onChange={(e) => setTableCount(e.target.value)}
-              className="w-1/3 bg-dark/5 border border-dark/10 rounded-2xl py-4 px-2 text-center text-sm outline-none focus:border-amber-500 transition-colors placeholder-dark/20 text-dark font-mono"
-            />
-            <button onClick={handleDownloadBatchPDF} disabled={isGenerating || !tableCount} className="flex-1 py-4 bg-dark text-bone font-black flex items-center justify-center gap-2 rounded-2xl text-[10px] uppercase tracking-[0.3em] shadow-xl hover:scale-[1.02] transition-transform disabled:opacity-50 tactile-button">
-              {isGenerating ? 'Generando PDF...' : '🖨️ Crear archivos'}
-            </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start w-full">
+        <div className="space-y-8">
+          <div className="surface-editorial space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest font-bold text-ink-50">Identificador de Mesa (Opcional)</label>
+              <input 
+                type="text" 
+                placeholder="Ej: Mesa 1, Terraza..." 
+                value={table}
+                onChange={(e) => setTable(e.target.value)}
+                className="w-full bg-cream-deep/30 border border-border rounded-xl py-3 px-5 outline-none focus:border-gold transition-colors"
+              />
+            </div>
+            
+            <div className="flex gap-4">
+              <button onClick={handleDownloadPNG} className="btn-editorial-outline flex-1 py-4 justify-center text-[10px] uppercase font-bold">PNG</button>
+              <button onClick={handleDownloadPDF} disabled={isGenerating} className="btn-editorial flex-1 py-4 justify-center text-[10px] uppercase font-bold">
+                {isGenerating ? 'Generando...' : 'PDF para Imprimir'}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* ── HIDDEN RENDER AREA FOR BATCH ── */}
-      <div className="absolute opacity-0 pointer-events-none -z-50" style={{ left: '-9999px', top: 0 }}>
-         {parseInt(tableCount) > 0 && Array.from({length: Math.min(parseInt(tableCount), 100)}).map((_, i) => (
-             <div 
-               key={i} 
-               id={`qr-batch-${i+1}`} 
-               className="bg-white p-8 flex flex-col items-center justify-center gap-6"
-               style={{ border: '4px solid #f59e0b', width: '316px', height: '350px' }}
-             >
-               <QRCodeSVG 
-                 value={`${window.location.origin}/t/${tenantSlug}?mesa=${i+1}`} 
-                 size={220}
-                 bgColor={"#ffffff"}
-                 fgColor={"#050505"}
-                 level={"Q"}
-                 imageSettings={{ src: "/logo.png", height: 50, width: 50, excavate: true }}
-               />
-               <p className="text-xs uppercase tracking-[0.4em] font-black text-black">ESCANEA AQUÍ</p>
-             </div>
-         ))}
+          {hasTables && (
+            <div className="surface-ink space-y-4">
+               <h4 className="heading-editorial !text-white text-xl">Descarga Masiva</h4>
+               <p className="text-white/40 text-xs font-medium">Genera hasta 100 códigos de una sola vez para tu restaurante.</p>
+               <div className="flex gap-3">
+                 <input 
+                   type="number" 
+                   placeholder="Cant." 
+                   value={tableCount}
+                   onChange={(e) => setTableCount(e.target.value)}
+                   className="w-20 bg-white/10 border border-white/10 rounded-xl py-3 px-3 text-white text-center outline-none"
+                 />
+                 <button className="btn-editorial bg-gold hover:bg-gold/80 flex-1 py-3 justify-center text-[10px] font-bold">CREAR LOTE</button>
+               </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col items-center">
+          <div ref={qrRef} className="bg-white p-10 rounded-[3rem] shadow-2xl shadow-ink/5 border border-border relative">
+            <QRCodeSVG 
+              value={menuUrl} 
+              size={240}
+              bgColor={"#ffffff"}
+              fgColor={"#1A1208"}
+              level={"Q"}
+              imageSettings={{ src: "/logo.png", height: 50, width: 50, excavate: true }}
+            />
+            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-[#16110F] text-white px-10 py-3 rounded-full text-[11px] font-black tracking-[0.4em] uppercase shadow-[0_15px_40px_rgba(0,0,0,0.3)] z-20">
+              Escanea
+            </div>
+          </div>
+          <p className="mt-12 text-ink/50 text-[10px] uppercase tracking-widest font-black text-center max-w-[200px]">Este es tu código {table ? `para la ${table}` : 'general'}.</p>
+        </div>
       </div>
     </motion.div>
   );
 };
 
 /* ── COMPONENTS (Colecciones) ── */
-const InventoryManager = ({ products, toggleProduct, magicSnap, onLogout }) => {
-  const { tenantSlug } = useParams();
+const InventoryManager = ({ products, toggleProduct, magicSnap }) => {
   return (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
       
-      <header className="mb-12 pt-8 pb-6 border-b border-dark/10 relative">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8 mb-10">
-          <div className="relative">
-            <p className="text-[9px] tracking-[0.4em] text-dark/40 uppercase font-bold mb-3 flex items-center gap-3">
-              <span className="w-5 h-px bg-amber-500/50"></span> {(tenantSlug || 'DASHBOARD').toUpperCase()}
-            </p>
-            {/* Tech tag */}
-          </div>
-          <div className="flex flex-col items-start sm:items-end gap-1.5 text-[9px] font-mono tracking-[0.15em] uppercase bg-dark/5 p-5 rounded-[2rem] border border-dark/10 backdrop-blur-md">
-            <p className="text-dark/40">Negocio: <span className="text-dark font-black ml-2">{localStorage.getItem('hub_tenant')?.toUpperCase() || 'RESTAURANTE'}</span></p>
-            <p className="text-dark/40">Conexión: <span className="text-emerald-600 font-black ml-2">Segura</span></p>
-            <p className="text-dark/40">Perfil: <span className="text-dark/80 ml-2 font-bold">Administrador</span></p>
-          </div>
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-border pb-10">
+        <div>
+          <p className="text-[9px] text-ink/40 uppercase tracking-[0.4em] font-black mb-2">Catálogo de productos</p>
+          <h2 className="heading-editorial text-4xl">Mi <span className="serif-italic">Carta Digital</span></h2>
+          <p className="text-ink/40 text-sm mt-1">Gestiona tus platos, precios y disponibilidad en tiempo real.</p>
         </div>
-
-        <div className="flex justify-between items-end">
-          <div className="max-w-[400px]">
-            <h2 className="text-3xl font-light tracking-tighter text-dark">
-              Mis <span className="italic font-serif text-amber-500">Productos</span>
-            </h2>
-            <p className="text-[10px] text-dark/50 mt-3 font-medium leading-relaxed tracking-widest uppercase">
-              Agrega o cambia platos, precios y fotos al instante.
-            </p>
-          </div>
-          <div className="flex gap-4">
-             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600 border border-amber-500/20 px-6 py-3 rounded-2xl bg-amber-500/5 hover:bg-amber-500/10 cursor-pointer transition-all flex items-center gap-2 group">
-                <span className="text-lg group-hover:rotate-12 transition-transform">📸</span>
-                <span>Foto-Plato (IA)</span>
-                <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-                  const token = authService.getToken();
-                  alert("✨ Gemini Vision está analizando el plato... Por favor espera.");
-                  try {
-                    await magicSnap(token, file);
-                    alert("✅ ¡Plato creado mágicamente!");
-                    window.location.reload();
-                  } catch { alert("Error en el análisis visual."); }
-                }} />
-             </label>
-             <button onClick={onLogout} className="text-[10px] font-black uppercase tracking-[0.3em] text-dark/40 hover:text-dark transition-all border border-dark/10 px-6 py-3 rounded-2xl hover:bg-dark/5 tactile-button">
-                Cerrar sesión
-             </button>
-          </div>
+        <div className="flex gap-4">
+           <label className="btn-editorial bg-gold/10 text-gold border border-gold/20 hover:bg-gold/20 cursor-pointer">
+              <span className="text-xl">📸</span>
+              <span>Foto-Plato (IA)</span>
+              <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const token = authService.getToken();
+                alert("✨ Gemini Vision está analizando el plato...");
+                try {
+                  await magicSnap(token, file);
+                  alert("✅ ¡Plato creado mágicamente!");
+                  window.location.reload();
+                } catch { alert("Error en el análisis visual."); }
+              }} />
+           </label>
         </div>
       </header>
       
       {products.length === 0 && (
-        <div className="bg-dark/5 p-16 rounded-[3rem] border border-dashed border-dark/10 text-center space-y-6">
-          <div className="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-4xl">🍳</span>
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-xl font-bold text-dark italic font-serif">Tu menú está vacío</h3>
-            <p className="text-[10px] text-dark/40 uppercase tracking-[0.2em] max-w-xs mx-auto leading-relaxed">
-              Agrega tu primer plato usando el botón de arriba para que tus clientes puedan verlo.
-            </p>
-          </div>
-          <div className="pt-4">
-             <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 text-amber-500 rounded-full text-[9px] font-black uppercase tracking-widest animate-bounce">
-                Paso 1: Agrega un plato ↓
-             </div>
+        <div className="surface-editorial text-center py-24 space-y-6">
+          <div className="w-20 h-20 bg-cream-deep/50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🍳</div>
+          <div>
+            <h3 className="heading-editorial text-2xl serif-italic">Tu carta está vacía</h3>
+            <p className="text-sub max-w-xs mx-auto mt-2">Empieza subiendo una foto de tus platos o agrégalos manualmente.</p>
           </div>
         </div>
       )}
 
-      {products.map((item) => (
-        <div key={item.id} className="group relative bg-dark/[0.03] border border-dark/5 p-4 rounded-[2.5rem] flex items-center gap-4 transition-all hover:bg-dark/[0.07]">
-          <div className={`w-16 h-16 flex-shrink-0 flex items-center justify-center rounded-2xl bg-dark/5 overflow-hidden transition-all duration-500 border border-dark/5 ${!item.is_available ? 'grayscale opacity-50' : 'group-hover:scale-105'}`}>
-            {item.image || item.image_url ? (
-              <img src={item.image || item.image_url} alt={item.name} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-2xl">{item.emoji || '🍽️'}</span>
-            )}
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <div className="flex items-center gap-2">
-               <h3 className={`text-xs font-black uppercase tracking-[0.1em] truncate transition-colors ${!item.is_available ? 'text-dark/20 line-through' : 'text-dark'}`}>
-                 {item.name}
-               </h3>
-               {/* Trend Indicator Icon */}
-               {item.is_available && item.id % 3 === 0 && <span className="text-[10px]" title="Trending 🔥">🔥</span>}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {products.map((item) => (
+          <div key={item.id} className="surface-editorial group hover:border-gold/30 transition-all p-5 flex items-center gap-5">
+            <div className={`w-20 h-20 rounded-2xl bg-cream-deep/50 overflow-hidden border border-border ${!item.is_available ? 'grayscale opacity-40' : 'group-hover:scale-105 transition-transform'}`}>
+              {item.image || item.image_url ? (
+                <img src={item.image || item.image_url} alt={item.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-3xl opacity-30">🍽️</div>
+              )}
             </div>
-            <p className="text-[10px] text-dark/30 font-mono mt-1 font-bold">{item.price}</p>
+            <div className="flex-1 min-w-0">
+              <h3 className={`heading-editorial text-sm uppercase tracking-wider truncate ${!item.is_available ? 'text-ink-30 line-through' : 'text-ink'}`}>
+                {item.name}
+              </h3>
+              <p className="serif-italic text-lg">${(item.price || 0).toLocaleString('es-CO')}</p>
+              
+              <div className="mt-3 flex items-center justify-between">
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${item.is_available ? 'text-green' : 'text-red-500'}`}>
+                  {item.is_available ? 'En carta' : 'Agotado'}
+                </span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" className="sr-only peer" checked={item.is_available} onChange={() => toggleProduct(item.id, item.is_available)} />
+                  <div className="w-9 h-5 bg-ink-30 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green"></div>
+                </label>
+              </div>
+            </div>
           </div>
-          {/* Kill-Switch */}
-          <div className="flex flex-col items-end gap-2 flex-shrink-0">
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" checked={item.is_available} onChange={() => toggleProduct(item.id, item.is_available)} />
-              <div className="w-11 h-6 bg-white/10 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/30 peer-checked:after:bg-amber-500 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500/20"></div>
-            </label>
-            <span className={`text-[8px] uppercase tracking-tighter ${item.is_available ? 'text-amber-500/80 shadow-amber-500' : 'text-red-500/80'}`}>
-              {item.is_available ? 'Disponible' : 'Agotado'}
-            </span>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </motion.div>
   );
 };
 
-/* ── BRANDING EDITOR (FASE 2) ── */
+/* ── BRANDING EDITOR ── */
 const BrandingSettings = () => {
   const { tenantSlug } = useParams();
   const [loading, setLoading] = useState(false);
-  const [igStatus, setIgStatus] = useState(null);
-  const [ttStatus, setTtStatus] = useState({ is_linked: false, username: '' });
   const [formData, setFormData] = useState({
-    brand_color: '#f59e0b',
+    brand_color: '#C8891A',
     whatsapp_number: '',
     tiktok_url: '',
   });
 
   useEffect(() => {
-    const token = localStorage.getItem('hub_token');
-    
-    // Fetch Settings
-    fetch(`${API_URL}/api/v1/tenant/${tenantSlug}`)
+      fetch(`${API_URL}/api/v1/tenant/${tenantSlug}`)
       .then(r => r.json())
       .then(d => {
         setFormData({
-          brand_color: d.brand_color || '#f59e0b',
+          brand_color: d.brand_color || '#C8891A',
           whatsapp_number: d.whatsapp_number || '',
           tiktok_url: d.tiktok_url || ''
         });
-        const mainBranch = d.branches?.[0];
-        if (mainBranch) {
-            setTtStatus({ 
-              is_linked: mainBranch.is_tt_linked, 
-              username: mainBranch.tt_username,
-              profile_picture: mainBranch.tt_profile_picture
-            });
-        }
       })
       .catch(e => console.warn(e));
-
-    // Fetch IG Status
-    fetch(`${API_URL}/api/admin/instagram/status`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-    .then(r => r.json())
-    .then(d => setIgStatus(d))
-    .catch(() => setIgStatus(null));
   }, [tenantSlug]);
-
-  const handleConnectTikTok = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('hub_token');
-      const res = await fetch(`${API_URL}/api/admin/tiktok/setup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ branch_id: 1 })
-      });
-      const data = await res.json();
-      if (res.ok) {
-          setTtStatus({ 
-            is_linked: true, 
-            username: data.tt_username,
-            profile_picture: data.tt_profile_picture 
-          });
-          alert("¡TikTok vinculado con éxito!");
-      }
-    } catch (e) {
-      console.warn(e);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -616,14 +436,11 @@ const BrandingSettings = () => {
       const token = localStorage.getItem('hub_token');
       const res = await fetch(`${API_URL}/api/admin/tenant/settings`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(formData)
       });
       if (!res.ok) throw new Error("Guardado falló");
-      alert("Marca actualizada con éxito.");
+      alert("Identidad visual actualizada.");
     } catch (err) {
       alert(err.message);
     } finally {
@@ -632,137 +449,66 @@ const BrandingSettings = () => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 max-w-6xl mx-auto">
-      <header className="mb-8 border-b border-dark/10 pb-6">
-        <h2 className="text-3xl font-light text-dark mb-2 tracking-tight">Mi <span className="text-amber-500 font-serif italic">Marca</span></h2>
-        <p className="text-[10px] uppercase tracking-widest text-dark/40">Cambia los colores y redes sociales de tu negocio</p>
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl mx-auto py-0">
+      <header className="border-b border-[rgba(22,17,15,0.06)] pb-10 mb-8">
+        <p className="text-[9px] text-ink/40 uppercase tracking-[0.4em] font-black mb-2">Identidad de Marca</p>
+        <h2 className="heading-editorial text-4xl">Personalizar <span className="serif-italic">Experiencia</span></h2>
+        <p className="text-ink/40 text-sm mt-1">Define el ADN visual que tus clientes verán en su terminal.</p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
-        {/* Form Column */}
-        <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-6 order-2 lg:order-1">
-          <div className="bg-dark/[0.03] p-8 rounded-[2.5rem] border border-dark/5 space-y-8">
-            
-            <div className="flex flex-col gap-4">
-               <div className="flex justify-between items-center">
-                 <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-500">Color de Marca (Interfaz)</label>
-                 <span className="text-[10px] font-mono text-dark/30">{formData.brand_color.toUpperCase()}</span>
-               </div>
-               <div className="flex items-center gap-6 p-4 bg-dark/5 rounded-2xl border border-dark/5">
-                 <div className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-dark/10 shadow-2xl">
-                   <input 
-                      type="color" 
-                      value={formData.brand_color} 
-                      onChange={(e) => setFormData({...formData, brand_color: e.target.value})} 
-                      className="absolute inset-0 w-[200%] h-[200%] -top-[50%] -left-[50%] cursor-pointer bg-transparent border-none p-0 outline-none"
-                   />
-                 </div>
-                 <div className="flex-1">
-                    <p className="text-[10px] text-dark/50 mb-1">Color de Acento</p>
-                    <p className="text-xs text-dark/80">Este color definirá el acento de botones e iconos en tu menú digital.</p>
-                 </div>
-               </div>
-            </div>
-            
-            <div className="space-y-8">
-                <div className="flex flex-col gap-2">
-                   <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-dark/50">WhatsApp de Pedidos</label>
-                   <PhoneInput 
-                     value={formData.whatsapp_number} 
-                     onChange={(val) => setFormData({...formData, whatsapp_number: val})} 
-                     placeholder="Número de WhatsApp"
-                   />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+        <form onSubmit={handleSubmit} className="space-y-10">
+          <div className="surface-editorial space-y-8">
+            <div className="space-y-4">
+              <label className="text-[10px] uppercase tracking-widest font-bold text-ink-50">Color de Acento (Botones)</label>
+              <div className="flex items-center gap-6 p-5 bg-cream-deep/20 rounded-2xl border border-border">
+                <input 
+                  type="color" 
+                  value={formData.brand_color} 
+                  onChange={(e) => setFormData({...formData, brand_color: e.target.value})} 
+                  className="w-16 h-16 rounded-xl cursor-pointer border-none p-0"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-ink uppercase tracking-wider">{formData.brand_color}</p>
+                  <p className="text-[11px] text-ink-30">Este color se usará en botones y detalles del menú.</p>
                 </div>
+              </div>
+            </div>
 
-               <div className="grid grid-cols-2 gap-6">
-                 <div className="flex flex-col gap-2">
-                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-dark/50">Instagram (Vía Autopilot)</label>
-                    {igStatus?.is_linked ? (
-                      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl py-4 px-4 flex items-center gap-3">
-                        <img src={igStatus.ig_profile_picture} className="w-6 h-6 rounded-full border border-emerald-500/30" alt="" />
-                        <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest truncate">@{igStatus.ig_username}</span>
-                      </div>
-                    ) : (
-                      <div className="bg-dark/5 border border-dashed border-dark/10 rounded-2xl py-4 px-4 flex items-center justify-center">
-                        <span className="text-[9px] text-dark/30 uppercase tracking-widest font-bold">Desvinculado</span>
-                      </div>
-                    )}
-                 </div>
-                 <div className="flex flex-col gap-2">
-                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-dark/50">TikTok (Wow Connect)</label>
-                    {ttStatus.is_linked ? (
-                      <div className="bg-[#fe2c55]/10 border border-[#fe2c55]/20 rounded-2xl py-4 px-4 flex items-center gap-3">
-                        {ttStatus.profile_picture ? (
-                           <img src={ttStatus.profile_picture} className="w-6 h-6 rounded-full border border-[#fe2c55]/30" alt="" />
-                        ) : (
-                           <span className="text-lg">🎵</span>
-                        )}
-                        <span className="text-[10px] text-[#fe2c55] font-black uppercase tracking-widest truncate">@{ttStatus.username}</span>
-                      </div>
-                    ) : (
-                      <button type="button" onClick={handleConnectTikTok} className="bg-dark/5 border border-dark/10 rounded-2xl py-4 px-4 flex items-center justify-center gap-2 hover:bg-dark/10 transition-colors">
-                        <span className="text-[9px] text-dark uppercase tracking-widest font-black">Conectar TikTok</span>
-                      </button>
-                    )}
-                 </div>
-               </div>
+            <div className="space-y-4">
+              <label className="text-[10px] uppercase tracking-widest font-bold text-ink-50">WhatsApp de Pedidos</label>
+              <PhoneInput 
+                value={formData.whatsapp_number} 
+                onChange={(val) => setFormData({...formData, whatsapp_number: val})} 
+                placeholder="Ej: +57 300..."
+              />
             </div>
           </div>
 
-          <button type="submit" disabled={loading} className="w-full py-5 text-[11px] uppercase tracking-[0.3em] font-black text-bone bg-dark rounded-[2rem] tactile-button shadow-xl" >
-            {loading ? 'Aplicando...' : 'Guardar cambios de diseño'}
+          <button type="submit" disabled={loading} className="btn-editorial w-full py-5 justify-center text-xs uppercase tracking-[0.2em]">
+            {loading ? 'Guardando...' : 'Aplicar Identidad Visual'}
           </button>
         </form>
 
-        {/* Mobile Preview Column */}
-        <div className="lg:col-span-2 order-1 lg:order-2 space-y-6 sticky top-8">
-            <p className="text-[10px] uppercase tracking-[0.4em] font-black text-dark/20 text-center">Simulador Live</p>
-            <div className="flex justify-center relative">
-                <div className="w-[280px] h-[580px] bg-bone border-[10px] border-dark/10 rounded-[3.5rem] overflow-hidden relative shadow-2xl">
-                    <div className="absolute top-0 inset-x-0 h-6 bg-dark/10 rounded-b-3xl w-1/3 mx-auto z-20"></div>
-                    
-                    <div className="h-full bg-bone flex flex-col pt-12 relative">
-                        {/* Page Flip Mockup */}
-                        <div className="absolute inset-y-0 right-0 w-[12px] bg-gradient-to-l from-dark/5 to-transparent z-10" />
-                        
-                        <div className="px-6 mb-8 relative z-0">
-                            <div className="flex items-center gap-2 mb-4">
-                                <span className="text-xl">🍽️</span>
-                                <span className="text-[8px] font-black uppercase tracking-[0.4em] text-dark/40">Entradas</span>
-                            </div>
-                            <h4 className="text-3xl font-black italic uppercase tracking-tighter text-dark mb-2 leading-[0.8]">{tenantSlug}</h4>
-                            <div className="h-1.5 w-16 rounded-full" style={{ backgroundColor: formData.brand_color }} />
-                        </div>
-
-                        <div className="flex-1 px-6 space-y-5 relative z-0">
-                            {[1,2,3].map(i => (
-                                <div key={i} className="bg-dark/[0.02] rounded-2xl border border-dark/5 p-4 flex gap-4">
-                                    <div className="w-12 h-12 bg-dark/5 rounded-xl flex-shrink-0" />
-                                    <div className="flex-1 space-y-2">
-                                        <div className="h-2 w-2/3 bg-dark/10 rounded-lg" />
-                                        <div className="h-1.5 w-1/3 bg-dark/5 rounded-lg" />
-                                        <div className="h-2 w-10 bg-dark/10 rounded-lg mt-1" />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Floating Buttons Mockup */}
-                        <div className="p-8 absolute bottom-0 inset-x-0 bg-gradient-to-t from-bone via-bone/80 to-transparent">
-                            <div className="flex justify-center gap-6 py-4 px-6 bg-dark/5 rounded-[2rem] border border-dark/10 backdrop-blur-3xl">
-                                <span className={formData.whatsapp_number ? 'opacity-100' : 'opacity-10'}>💬</span>
-                                <span className={igStatus?.is_linked ? 'opacity-100' : 'opacity-10'}>📸</span>
-                                <span className={ttStatus.is_linked ? 'opacity-100' : 'opacity-10'}>🎵</span>
-                            </div>
-                        </div>
+        <div className="sticky top-32">
+          <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-ink-30 text-center mb-6">Previsualización Live</p>
+          <div className="phone-outer mx-auto" style={{ width: '260px', height: '540px' }}>
+            <div className="phone-screen bg-cream h-full flex flex-col p-6 pt-12">
+               <div className="h-2 w-12 rounded-full mb-6" style={{ background: formData.brand_color }} />
+               <h4 className="heading-editorial text-2xl serif-italic mb-2">{tenantSlug}</h4>
+               <div className="space-y-4 mt-8">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="flex gap-3 opacity-20">
+                      <div className="w-10 h-10 bg-ink rounded-lg" />
+                      <div className="flex-1 space-y-2 pt-1">
+                        <div className="h-2 w-full bg-ink rounded" />
+                        <div className="h-1.5 w-1/2 bg-ink rounded" />
+                      </div>
                     </div>
-                </div>
-                
-                {/* Visual Hint */}
-                <motion.div animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute -right-8 top-1/2 bg-gold-gradient text-dark text-[9px] font-black uppercase px-3 py-1.5 rounded shadow-lg transform rotate-90 origin-right shadow-amber-500/20">
-                    Vista del Menú
-                </motion.div>
+                  ))}
+               </div>
             </div>
+          </div>
         </div>
       </div>
     </motion.div>
@@ -805,51 +551,41 @@ const BillingManager = () => {
   const isSuspended = bData.subscription_status === 'suspended';
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <header className="mb-8 border-b border-dark/10 pb-6">
-        <h2 className="text-3xl font-light text-dark mb-2 tracking-tight">Facturación & <span className="text-amber-500 font-serif italic">Planes</span></h2>
-        <p className="text-[10px] uppercase tracking-widest text-dark/40">Pago y Control de tu Sistema Platorin OS</p>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 max-w-4xl mx-auto">
+      <header className="mb-12 border-b border-[rgba(22,17,15,0.06)] pb-8">
+        <p className="text-[9px] text-ink/40 uppercase tracking-[0.4em] font-black mb-2">Suscripción & Licencias</p>
+        <h2 className="heading-editorial text-4xl">Facturación & <span className="serif-italic">Planes</span></h2>
       </header>
       
-      <div className={`p-8 rounded-[2.5rem] border flex flex-col items-center text-center gap-6 relative overflow-hidden ${isSuspended ? 'bg-red-500/5 border-red-500/20' : 'bg-emerald-500/5 border-emerald-500/20'}`}>
-        {/* Tech Corner Decor */}
-        <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-emerald-500/20 rounded-tr-[2.5rem]" />
-        
+      <div className={`p-10 rounded-[3rem] border flex flex-col items-center text-center gap-6 relative overflow-hidden ${isSuspended ? 'bg-red-500/[0.03] border-red-500/20' : 'bg-[#7E9B84]/[0.03] border-[#7E9B84]/20'}`}>
         <div className="relative">
           <span className="text-5xl">{isSuspended ? '⚠️' : '🛡️'}</span>
-          <div className="absolute -inset-4 bg-emerald-500/10 blur-2xl rounded-full animate-pulse" />
         </div>
 
         <div className="space-y-2">
-          <h3 className={`text-2xl font-black italic uppercase tracking-tighter ${isSuspended ? 'text-red-500' : 'text-emerald-500'}`}>
-             {isSuspended ? 'Pago Pendiente' : 'Suscripción Activa'}
+          <h3 className={`text-2xl font-black italic uppercase tracking-tighter ${isSuspended ? 'text-red-500' : 'text-[#7E9B84]'}`}>
+             {isSuspended ? 'Núcleo Restringido' : 'Suscripción Activa'}
           </h3>
-          <p className="text-[9px] text-dark/40 uppercase tracking-[0.3em] font-bold">
+          <p className="text-[9px] text-ink/30 uppercase tracking-[0.3em] font-black">
              Vencimiento: {bData.valid_until ? new Date(bData.valid_until).toLocaleDateString() : 'Acceso Vitalicio'}
           </p>
         </div>
-        
-        {isSuspended && (
-          <p className="text-[11px] text-red-600/70 max-w-sm font-medium leading-relaxed">
-            Tu terminal digital ha entrado en modo restrictivo. Reactiva el núcleo para restaurar las ventas en tiempo real.
-          </p>
-        )}
       </div>
 
-      <div className="bg-dark/5 p-10 rounded-[2.5rem] border border-dark/10 flex flex-col items-center relative group">
-         <div className="absolute top-4 left-6">
-            <span className="text-[8px] text-dark/20 uppercase tracking-widest font-bold">Suscripción Premium</span>
+      <div className="bg-[#FCFAF7] p-12 rounded-[3rem] border border-[rgba(22,17,15,0.06)] flex flex-col items-center relative group shadow-sm">
+         <div className="absolute top-6 left-8">
+            <span className="text-[8px] text-ink/20 uppercase tracking-[0.4em] font-black">Plan Premium OS</span>
          </div>
          
-         <div className="text-center mb-8">
-            <span className="text-6xl font-black italic tracking-tighter text-dark select-none relative">
-              $35<span className="text-sm font-normal text-amber-500/80 absolute -top-2 -right-10">/USD</span>
+         <div className="text-center mb-10">
+            <span className="text-7xl font-black italic tracking-tighter text-ink select-none relative">
+              $35<span className="text-sm font-normal text-gold absolute -top-2 -right-10">/USD</span>
             </span>
-            <p className="text-[9px] uppercase tracking-[0.4em] text-dark/30 mt-4 font-bold">Plan Premium Mensual</p>
+            <p className="text-[9px] uppercase tracking-[0.4em] text-ink/30 mt-4 font-black">Mensualidad recurrente</p>
          </div>
          
-         <button onClick={handleSubscribe} className="w-full py-5 uppercase font-black tracking-[0.3em] text-[10px] rounded-2xl transition-all flex justify-center items-center gap-3 bg-dark text-bone hover:bg-dark/90 shadow-2xl tactile-button">
-            <span className="text-lg">💳</span> Renovar plan ahora
+         <button onClick={handleSubscribe} className="w-full py-5 rounded-2xl transition-all flex justify-center items-center gap-3 bg-[#16110F] text-[#F7F4ED] text-[10px] font-black uppercase tracking-[0.3em] shadow-[0_20px_50px_rgba(22,17,15,0.2)] hover:scale-[1.02] active:scale-95 tactile-button">
+            <span className="text-lg">💳</span> Renovar núcleo ahora
          </button>
       </div>
 
@@ -1106,7 +842,7 @@ function SedesView({ branches }) {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-5xl mx-auto py-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-dark/5 p-8 rounded-[2.5rem] border border-dark/10 relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-dark/10 rounded-tr-[2.5rem]" />
         <div>
@@ -1417,38 +1153,44 @@ export const AdminDashboard = () => {
     const hasWhatsapp = !!config?.whatsapp_number;
 
     const steps = [
-      { id: 1, label: 'Agrega tu primer producto', done: hasProducts, hint: 'Usa el botón "📸 Foto-Plato" para hacerlo rápido.' },
-      { id: 2, label: 'Configura tu marca y WhatsApp', done: hasColor && hasWhatsapp, hint: 'En la sección "Diseño" para que te contacten.' },
-      { id: 3, label: 'Imprime tus códigos QR', done: false, hint: 'Descarga el PDF en "Códigos QR" y ponlo en tus mesas.' },
-      { id: 4, label: 'Recibe tu primer pedido', done: false, hint: 'Abre tu menú escaneando el QR y haz una prueba.' },
+      { id: 1, label: 'Cargar Catálogo', done: hasProducts, hint: 'Usa la IA para procesar tu carta física.' },
+      { id: 2, label: 'Identidad Visual', done: hasColor && hasWhatsapp, hint: 'Define tu color de marca y contacto.' },
+      { id: 3, label: 'Despliegue QR', done: false, hint: 'Genera el PDF para tus mesas físicas.' },
+      { id: 4, label: 'Primer Pedido', done: false, hint: 'Recibe una orden real para activar el motor.' },
     ];
 
-    const completedCount = steps.filter(s => s.done).length;
 
     return (
       <motion.div 
         initial={{ opacity: 0, y: -20 }} 
         animate={{ opacity: 1, y: 0 }}
-        className="bg-amber-500/5 border border-amber-500/20 rounded-[2.5rem] p-8 mb-12 relative overflow-hidden"
+        className="bg-[#FCFAF7] border border-[rgba(22,17,15,0.06)] rounded-[2.5rem] p-10 mb-12 relative overflow-hidden shadow-sm"
       >
-        <div className="absolute top-0 right-0 p-8 opacity-10">
-           <span className="text-6xl italic font-serif">Paso {completedCount + 1}</span>
+        <div className="absolute top-[-20%] right-[-5%] opacity-[0.03] select-none pointer-events-none">
+           <span className="text-[12rem] font-serif italic">Platorin</span>
         </div>
         
         <div className="relative z-10">
-          <h3 className="text-xl font-bold text-dark italic font-serif mb-2">¡Empecemos a vender!</h3>
-          <p className="text-[10px] text-dark/40 uppercase tracking-[0.2em] font-bold mb-8">Sigue estos pasos para activar tu negocio</p>
+          <div className="flex items-center gap-3 mb-6">
+             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+             <p className="text-[9px] text-ink/40 uppercase tracking-[0.4em] font-black">Sistema Operativo Iniciado</p>
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <h3 className="text-4xl font-light text-ink italic font-serif mb-10 leading-tight">
+            Tu cocina está lista.<br />
+            <span className="text-ink/40 not-italic font-sans text-sm font-medium tracking-tight">Completa estos pasos para activar el flujo de ventas.</span>
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {steps.map(s => (
-              <div key={s.id} className={`p-5 rounded-2xl border transition-all ${s.done ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-white/50 border-dark/5'}`}>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${s.done ? 'bg-emerald-500 text-white' : 'bg-dark/5 text-dark/30'}`}>
+              <div key={s.id} className={`p-6 rounded-3xl border transition-all ${s.done ? 'bg-emerald-500/[0.03] border-emerald-500/20' : 'bg-white/40 border-ink/5'}`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black ${s.done ? 'bg-emerald-500 text-white' : 'bg-ink/5 text-ink/30'}`}>
                     {s.done ? '✓' : s.id}
                   </div>
-                  <span className={`text-[11px] font-bold uppercase tracking-tight ${s.done ? 'text-emerald-700' : 'text-dark/60'}`}>{s.label}</span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${s.done ? 'text-emerald-700' : 'text-ink/60'}`}>{s.label}</span>
                 </div>
-                <p className="text-[10px] text-dark/40 leading-relaxed">{s.hint}</p>
+                <p className="text-[10px] text-ink/30 leading-relaxed font-medium">{s.hint}</p>
               </div>
             ))}
           </div>
@@ -1481,67 +1223,68 @@ export const AdminDashboard = () => {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen w-full bg-bone text-dark font-sans selection:bg-amber-500/30 relative pb-32">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen w-full bg-[#F5F1E8] text-ink font-sans selection:bg-gold/20 relative pb-32">
       
-      {/* ─── AMBIENT BACKGROUND GLOWS ─── */}
-      <div className="absolute top-0 inset-x-0 h-[800px] pointer-events-none opacity-30 z-0">
-         <div className="absolute top-[-20%] left-[20%] w-[50vw] h-[50vw] rounded-full blur-[120px] mix-blend-screen bg-gradient-to-r from-amber-500/20 to-orange-600/10"></div>
-         <div className="absolute top-[10%] right-[10%] w-[30vw] h-[30vw] rounded-full blur-[100px] mix-blend-screen bg-gradient-to-l from-amber-300/10 to-transparent"></div>
-      </div>
-      
-      {/* ─── DOT MATRIX PATTERN ─── */}
-      <div 
-         className="fixed inset-0 pointer-events-none z-0 opacity-40" 
-         style={{ backgroundImage: 'radial-gradient(rgba(26, 26, 26, 0.05) 1px, transparent 1px)', backgroundSize: '32px 32px' }}
-      ></div>
-
-      <nav className="fixed top-0 w-full z-50 px-6 py-4 flex flex-nowrap items-center bg-bone/90 backdrop-blur-2xl border-b border-dark/10 overflow-x-auto no-scrollbar touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
-        {/* Shadow Overlay for scroll hint */}
-        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-bone to-transparent pointer-events-none md:hidden" />
-        
-        <div className="flex-shrink-0 mr-10 relative z-10">
-          <img src="/logo.png" alt="HUB" className="h-6 lg:h-8 object-contain" />
-        </div>
-        <div className="flex gap-10 flex-shrink-0 whitespace-nowrap pr-12">
-          {['kanban', 'inventory', 'stats', 'payments', 'sedes', 'qr', 'marketing', 'autopilot', 'eventos', 'settings', 'billing'].map(m => (
-            <button key={m} onClick={() => setView(m)}
-              className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all relative py-3 ${view === m ? 'text-gold-gradient' : 'text-dark/30 hover:text-dark/60'}`}>
-              {m === 'kanban' ? 'Pedidos Actuales' : m === 'inventory' ? 'Inventario' : m === 'stats' ? 'Ventas en Vivo' : m === 'payments' ? '💰 Pagos' : m === 'sedes' ? 'Sucursales' : m === 'qr' ? 'Códigos QR' : m === 'marketing' ? 'Promociones' : m === 'autopilot' ? 'Redes Sociales' : m === 'eventos' ? '🎉 Reservas' : m === 'settings' ? 'Diseño' : 'Mi Plan'}
-              {view === m && (
-                <motion.div 
-                  layoutId="hud-nav" 
-                  className="absolute -bottom-1 left-0 h-0.5 bg-gold-gradient w-full shadow-[0_0_15px_rgba(252,211,77,0.6)]" 
-                />
-              )}
-            </button>
-          ))}
-          <div className="flex flex-col items-end ml-auto">
-             <p className="text-[9px] font-black text-amber-600/60 uppercase tracking-tighter">
-                {localStorage.getItem('hub_tenant')?.toUpperCase() || 'MI NEGOCIO'} 
-             </p>
+      {/* ─── FLOATING DOCK NAVIGATION (Carta Style) ─── */}
+      <div className="fixed top-8 left-0 right-0 z-50 flex justify-center px-6">
+        <nav className="flex items-center gap-1 p-1.5 bg-[#16110F]/95 backdrop-blur-2xl border border-white/10 rounded-full shadow-[0_25px_60px_rgba(0,0,0,0.35)] max-w-full overflow-x-auto no-scrollbar">
+          
+          {/* Logo Pill */}
+          <div className="px-6 py-2 border-r border-white/10 flex flex-col justify-center mr-2">
+            <div className="flex items-baseline gap-0.5">
+              <span className="text-white text-base serif-italic leading-none tracking-tight">Plato</span>
+              <span className="text-[10px] font-black text-[#7E9B84] leading-none">RIN</span>
+            </div>
+            <span className="text-[6px] text-white/30 font-black uppercase tracking-[0.4em] mt-0.5">Operating System</span>
           </div>
+
+          <div className="flex items-center gap-1">
+            {['kanban', 'inventory', 'stats', 'qr', 'marketing', 'sedes', 'autopilot', 'eventos', 'payments', 'settings', 'billing'].map(m => (
+              <button 
+                key={m} 
+                onClick={() => setView(m)}
+                className={`px-5 py-2.5 rounded-full text-[9px] font-black uppercase tracking-[0.15em] transition-all whitespace-nowrap ${
+                  view === m 
+                    ? 'bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]' 
+                    : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                }`}
+              >
+                {
+                  m === 'kanban' ? 'Pedidos' : 
+                  m === 'inventory' ? 'Inventario' : 
+                  m === 'stats' ? 'Ventas' : 
+                  m === 'qr' ? 'QR' : 
+                  m === 'marketing' ? 'Promos' : 
+                  m === 'sedes' ? 'Sedes' : 
+                  m === 'autopilot' ? 'Social AI' : 
+                  m === 'eventos' ? 'Eventos' : 
+                  m === 'payments' ? 'Pagos' : 
+                  m === 'settings' ? 'Diseño' : 'Plan'
+                }
+              </button>
+            ))}
+          </div>
+
+          <div className="h-4 w-px bg-white/10 mx-3"></div>
 
           <button 
             onClick={() => setShowBriefing(true)}
-            className="relative flex items-center gap-2 bg-amber-500/10 text-amber-600 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all border border-amber-500/20 ml-6 animate-pulse"
+            className="px-6 py-2.5 bg-[#7E9B84] text-[#F7F4ED] rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-lg hover:scale-105 transition-all whitespace-nowrap"
           >
-            ✦ Resumen de hoy
-            {suggestions.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] flex items-center justify-center rounded-full border-2 border-white animate-bounce">
-                    {suggestions.length}
-                </span>
-            )}
+            ✦ RESUMEN
           </button>
+          
           <button 
             onClick={handleLogout}
-            className="text-[9px] font-black uppercase tracking-widest text-red-500/40 hover:text-red-500 transition-colors ml-6"
+            className="ml-2 w-10 h-10 flex items-center justify-center text-white/30 hover:text-red-400 transition-colors"
+            title="Cerrar Sesión"
           >
-            Cerrar sesión ✕
+            ✕
           </button>
-        </div>
-      </nav>
+        </nav>
+      </div>
 
-      <main className="pt-24 pb-12 px-5 max-w-7xl w-full mx-auto">
+      <main className="pt-28 pb-12 px-5 max-w-6xl w-full mx-auto">
         <AnimatePresence mode="wait">
           {view === 'kanban' ? (
             <KanbanBoard key="kanban" tenantSlug={tenantSlug} onAuthError={handleAuthError} config={config} />
@@ -1553,7 +1296,7 @@ export const AdminDashboard = () => {
                <InventoryManager products={products} toggleProduct={toggleProduct} magicSnap={magicSnap} onLogout={handleLogout} />
             </div>
           ) : view === 'stats' ? (
-            <LiveMonitor key="stats" onLogout={handleLogout} />
+            <LiveMonitor key="stats" />
           ) : view === 'qr' ? (
             <QRTerminal key="qr" config={config} />
           ) : view === 'marketing' ? (

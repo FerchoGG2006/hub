@@ -35,44 +35,43 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
   return (
     <motion.div 
       layout 
-      initial={{ opacity: 0, y: 20 }} 
+      initial={{ opacity: 0, y: 10 }} 
       animate={{ 
         opacity: 1, 
         y: 0,
-        borderColor: isCritical ? '#ef4444' : isUrgent ? '#f59e0b' : 'rgba(0, 0, 0, 0.05)'
+        borderColor: isCritical ? '#ef4444' : isUrgent ? '#C8891A' : 'rgba(22, 17, 15, 0.08)'
       }} 
       exit={{ opacity: 0, scale: 0.95 }} 
       key={o.id}
-      className="bg-white/80 backdrop-blur-md border-[1.5px] rounded-[2rem] p-6 shadow-sm hover:shadow-xl transition-all relative overflow-hidden group"
+      className="bg-[#FCFAF7] border border-[rgba(22,17,15,0.06)] rounded-[2rem] p-6 shadow-[0_12px_40px_rgba(22,17,15,0.03)] hover:shadow-[0_20px_60px_rgba(22,17,15,0.08)] transition-all relative overflow-hidden group"
     >
       {o.is_priority && (
-        <div className="absolute top-0 left-0 bg-amber-500 text-white text-[8px] font-black px-3 py-1 rounded-br-2xl uppercase tracking-widest z-10">
-          Prioridad Alta
+        <div className="absolute top-0 left-0 bg-gold text-white text-[8px] font-black px-4 py-1.5 rounded-br-2xl uppercase tracking-[0.2em] z-10">
+          PRIORIDAD
         </div>
       )}
       
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-start mb-5">
         <div className="flex flex-col">
-          <span className="text-dark font-black text-sm uppercase tracking-tight">{o.customer_name || 'Mesa Local'}</span>
-          <span className="text-[10px] text-dark/40 font-mono">ORDEN #{o.id}</span>
+          <span className="heading-editorial text-sm uppercase font-bold tracking-tight truncate max-w-[150px]">{o.customer_name || 'Mesa Local'}</span>
+          <span className="text-[8px] text-ink/30 font-black tracking-[0.3em] uppercase">ID_TX_{o.id}</span>
         </div>
         <div className="text-right">
-          <p className="text-amber-600 font-black text-sm">${o.total_price?.toLocaleString()}</p>
-          <p className={`text-[10px] font-bold mt-1 ${isCritical ? 'text-red-500 animate-pulse' : isUrgent ? 'text-amber-500' : 'text-dark/30'}`}>
-            ⏱️ {formatTime(elapsed)}
+          <p className="serif-italic text-lg leading-none mb-1 font-medium">${(o.total_price || 0).toLocaleString()}</p>
+          <p className={`text-[9px] font-black tracking-[0.2em] uppercase ${isCritical ? 'text-red-500 animate-pulse' : isUrgent ? 'text-gold' : 'text-ink/30'}`}>
+            {formatTime(elapsed)}
           </p>
         </div>
       </div>
 
       {/* ITEMS LIST */}
-      <div className="space-y-2 mb-6 border-y border-dark/5 py-4">
+      <div className="space-y-2 mb-6 border-y border-[rgba(22,17,15,0.05)] py-5">
         {items.map((item, idx) => (
-          <div key={idx} className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 flex items-center justify-center bg-dark/5 rounded-lg text-[10px] font-black text-dark/60">{item.qty}x</span>
-              <span className="text-[11px] font-medium text-dark/80">{item.name}</span>
+          <div key={idx} className="flex justify-between items-center gap-4">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <span className="flex-shrink-0 text-[9px] font-black text-ink/20">{item.qty}X</span>
+              <span className="text-[11px] font-bold text-ink/70 truncate uppercase tracking-tight">{item.name}</span>
             </div>
-            {item.price && <span className="text-[9px] text-dark/30 font-mono">{item.price}</span>}
           </div>
         ))}
       </div>
@@ -80,12 +79,12 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
       <div className="flex gap-2 w-full">
          {nextStatus && (
            <button onClick={() => changeStatus(o.id, nextStatus)}
-             className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-sm"
-             style={{ background: color, color: '#fff' }}>
-             ➔ {nextStatus}
+             className="flex-1 py-4 text-[9px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all hover:brightness-110 active:scale-95 shadow-[0_10px_25px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.1)] text-white"
+             style={{ backgroundColor: color }}>
+             ➔ {nextStatus === 'preparing' ? 'Cocinar' : nextStatus === 'ready' ? 'Listo' : 'Entregar'}
            </button>
          )}
-         <button onClick={() => printOrder(o)} className="w-12 h-12 flex items-center justify-center bg-dark/5 hover:bg-dark/10 rounded-2xl text-dark/40 text-sm transition-colors" title="Imprimir Comanda">
+         <button onClick={() => printOrder(o)} className="w-14 h-14 flex items-center justify-center bg-ink/5 hover:bg-ink/10 border border-ink/5 rounded-2xl text-ink/30 text-lg transition-all tactile-button" title="Imprimir Comanda">
             🖨️
          </button>
       </div>
@@ -94,13 +93,15 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
 };
 
 const KanbanColumn = ({ title, items, nextStatus, color, icon, changeStatus, printOrder }) => (
-  <div className="flex-1 min-w-[320px] sm:min-w-[380px] flex-shrink-0 snap-center bg-dark/[0.02] border border-dark/5 rounded-[2.5rem] p-6 flex flex-col relative">
-    <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-3 text-dark/60">
-      <span className="w-8 h-8 flex items-center justify-center rounded-xl bg-white shadow-sm" style={{ color }}>{icon}</span> 
-      {title} 
-      <span className="ml-auto bg-dark/5 text-dark/40 px-3 py-1 rounded-full text-[10px] font-mono">{items.length}</span>
-    </h3>
-    <div className="space-y-5 overflow-y-auto custom-scrollbar flex-1 pb-10 px-1">
+  <div className="flex-1 min-w-[320px] flex-shrink-0 snap-center bg-cream-deep/20 border border-border rounded-[2rem] p-6 flex flex-col relative">
+    <div className="mb-6 flex justify-between items-end px-2">
+      <div className="flex flex-col">
+        <span className="tag-editorial mb-0">{title}</span>
+        <span className="text-[10px] font-bold text-ink-30 tracking-widest uppercase">{items.length} pedidos</span>
+      </div>
+      <span className="text-xl opacity-30">{icon}</span>
+    </div>
+    <div className="space-y-4 overflow-y-auto custom-scrollbar flex-1 pb-10">
       <AnimatePresence>
         {items.length > 0 ? (
           items.map(o => (
@@ -108,8 +109,8 @@ const KanbanColumn = ({ title, items, nextStatus, color, icon, changeStatus, pri
           ))
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col items-center justify-center text-center p-8 space-y-3">
-             <span className="text-3xl grayscale opacity-20">{icon}</span>
-             <p className="text-[10px] text-dark/30 uppercase tracking-[0.2em] font-bold">Sin pedidos en este estado</p>
+             <span className="text-3xl opacity-10">{icon}</span>
+             <p className="text-[10px] text-ink-30 uppercase tracking-[0.2em] font-bold">Sin pedidos</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -218,7 +219,6 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
       ws.onmessage = (event) => {
         const payload = JSON.parse(event.data);
         
-        // SEGURIDAD: Solo procesar si el pedido pertenece a este negocio
         if (payload.tenant_id && config?.id && payload.tenant_id !== config.id) {
             return;
         }
@@ -286,44 +286,43 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
   const ready     = orders.filter(o => o.status === 'ready');
 
   return (
-    <div className="h-full flex flex-col pt-4 max-w-6xl mx-auto z-10 relative">
-      <div className="mb-8 flex justify-between items-end">
+    <div className="h-full flex flex-col pt-0 max-w-7xl mx-auto z-10 relative">
+      <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-[rgba(22,17,15,0.06)] pb-10">
         <div>
-            <h2 className="text-3xl font-light">Pedidos en <span className="font-serif italic text-amber-500">Cocina</span></h2>
-            <p className="text-sm text-dark/40 italic">Controla el flujo de platos en tiempo real.</p>
+          <p className="text-[9px] text-ink/40 uppercase tracking-[0.4em] font-black mb-2">Monitor de Operaciones</p>
+          <h2 className="heading-editorial text-4xl">Pedidos en <span className="serif-italic">Tiempo Real</span></h2>
+          <p className="text-ink/40 text-sm mt-1">Sincronización instantánea con el flujo de tu cocina.</p>
         </div>
-        <div className="flex gap-8 bg-dark/5 p-4 rounded-2xl border border-dark/10">
-            <div className="text-center">
-                <p className="text-[8px] uppercase tracking-widest text-dark/40 mb-1">Tiempo promedio</p>
-                <p className="text-xl font-black text-amber-500 font-mono">{stats.avgPrep}</p>
+        <div className="flex gap-6 bg-[#FCFAF7] border border-[rgba(22,17,15,0.06)] p-5 rounded-3xl shadow-sm">
+            <div className="text-center px-4 border-r border-border">
+                <p className="text-[9px] uppercase tracking-widest text-ink/30 mb-1 font-bold">Tiempo Promedio</p>
+                <p className="text-xl font-black text-gold font-mono tracking-tighter">{stats.avgPrep}</p>
             </div>
-            <div className="text-center">
-                <p className="text-[8px] uppercase tracking-widest text-dark/40 mb-1">Entregados hoy</p>
-                <p className="text-xl font-black text-emerald-500 font-mono">{stats.totalServed}</p>
+            <div className="text-center px-4">
+                <p className="text-[9px] uppercase tracking-widest text-ink/30 mb-1 font-bold">Servidos Hoy</p>
+                <p className="text-xl font-black text-[#7E9B84] font-mono tracking-tighter">{stats.totalServed}</p>
             </div>
         </div>
-      </div>
+      </header>
+
       {orders.length === 0 ? (
-         <div className="flex-1 flex flex-col items-center justify-center text-center p-20 bg-dark/5 rounded-[3rem] border border-dashed border-dark/10 space-y-6">
-            <div className="w-24 h-24 bg-white rounded-full shadow-xl flex items-center justify-center text-5xl">🛎️</div>
-            <div className="space-y-2">
-              <h3 className="text-2xl font-bold text-dark italic font-serif">¡Todo listo para vender!</h3>
-              <p className="text-xs text-dark/40 uppercase tracking-[0.2em] max-w-sm mx-auto leading-relaxed">
-                Cuando tus clientes hagan un pedido, sonará una campana y aparecerá aquí automáticamente.
-              </p>
+         <div className="bg-[#FCFAF7] border border-[rgba(22,17,15,0.06)] rounded-[3rem] text-center py-32 space-y-8 relative overflow-hidden shadow-sm">
+            <div className="absolute inset-0 opacity-[0.02] select-none pointer-events-none">
+                <span className="text-[20rem] font-serif italic -rotate-12 block">Platorin</span>
             </div>
-            <div className="pt-4 flex flex-col items-center gap-4">
-               <div className="px-6 py-3 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse">
-                  Esperando tu primer pedido...
-               </div>
-               <p className="text-[10px] text-dark/30 font-bold uppercase tracking-widest">Asegúrate de haber compartido tu código QR.</p>
+            <div className="relative z-10">
+               <div className="w-24 h-24 bg-gold/5 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl">🛎️</div>
+               <h3 className="heading-editorial text-4xl italic">Tu cocina está lista.</h3>
+               <p className="text-ink/40 max-w-sm mx-auto text-sm font-medium">
+                 Cuando llegue el primer pedido,<br /> lo verás aparecer aquí en tiempo real.
+               </p>
             </div>
          </div>
       ) : (
         <div className="flex flex-nowrap w-full gap-6 overflow-x-auto overflow-y-hidden pb-6 snap-x snap-mandatory touch-pan-x" style={{ WebkitOverflowScrolling: 'touch', minHeight: '65vh' }}>
-          <KanbanColumn title="Nuevos" items={pending} nextStatus="preparing" color="#f59e0b" icon="🔔" changeStatus={changeStatus} printOrder={printOrder} />
-          <KanbanColumn title="En preparación" items={preparing} nextStatus="ready" color="#3b82f6" icon="🍳" changeStatus={changeStatus} printOrder={printOrder} />
-          <KanbanColumn title="Listos para salir" items={ready} nextStatus="paid" color="#10b981" icon="🚀" changeStatus={changeStatus} printOrder={printOrder} />
+          <KanbanColumn title="Nuevos" items={pending} nextStatus="preparing" color="#C8891A" icon="🔔" changeStatus={changeStatus} printOrder={printOrder} />
+          <KanbanColumn title="Preparando" items={preparing} nextStatus="ready" color="#16110F" icon="🍳" changeStatus={changeStatus} printOrder={printOrder} />
+          <KanbanColumn title="Listos" items={ready} nextStatus="paid" color="#7E9B84" icon="🚀" changeStatus={changeStatus} printOrder={printOrder} />
         </div>
       )}
     </div>
