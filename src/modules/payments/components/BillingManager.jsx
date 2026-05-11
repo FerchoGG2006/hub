@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Card, Heading, Button, Badge } from '../../../shared/ui';
-import { PaymentGatewayModal } from '../../menu_engine/PaymentGatewayModal';
+import { PaymentGatewayModal } from '../../tenants/components/PaymentGatewayModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-import { LoginTerminal } from '../tenants/AdminDashboard';
+import { LoginTerminal } from './components/LoginTerminal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 

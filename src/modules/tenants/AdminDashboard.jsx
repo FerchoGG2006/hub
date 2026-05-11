@@ -48,10 +48,7 @@ export const AdminDashboard = () => {
     }
   }, [isAuth, tenantSlug, fetchProducts]);
 
-  if (!isAuth) {
-    navigate('/login');
-    return null;
-  }
+  useEffect(() => { if (!isAuth) navigate('/'); }, [isAuth, navigate]);
 
   const TABS = [
     { id: 'pedidos', label: 'Órdenes', icon: '📝' },

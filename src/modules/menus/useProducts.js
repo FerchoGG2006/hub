@@ -1,37 +1,46 @@
 import { useState, useCallback } from 'react';
 import { productsService } from './productsService';
 
-export const useProducts = () => {
+export const useProducts = (tenantSlug) => {
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const toggleAvailability = useCallback(async (productId, token) => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await productsService.toggleProductAvailability(productId, token);
-      return result;
+      const data = await productsService.getTenantProducts(tenantSlug);
+      setProducts(data);
     } catch (err) {
       setError(err.message);
-      throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tenantSlug]);
 
-  const magicSnap = useCallback(async (token, file) => {
-    setLoading(true);
-    setError(null);
+  const toggleProduct = useCallback(async (productId) => {
+    const token = localStorage.getItem('hub_token');
     try {
-      const result = await productsService.magicSnapIngest(token, file);
-      return result;
+      await productsService.toggleProductAvailability(productId, token);
+      fetchProducts();
     } catch (err) {
       setError(err.message);
-      throw err;
+    }
+  }, [fetchProducts]);
+
+  const magicSnap = useCallback(async (file) => {
+    const token = localStorage.getItem('hub_token');
+    setLoading(true);
+    try {
+      await productsService.magicSnapIngest(token, file);
+      fetchProducts();
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchProducts]);
 
-  return { toggleAvailability, magicSnap, loading, error };
+  return { products, toggleProduct, fetchProducts, magicSnap, loading, error };
 };

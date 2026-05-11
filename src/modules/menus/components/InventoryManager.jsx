@@ -20,14 +20,11 @@ export const InventoryManager = ({ products, toggleProduct, magicSnap }) => {
               <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
-                const token = authService.getToken();
-                alert("✨ Gemini Vision está analizando el plato...");
-                try {
-                  await magicSnap(token, file);
-                  alert("✅ ¡Plato creado mágicamente!");
-                  window.location.reload();
-                } catch { alert("Error en el análisis visual."); }
-              }} />
+                 try {
+                   await magicSnap(file);
+                   alert("✅ ¡Plato creado mágicamente!");
+                 } catch { alert("Error en el análisis visual."); }
+               }} />
            </label>
         </div>
       </header>
@@ -62,7 +59,7 @@ export const InventoryManager = ({ products, toggleProduct, magicSnap }) => {
                     {item.is_available ? 'En carta' : 'Agotado'}
                   </Badge>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" checked={item.is_available} onChange={() => toggleProduct(item.id, item.is_available)} />
+                     <input type="checkbox" className="sr-only peer" checked={item.is_available} onChange={() => toggleProduct(item.id)} />
                     <div className="w-9 h-5 bg-[var(--text-disabled)] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--brand-primary)]"></div>
                   </label>
                 </div>

@@ -106,7 +106,7 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
 };
 
 const KanbanColumn = ({ title, items, nextStatus, color, icon, changeStatus, printOrder }) => (
-  <div className="flex-1 min-w-[320px] flex-shrink-0 snap-center bg-[var(--bg-secondary)]/50 border border-[var(--border-soft)] rounded-[2rem] p-6 flex flex-col relative">
+  <div className="flex-1 min-w-[280px] md:min-w-[320px] flex-shrink-0 snap-center bg-[var(--bg-secondary)]/50 border border-[var(--border-soft)] rounded-[2rem] p-6 flex flex-col relative">
     <div className="mb-6 flex justify-between items-end px-2">
       <div className="flex flex-col">
         <Badge variant="brand" className="mb-0">{title}</Badge>
