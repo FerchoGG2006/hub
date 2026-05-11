@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Card, Heading, Badge, Button, EmptyState } from '../../../shared/ui';
+import { useWebSocket } from '../../../shared/hooks/useWebSocket';
+import { ORDER_STATUS } from '../../../shared/constants/orders';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
-  const [elapsed, setElapsed] = React.useState(0);
-  const items = React.useMemo(() => {
+  const [elapsed, setElapsed] = useState(0);
+  const items = useMemo(() => {
     try {
       return typeof o.items_json === 'string' ? JSON.parse(o.items_json) : (o.items_json || []);
     } catch {
@@ -13,7 +16,7 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
     }
   }, [o.items_json]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!o.created_at) return;
     const startTime = new Date(o.created_at).getTime();
     const interval = setInterval(() => {
@@ -39,38 +42,42 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
       animate={{ 
         opacity: 1, 
         y: 0,
-        borderColor: isCritical ? '#ef4444' : isUrgent ? '#C8891A' : 'rgba(22, 17, 15, 0.08)'
+        borderColor: isCritical ? 'var(--status-error)' : isUrgent ? 'var(--status-pending)' : 'var(--border-soft)'
       }} 
       exit={{ opacity: 0, scale: 0.95 }} 
       key={o.id}
-      className="bg-[#FCFAF7] border border-[rgba(22,17,15,0.06)] rounded-[2rem] p-6 shadow-[0_12px_40px_rgba(22,17,15,0.03)] hover:shadow-[0_20px_60px_rgba(22,17,15,0.08)] transition-all relative overflow-hidden group"
+      className="bg-white border border-[var(--border-soft)] rounded-[2rem] p-6 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-medium)] transition-all relative overflow-hidden group"
     >
       {o.is_priority && (
-        <div className="absolute top-0 left-0 bg-gold text-white text-[8px] font-black px-4 py-1.5 rounded-br-2xl uppercase tracking-[0.2em] z-10">
+        <div className="absolute top-0 left-0 bg-[var(--brand-accent)] text-white text-[8px] font-black px-4 py-1.5 rounded-br-2xl uppercase tracking-[0.2em] z-10">
           PRIORIDAD
         </div>
       )}
       
       <div className="flex justify-between items-start mb-5">
         <div className="flex flex-col">
-          <span className="heading-editorial text-sm uppercase font-bold tracking-tight truncate max-w-[150px]">{o.customer_name || 'Mesa Local'}</span>
-          <span className="text-[8px] text-ink/30 font-black tracking-[0.3em] uppercase">ID_TX_{o.id}</span>
+          <Heading level={4} className="!text-sm uppercase font-bold tracking-tight truncate max-w-[150px]">
+            {o.customer_name || 'Mesa Local'}
+          </Heading>
+          <span className="text-[8px] text-[var(--text-disabled)] font-black tracking-[0.3em] uppercase">ID_TX_{o.id}</span>
         </div>
         <div className="text-right">
-          <p className="serif-italic text-lg leading-none mb-1 font-medium">${(o.total_price || 0).toLocaleString()}</p>
-          <p className={`text-[9px] font-black tracking-[0.2em] uppercase ${isCritical ? 'text-red-500 animate-pulse' : isUrgent ? 'text-gold' : 'text-ink/30'}`}>
+          <p className="font-[var(--font-serif)] italic text-lg leading-none mb-1 font-medium text-[var(--text-primary)]">
+            ${(o.total_price || 0).toLocaleString()}
+          </p>
+          <p className={`text-[9px] font-black tracking-[0.2em] uppercase ${isCritical ? 'text-[var(--status-error)] animate-pulse' : isUrgent ? 'text-[var(--status-pending)]' : 'text-[var(--text-disabled)]'}`}>
             {formatTime(elapsed)}
           </p>
         </div>
       </div>
 
       {/* ITEMS LIST */}
-      <div className="space-y-2 mb-6 border-y border-[rgba(22,17,15,0.05)] py-5">
+      <div className="space-y-2 mb-6 border-y border-[var(--border-soft)] py-5">
         {items.map((item, idx) => (
           <div key={idx} className="flex justify-between items-center gap-4">
             <div className="flex items-center gap-2 overflow-hidden">
-              <span className="flex-shrink-0 text-[9px] font-black text-ink/20">{item.qty}X</span>
-              <span className="text-[11px] font-bold text-ink/70 truncate uppercase tracking-tight">{item.name}</span>
+              <span className="flex-shrink-0 text-[9px] font-black text-[var(--text-disabled)]">{item.qty}X</span>
+              <span className="text-[11px] font-bold text-[var(--text-muted)] truncate uppercase tracking-tight">{item.name}</span>
             </div>
           </div>
         ))}
@@ -78,13 +85,19 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
       
       <div className="flex gap-2 w-full">
          {nextStatus && (
-           <button onClick={() => changeStatus(o.id, nextStatus)}
-             className="flex-1 py-4 text-[9px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all hover:brightness-110 active:scale-95 shadow-[0_10px_25px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.1)] text-white"
-             style={{ backgroundColor: color }}>
-             ➔ {nextStatus === 'preparing' ? 'Cocinar' : nextStatus === 'ready' ? 'Listo' : 'Entregar'}
-           </button>
+           <Button 
+            onClick={() => changeStatus(o.id, nextStatus)}
+            className="flex-1 py-4 text-[9px] font-black uppercase tracking-[0.2em] !rounded-2xl"
+            style={{ backgroundColor: color }}
+           >
+             ➔ {nextStatus === ORDER_STATUS.PREPARING ? 'Cocinar' : nextStatus === ORDER_STATUS.READY ? 'Listo' : 'Entregar'}
+           </Button>
          )}
-         <button onClick={() => printOrder(o)} className="w-14 h-14 flex items-center justify-center bg-ink/5 hover:bg-ink/10 border border-ink/5 rounded-2xl text-ink/30 text-lg transition-all tactile-button" title="Imprimir Comanda">
+         <button 
+           onClick={() => printOrder(o)} 
+           className="w-14 h-14 flex items-center justify-center bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] border border-[var(--border-soft)] rounded-2xl text-[var(--text-disabled)] text-lg transition-all active:scale-95" 
+           title="Imprimir Comanda"
+         >
             🖨️
          </button>
       </div>
@@ -93,15 +106,15 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
 };
 
 const KanbanColumn = ({ title, items, nextStatus, color, icon, changeStatus, printOrder }) => (
-  <div className="flex-1 min-w-[320px] flex-shrink-0 snap-center bg-cream-deep/20 border border-border rounded-[2rem] p-6 flex flex-col relative">
+  <div className="flex-1 min-w-[320px] flex-shrink-0 snap-center bg-[var(--bg-secondary)]/50 border border-[var(--border-soft)] rounded-[2rem] p-6 flex flex-col relative">
     <div className="mb-6 flex justify-between items-end px-2">
       <div className="flex flex-col">
-        <span className="tag-editorial mb-0">{title}</span>
-        <span className="text-[10px] font-bold text-ink-30 tracking-widest uppercase">{items.length} pedidos</span>
+        <Badge variant="brand" className="mb-0">{title}</Badge>
+        <span className="text-[10px] font-bold text-[var(--text-disabled)] tracking-widest uppercase">{items.length} pedidos</span>
       </div>
       <span className="text-xl opacity-30">{icon}</span>
     </div>
-    <div className="space-y-4 overflow-y-auto custom-scrollbar flex-1 pb-10">
+    <div className="space-y-4 overflow-y-auto flex-1 pb-10">
       <AnimatePresence>
         {items.length > 0 ? (
           items.map(o => (
@@ -110,7 +123,7 @@ const KanbanColumn = ({ title, items, nextStatus, color, icon, changeStatus, pri
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col items-center justify-center text-center p-8 space-y-3">
              <span className="text-3xl opacity-10">{icon}</span>
-             <p className="text-[10px] text-ink-30 uppercase tracking-[0.2em] font-bold">Sin pedidos</p>
+             <p className="text-[10px] text-[var(--text-disabled)] uppercase tracking-[0.2em] font-bold">Sin pedidos</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -118,11 +131,12 @@ const KanbanColumn = ({ title, items, nextStatus, color, icon, changeStatus, pri
   </div>
 );
 
-export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
+export const KanbanBoard = ({ tenantId }) => {
   const [orders, setOrders] = useState([]);
   const [stats, setStats] = useState({ avgPrep: '0:00', totalServed: 0 });
+  const { lastMessage } = useWebSocket(tenantId);
 
-  const playAlert = () => {
+  const playAlert = useCallback(() => {
     try {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
@@ -139,10 +153,10 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
     } catch {
       console.warn("Audio Context blocked by browser");
     }
-  };
+  }, []);
 
-  const calculateStats = (allOrders) => {
-    const served = allOrders.filter(o => o.status === 'served');
+  const calculateStats = useCallback((allOrders) => {
+    const served = allOrders.filter(o => o.status === 'completed' || o.status === 'served');
     if (served.length === 0) return;
     
     const totalDuration = served.reduce((acc, o) => {
@@ -159,7 +173,39 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
         avgPrep: `${mins}:${secs.toString().padStart(2, '0')}`,
         totalServed: served.length 
     });
-  };
+  }, []);
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('hub_token');
+      const res = await fetch(`${API_URL}/api/admin/orders`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOrders(data);
+        calculateStats(data);
+      }
+    } catch (err) {
+      console.error("Load orders error:", err);
+    }
+  }, [calculateStats]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  useEffect(() => {
+    if (!lastMessage) return;
+
+    if (lastMessage.type === 'NEW_ORDER') {
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        playAlert();
+        setOrders(prev => [lastMessage.order, ...prev]);
+    } else if (lastMessage.type === 'ORDER_UPDATED') {
+        setOrders(prev => prev.map(o => o.id === lastMessage.order_id ? { ...o, status: lastMessage.status, updated_at: new Date().toISOString() } : o));
+    }
+  }, [lastMessage, playAlert]);
 
   const changeStatus = async (id, status) => {
     try {
@@ -168,11 +214,6 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
-      if (res.status === 401) {
-        onAuthError(new Error('401 Unauthorized'));
-        return;
-      }
       
       if (!res.ok) {
         const errData = await res.json();
@@ -186,60 +227,11 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
       });
     } catch (err) {
       alert(`Error: ${err.message}`);
-      console.error(err);
     }
   };
 
-  useEffect(() => {
-    const loadOrders = async () => {
-      try {
-        const token = localStorage.getItem('hub_token');
-        const res = await fetch(`${API_URL}/api/admin/orders`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.status === 401) {
-          onAuthError(new Error('401 Unauthorized'));
-          return;
-        }
-        if (res.ok) {
-          const data = await res.json();
-          setOrders(data);
-          calculateStats(data);
-        }
-      } catch (err) {
-        console.error("Load orders error:", err);
-      }
-    };
-
-    loadOrders();
-    let ws;
-    try {
-      const wsUrl = API_URL.replace(/^http/, 'ws') + '/ws/menu';
-      ws = new WebSocket(wsUrl);
-      ws.onmessage = (event) => {
-        const payload = JSON.parse(event.data);
-        
-        if (payload.tenant_id && config?.id && payload.tenant_id !== config.id) {
-            return;
-        }
-
-        if (payload.type === 'NEW_ORDER') {
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-            playAlert();
-            setOrders(prev => [payload.order, ...prev]);
-        } else if (payload.type === 'ORDER_UPDATED') {
-            setOrders(prev => prev.map(o => o.id === payload.order_id ? { ...o, status: payload.status } : o));
-        }
-      };
-    } catch (err) {
-      console.error(err);
-    }
-    return () => { if (ws) ws.close(); };
-  }, [tenantSlug, config?.id, onAuthError]);
-
   const printOrder = (order) => {
     const items = typeof order.items_json === 'string' ? JSON.parse(order.items_json) : (order.items_json || []);
-    
     const printWindow = window.open('', '_blank', 'width=400,height=600');
     const itemsHtml = items.map(i => `
       <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-family: monospace; font-size: 12px;">
@@ -261,7 +253,7 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
         </head>
         <body onload="window.print(); window.close();">
           <div class="header">
-            <h2 style="margin: 0; font-size: 18px;">${config?.name?.toUpperCase() || 'PLATÓRIN'}</h2>
+            <h2 style="margin: 0; font-size: 18px;">PLATÓRIN OS</h2>
             <p style="margin: 5px 0; font-size: 10px;">Orden de Cocina</p>
           </div>
           <p style="font-size: 12px;"><b>ORDEN:</b> #${order.id}</p>
@@ -281,48 +273,42 @@ export const KanbanBoard = ({ tenantSlug, onAuthError, config }) => {
     printWindow.document.close();
   };
 
-  const pending   = orders.filter(o => o.status === 'pending');
-  const preparing = orders.filter(o => o.status === 'preparing');
-  const ready     = orders.filter(o => o.status === 'ready');
+  const pending   = orders.filter(o => o.status === ORDER_STATUS.PENDING);
+  const preparing = orders.filter(o => o.status === ORDER_STATUS.PREPARING);
+  const ready     = orders.filter(o => o.status === ORDER_STATUS.READY);
 
   return (
     <div className="h-full flex flex-col pt-0 max-w-7xl mx-auto z-10 relative">
-      <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-[rgba(22,17,15,0.06)] pb-10">
+      <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-[var(--border-soft)] pb-10">
         <div>
-          <p className="text-[9px] text-ink/40 uppercase tracking-[0.4em] font-black mb-2">Monitor de Operaciones</p>
-          <h2 className="heading-editorial text-4xl">Pedidos en <span className="serif-italic">Tiempo Real</span></h2>
-          <p className="text-ink/40 text-sm mt-1">Sincronización instantánea con el flujo de tu cocina.</p>
+          <Badge variant="brand" className="mb-2">Monitor de Operaciones</Badge>
+          <Heading level={2}>Pedidos en <span className="font-[var(--font-serif)] italic">Tiempo Real</span></Heading>
+          <p className="text-[var(--text-muted)] text-sm mt-1">Sincronización instantánea con el flujo de tu cocina.</p>
         </div>
-        <div className="flex gap-6 bg-[#FCFAF7] border border-[rgba(22,17,15,0.06)] p-5 rounded-3xl shadow-sm">
-            <div className="text-center px-4 border-r border-border">
-                <p className="text-[9px] uppercase tracking-widest text-ink/30 mb-1 font-bold">Tiempo Promedio</p>
-                <p className="text-xl font-black text-gold font-mono tracking-tighter">{stats.avgPrep}</p>
+        <div className="flex gap-6 bg-white border border-[var(--border-soft)] p-5 rounded-3xl shadow-sm">
+            <div className="text-center px-4 border-r border-[var(--border-soft)]">
+                <p className="text-[9px] uppercase tracking-widest text-[var(--text-disabled)] mb-1 font-bold">Tiempo Promedio</p>
+                <p className="text-xl font-black text-[var(--brand-accent)] font-mono tracking-tighter">{stats.avgPrep}</p>
             </div>
             <div className="text-center px-4">
-                <p className="text-[9px] uppercase tracking-widest text-ink/30 mb-1 font-bold">Servidos Hoy</p>
-                <p className="text-xl font-black text-[#7E9B84] font-mono tracking-tighter">{stats.totalServed}</p>
+                <p className="text-[9px] uppercase tracking-widest text-[var(--text-disabled)] mb-1 font-bold">Servidos Hoy</p>
+                <p className="text-xl font-black text-[var(--brand-primary)] font-mono tracking-tighter">{stats.totalServed}</p>
             </div>
         </div>
       </header>
 
       {orders.length === 0 ? (
-         <div className="bg-[#FCFAF7] border border-[rgba(22,17,15,0.06)] rounded-[3rem] text-center py-32 space-y-8 relative overflow-hidden shadow-sm">
-            <div className="absolute inset-0 opacity-[0.02] select-none pointer-events-none">
-                <span className="text-[20rem] font-serif italic -rotate-12 block">Platorin</span>
-            </div>
-            <div className="relative z-10">
-               <div className="w-24 h-24 bg-gold/5 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl">🛎️</div>
-               <h3 className="heading-editorial text-4xl italic">Tu cocina está lista.</h3>
-               <p className="text-ink/40 max-w-sm mx-auto text-sm font-medium">
-                 Cuando llegue el primer pedido,<br /> lo verás aparecer aquí en tiempo real.
-               </p>
-            </div>
-         </div>
+         <EmptyState 
+           icon="🛎️"
+           title="Tu cocina está lista."
+           description="Cuando llegue el primer pedido, lo verás aparecer aquí en tiempo real."
+           className="py-32"
+         />
       ) : (
         <div className="flex flex-nowrap w-full gap-6 overflow-x-auto overflow-y-hidden pb-6 snap-x snap-mandatory touch-pan-x" style={{ WebkitOverflowScrolling: 'touch', minHeight: '65vh' }}>
-          <KanbanColumn title="Nuevos" items={pending} nextStatus="preparing" color="#C8891A" icon="🔔" changeStatus={changeStatus} printOrder={printOrder} />
-          <KanbanColumn title="Preparando" items={preparing} nextStatus="ready" color="#16110F" icon="🍳" changeStatus={changeStatus} printOrder={printOrder} />
-          <KanbanColumn title="Listos" items={ready} nextStatus="paid" color="#7E9B84" icon="🚀" changeStatus={changeStatus} printOrder={printOrder} />
+          <KanbanColumn title="Nuevos" items={pending} nextStatus={ORDER_STATUS.PREPARING} color="var(--brand-accent)" icon="🔔" changeStatus={changeStatus} printOrder={printOrder} />
+          <KanbanColumn title="Preparando" items={preparing} nextStatus={ORDER_STATUS.READY} color="var(--text-primary)" icon="🍳" changeStatus={changeStatus} printOrder={printOrder} />
+          <KanbanColumn title="Listos" items={ready} nextStatus={ORDER_STATUS.COMPLETED} color="var(--brand-primary)" icon="🚀" changeStatus={changeStatus} printOrder={printOrder} />
         </div>
       )}
     </div>
