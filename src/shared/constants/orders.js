@@ -1,0 +1,28 @@
+export const ORDER_STATUS = {
+  PENDING: 'pending',
+  CONFIRMED: 'confirmed',
+  PREPARING: 'preparing',
+  READY: 'ready',
+  DELIVERING: 'delivering',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+};
+
+export const ORDER_STATUS_LABELS = {
+  [ORDER_STATUS.PENDING]: 'Pendiente',
+  [ORDER_STATUS.CONFIRMED]: 'Confirmado',
+  [ORDER_STATUS.PREPARING]: 'Preparando',
+  [ORDER_STATUS.READY]: 'Listo',
+  [ORDER_STATUS.DELIVERING]: 'En Camino',
+  [ORDER_STATUS.COMPLETED]: 'Entregado',
+  [ORDER_STATUS.CANCELLED]: 'Cancelado',
+};
+
+export const BUSINESS_EVENTS = {
+  ORDER_CREATED: 'ORDER_CREATED',
+  ORDER_CONFIRMED: 'ORDER_CONFIRMED',
+  ORDER_PAID: 'ORDER_PAID',
+  ORDER_CANCELLED: 'ORDER_CANCELLED',
+  QR_SCANNED: 'QR_SCANNED',
+  PAYMENT_RECEIVED: 'PAYMENT_RECEIVED',
+};

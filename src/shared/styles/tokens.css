@@ -1,0 +1,41 @@
+:root {
+  /* COLORS - CORE PALETTE */
+  --bg-primary: #F5F0E8;
+  --bg-secondary: #EDE6D6;
+  --bg-tertiary: #E5DDD0;
+  
+  --text-primary: #1A1208;
+  --text-muted: rgba(26, 18, 8, 0.5);
+  --text-disabled: rgba(26, 18, 8, 0.3);
+  --text-on-brand: #F5F0E8;
+  
+  --border-soft: rgba(26, 18, 8, 0.08);
+  --border-medium: rgba(26, 18, 8, 0.15);
+  
+  --brand-primary: #1A5C36;
+  --brand-secondary: #237848;
+  --brand-accent: #C8891A;
+  --brand-soft: #EAF3EE;
+  
+  /* STATUS COLORS */
+  --status-pending: #F59E0B;
+  --status-preparing: #3B82F6;
+  --status-ready: #10B981;
+  --status-error: #EF4444;
+  
+  /* BORDER RADIUS */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 9999px;
+  
+  /* SHADOWS */
+  --shadow-soft: 0 4px 20px rgba(26, 18, 8, 0.05);
+  --shadow-medium: 0 10px 30px rgba(26, 18, 8, 0.1);
+  --shadow-brand: 0 10px 30px rgba(26, 92, 54, 0.15);
+  
+  /* TYPOGRAPHY */
+  --font-main: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-serif: 'Cormorant Garamond', serif;
+}

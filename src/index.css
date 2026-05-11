@@ -2,30 +2,7 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
-
-:root {
-  --cream: #F5F0E8;
-  --cream-deep: #EDE6D6;
-  --cream-mid: #E5DDD0;
-  --ink: #1A1208;
-  --ink-50: rgba(26, 18, 8, 0.5);
-  --ink-30: rgba(26, 18, 8, 0.3);
-  --green: #1A5C36;
-  --green-mid: #237848;
-  --green-light: #EAF3EE;
-  --wa: #25D366;
-  --wa-dark: #1DAE55;
-  --gold: #C8891A;
-  --gold-light: #FBF3E2;
-  --wompi: #5F35CD;
-  --wompi-light: #F0EBFF;
-  --border: rgba(26, 18, 8, 0.1);
-  
-  --r-sm: 10px;
-  --r-md: 18px;
-  --r-lg: 28px;
-  --r-xl: 44px;
-}
+@import "./shared/styles/tokens.css";
 
 * {
   box-sizing: border-box;
