@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCart } from './useCart';
+import { useCart } from '../../shared/hooks/useCart';
 import { useParams } from 'react-router-dom';
-import { PaymentGatewayModal } from './PaymentGatewayModal';
+import { PaymentGatewayModal } from '../tenants/components/PaymentGatewayModal';
 import { ProductCustomizer } from './ProductCustomizer';
 
 const DELIVERY_OPTIONS = [
@@ -17,7 +17,7 @@ const PAYMENT_OPTIONS = [
 ];
 
 /* ─── Selector Pill ─── */
-const PillBtn = ({ active, onClick, icon, label, accent = '#f59e0b' }) => (
+const PillBtn = ({ active, onClick, icon, label }) => (
   <motion.button
     whileTap={{ scale: 0.92 }}
     onClick={onClick}
@@ -57,7 +57,6 @@ export const CheckoutPanel = ({ onClose }) => {
   
   // Payment Modal State
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentData, setPaymentData] = useState(null);
   const [activeOrderId, setActiveOrderId] = useState(null);
 
   const handleFinish = async () => {
@@ -181,7 +180,6 @@ export const CheckoutPanel = ({ onClose }) => {
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         onSuccess={handlePaymentSuccess}
-        paymentData={paymentData}
         orderId={activeOrderId}
       />
 
@@ -317,7 +315,6 @@ export const CheckoutPanel = ({ onClose }) => {
                 onClick={() => !isQrTable && setDelivery(opt.id)}
                 icon={opt.icon}
                 label={opt.label}
-                accent={delivery === opt.id ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'rgba(0,0,0,0.04)'}
               />
             ))}
           </div>
@@ -359,7 +356,6 @@ export const CheckoutPanel = ({ onClose }) => {
                 onClick={() => setPayment(opt.id)}
                 icon={opt.icon}
                 label={opt.label}
-                accent={payment === opt.id ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'rgba(0,0,0,0.04)'}
               />
             ))}
           </div>

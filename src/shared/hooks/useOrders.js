@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ordersService } from './ordersService';
+import { ordersService } from '../services/ordersService';
 
 export const useOrders = () => {
   const [loading, setLoading] = useState(false);

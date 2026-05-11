@@ -15,6 +15,7 @@ export const LandingPage = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [loginPasscode, setLoginPasscode] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Router Logic
   const goTo = (id) => {
@@ -137,12 +138,40 @@ export const LandingPage = () => {
           <button className="nav-link" onClick={() => setShowLogin(true)}>Entrar</button>
           <button className="nav-cta" onClick={() => navigate('/register')}>Empezar gratis</button>
         </div>
-        <button className="nav-mobile-btn" onClick={() => navigate('/register')} aria-label="Menú">
-          <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <button 
+          className="nav-mobile-btn" 
+          onClick={(e) => { 
+            e.preventDefault();
+            e.stopPropagation();
+            setShowMobileMenu(true); 
+          }} 
+          aria-label="Menú"
+        >
+          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
       </nav>
+
+      {/* MOBILE MENU OVERLAY */}
+      {showMobileMenu && (
+        <div className="mobile-menu-overlay" onClick={() => setShowMobileMenu(false)}>
+          <div className="mobile-menu-card" onClick={e => e.stopPropagation()}>
+            <button className="close-mobile-menu" onClick={() => setShowMobileMenu(false)}>✕</button>
+            <div className="mobile-menu-logo">Plato<b>rin</b></div>
+            <div className="mobile-menu-links">
+              <button className="mobile-menu-link" onClick={(e) => { e.preventDefault(); goTo('como-funciona'); setShowMobileMenu(false); }}>Cómo funciona</button>
+              <button className="mobile-menu-link" onClick={(e) => { e.preventDefault(); goTo('precios'); setShowMobileMenu(false); }}>Precios</button>
+              <button className="mobile-menu-link" onClick={(e) => { e.preventDefault(); goTo('historia'); setShowMobileMenu(false); }}>Nosotros</button>
+              <button className="mobile-menu-link" onClick={(e) => { e.preventDefault(); setShowLogin(true); setShowMobileMenu(false); }}>Entrar</button>
+              <button className="mobile-menu-cta" onClick={(e) => { e.preventDefault(); setShowMobileMenu(false); navigate('/register'); }}>Empezar gratis</button>
+            </div>
+            <div className="mobile-menu-footer">
+              <p>Nacidos en Valledupar 🇨🇴</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* LOGIN MODAL */}
       {showLogin && (
@@ -362,7 +391,7 @@ export const LandingPage = () => {
       <div id="page-como-funciona" className={`page ${activePage === 'como-funciona' ? 'active' : ''}`}>
         <div className="page-hero">
           <span className="tag">Guía completa</span>
-          <h2 className="sh" style={{ fontSize: 'clamp(2.5rem,5vw,4rem)' }}>Cómo funciona <span className="si">Platorin</span></h2>
+          <h2 className="sh">Cómo funciona <span className="si">Platorin</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>De la primera configuración al primer pedido organizado, en menos de 15 minutos.</p>
         </div>
 
@@ -467,7 +496,7 @@ export const LandingPage = () => {
       <div id="page-precios" className={`page ${activePage === 'precios' ? 'active' : ''}`}>
         <div className="page-hero">
           <span className="tag">Precios</span>
-          <h2 className="sh" style={{ fontSize: 'clamp(2.5rem,5vw,4rem)' }}>Planes para cada<br /><span className="si">restaurante.</span></h2>
+          <h2 className="sh">Planes para cada<br /><span className="si">restaurante.</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>Sin sorpresas. Sin letra pequeña. Cancela cuando quieras.</p>
         </div>
 
@@ -546,7 +575,7 @@ export const LandingPage = () => {
       <div id="page-historia" className={`page ${activePage === 'historia' ? 'active' : ''}`}>
         <div className="page-hero">
           <span className="tag">Nuestra historia</span>
-          <h2 className="sh" style={{ fontSize: 'clamp(2.5rem,5vw,4rem)' }}>Nacimos en <span className="si">Valledupar.</span></h2>
+          <h2 className="sh">Nacimos en <span className="si">Valledupar.</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>Una herramienta real, construida desde el corazón del Caribe colombiano para restaurantes de todo el país.</p>
         </div>
 
@@ -610,7 +639,7 @@ export const LandingPage = () => {
       <div id="page-contacto" className={`page ${activePage === 'contacto' ? 'active' : ''}`}>
         <div className="page-hero">
           <span className="tag">Contacto</span>
-          <h2 className="sh" style={{ fontSize: 'clamp(2.5rem,5vw,4rem)' }}>Hablemos.<br /><span className="si">Sin formularios eternos.</span></h2>
+          <h2 className="sh">Hablemos.<br /><span className="si">Sin formularios eternos.</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>La forma más rápida de empezar es por WhatsApp. Respondemos en minutos.</p>
         </div>
 
@@ -679,7 +708,7 @@ export const LandingPage = () => {
       <div id="page-ayuda" className={`page ${activePage === 'ayuda' ? 'active' : ''}`}>
         <div className="page-hero">
           <span className="tag g">Centro de ayuda</span>
-          <h2 className="sh" style={{ fontSize: 'clamp(2.5rem,5vw,4rem)' }}>¿En qué podemos<br /><span className="si">ayudarte?</span></h2>
+          <h2 className="sh">¿En qué podemos<br /><span className="si">ayudarte?</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>Encuentra respuestas rápidas o escríbenos directamente por WhatsApp.</p>
         </div>
 
@@ -728,7 +757,7 @@ export const LandingPage = () => {
       <div id="page-blog" className={`page ${activePage === 'blog' ? 'active' : ''}`}>
         <div className="page-hero">
           <span className="tag">Blog</span>
-          <h2 className="sh" style={{ fontSize: 'clamp(2.5rem,5vw,4rem)' }}>Ideas para vender<br /><span className="si">más en tu restaurante.</span></h2>
+          <h2 className="sh">Ideas para vender<br /><span className="si">más en tu restaurante.</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>Consejos prácticos de gastronomía, tecnología y negocios para restaurantes colombianos.</p>
         </div>
         <section className="sect">
@@ -761,7 +790,7 @@ export const LandingPage = () => {
       <div id="page-privacidad" className={`page ${activePage === 'privacidad' ? 'active' : ''}`}>
         <div className="page-hero">
           <span className="tag">Legal</span>
-          <h2 className="sh" style={{ fontSize: 'clamp(2rem,4vw,3rem)' }}>Política de <span className="si">Privacidad</span></h2>
+          <h2 className="sh">Política de <span className="si">Privacidad</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>Última actualización: mayo 2025</p>
         </div>
         <section className="sect" style={{ background: 'white' }}>

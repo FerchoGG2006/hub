@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCart } from './useCart';
+import { useCart } from '../../shared/hooks/useCart';
 import { CheckoutPanel } from './CheckoutPanel';
-import { useViewport916 } from './useViewport916';
+import { useViewport916 } from '../../shared/hooks/useViewport916';
 
 export const FloatingCart = ({ config, branch }) => {
   const { totalItems } = useCart();

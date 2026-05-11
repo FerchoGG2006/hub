@@ -3,11 +3,11 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageFlip } from 'page-flip';
 import { MENU_DATA as STATIC_MENU, CATEGORY_META } from './MenuData';
-import { useCart } from './useCart';
-import { EventWizard } from './EventWizard';
+import { useCart } from '../../shared/hooks/useCart';
+import { EventWizard } from '../marketing/EventWizard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-import { useViewport916 } from './useViewport916';
+import { useViewport916 } from '../../shared/hooks/useViewport916';
 
 // ───── Corner Peel (sin cambios) ─────
 const CornerPeel = ({ visible, accent }) => (

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useParams, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CartProvider } from './CartContext';
-import { CoverPage } from './CoverPage';
-import { MenuEngine } from './MenuEngine';
-import { FloatingCart } from './FloatingCart';
-import { AdminDashboard } from './AdminDashboard';
-import { SuperAdmin } from './SuperAdmin';
-import { LandingPage } from './LandingPage';
-import { BranchPicker } from './BranchPicker';
-import { PrivacyPolicy } from './PrivacyPolicy';
+import { CartProvider } from './modules/menu_engine/CartContext';
+import { CoverPage } from './modules/menu_engine/CoverPage';
+import { MenuEngine } from './modules/menu_engine/MenuEngine';
+import { FloatingCart } from './modules/menu_engine/FloatingCart';
+import { AdminDashboard } from './modules/tenants/AdminDashboard';
+import { SuperAdmin } from './modules/auth/SuperAdmin';
+import { LandingPage } from './modules/landing/LandingPage';
+import { BranchPicker } from './modules/menu_engine/BranchPicker';
+import { PrivacyPolicy } from './modules/landing/PrivacyPolicy';
 
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
@@ -137,21 +137,22 @@ const HubLoader = () => {
   return <MainApp config={config} />;
 };
 
-import { RegisterBusiness } from './RegisterBusiness';
+import { RegisterBusiness } from './modules/auth/RegisterBusiness';
 
-/* ── ROUTER ── */
-export default function App() {
+const App = () => {
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegisterBusiness />} />
         <Route path="/superadmin" element={<SuperAdmin />} />
-        <Route path="/admin/:tenantSlug" element={<AdminDashboard />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/admin/:tenantSlug/*" element={<AdminDashboard />} />
         <Route path="/t/:tenantSlug" element={<HubLoader />} />
-        <Route path="/:tenantSlug" element={<HubLoader />} />
+        <Route path="/legal/privacidad" element={<PrivacyPolicy />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
-}
+};
+
+export default App;

@@ -2,10 +2,10 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCart } from './useCart';
+import { useCart } from '../../shared/hooks/useCart';
 import { formatWhatsAppMessage, sendToWhatsApp } from './CheckoutLogic';
 import { ProductCustomizer } from './ProductCustomizer';
-import { useOrders } from './core/orders/useOrders';
+import { useOrders } from '../../shared/hooks/useOrders';
 
 export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
   const { cart, total, clearCart, updateQty, updateCustomization } = useCart();
