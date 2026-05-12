@@ -8,9 +8,12 @@ from src.shared.utils.responses import success_response
 from src.shared.errors.app_error import AppError
 from src.shared.utils.websocket_manager import manager
 from src.modules.orders.service import OrderService
+from schemas.order import OrderRequest
+import logging
 
 router = APIRouter(prefix="/api", tags=["orders"])
 logger = logging.getLogger("platorin.orders")
+
 
 @router.post("/v1/tenant/{slug}/orders")
 async def receive_order(slug: str, req: OrderRequest, db: Session = Depends(get_db)):
@@ -38,7 +41,7 @@ def get_public_order_status(slug: str, order_id: int, db: Session = Depends(get_
 
 @router.get("/admin/orders")
 def get_orders(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    orders = orders_service.get_tenant_orders(db, current_user.tenant_id)
+    orders = OrderService.get_tenant_orders(db, current_user.tenant_id)
     result = []
     for o in orders:
         result.append({

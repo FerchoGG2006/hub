@@ -17,15 +17,20 @@ VALID_STATUS_TRANSITIONS = {
     "cancelled": []
 }
 
+from services.module_service import has_module
+
 class OrderService:
     @staticmethod
     async def create_order(db: Session, tenant_id: int, order_data: dict) -> models.Order:
         """
-        Crea un pedido y emite el evento ORDER_CREATED.
-        Ya no llama al CRM ni al WebSocket directamente.
+        Crea un pedido, gestiona inventario y emite el evento ORDER_CREATED.
         """
         try:
-            # Lógica de creación (Simplificada para el dominio de órdenes)
+            # Validación de Mesas
+            table_number = order_data.get("table_number")
+            if table_number and not has_module(db, tenant_id, "tables"):
+                table_number = None
+
             payment_method = order_data.get("payment_method", "transferencia")
             initial_status = "pending_payment" if payment_method in ["transferencia", "wompi", "nequi", "pse"] else "pending"
 
@@ -38,13 +43,35 @@ class OrderService:
                 status=initial_status,
                 phone=order_data.get("phone"),
                 customer_name=order_data.get("customer_name"),
-                table_number=order_data.get("table_number"),
+                table_number=table_number,
                 branch_id=order_data.get("branch_id")
             )
             
             db.add(nuevo_pedido)
+            db.flush() 
+
+            # INTEGRACIÓN CON INVENTARIO (Atomic)
+            if has_module(db, tenant_id, "inventory"):
+                items = json.loads(nuevo_pedido.items_json)
+                for item in items:
+                    prod_id = item.get("id")
+                    var_id = item.get("variant_id")
+                    qty = item.get("qty", 1)
+
+                    if var_id:
+                        inv = db.query(models.Inventory).filter_by(variant_id=var_id).first()
+                    else:
+                        inv = db.query(models.Inventory).filter_by(product_id=prod_id).first()
+                    
+                    if inv:
+                        if inv.stock >= qty:
+                            inv.stock -= qty
+                        else:
+                            logger.warning(f"Stock insuficiente para item {prod_id}/{var_id}")
+
             db.commit()
             db.refresh(nuevo_pedido)
+
 
             # EMISIÓN DE EVENTO DE DOMINIO
             await bus.publish("ORDER_CREATED", {
@@ -91,3 +118,11 @@ class OrderService:
         })
 
         return order
+
+    @staticmethod
+    def get_tenant_orders(db: Session, tenant_id: int):
+        """
+        Obtiene todos los pedidos de un tenant.
+        """
+        return db.query(models.Order).filter_by(tenant_id=tenant_id).order_by(desc(models.Order.id)).all()
+
