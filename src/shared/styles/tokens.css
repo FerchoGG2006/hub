@@ -1,21 +1,24 @@
 :root {
   /* COLORS - CORE PALETTE */
-  --bg-primary: #F5F0E8;
-  --bg-secondary: #EDE6D6;
-  --bg-tertiary: #E5DDD0;
+  --bg-primary: #F9F7F2;   /* Más claro y limpio para el fondo general */
+  --bg-secondary: #F2EFE9; /* Un tono más profundo para áreas de UI */
+  --bg-tertiary: #E8E4DB;  
+  
+  --surface-primary: #FFFFFF;
+  --surface-secondary: #FBF9F6;
   
   --text-primary: #1A1208;
-  --text-muted: rgba(26, 18, 8, 0.5);
-  --text-disabled: rgba(26, 18, 8, 0.3);
-  --text-on-brand: #F5F0E8;
+  --text-muted: rgba(26, 18, 8, 0.6);
+  --text-disabled: rgba(26, 18, 8, 0.35);
+  --text-on-brand: #FFFFFF;
   
-  --border-soft: rgba(26, 18, 8, 0.08);
-  --border-medium: rgba(26, 18, 8, 0.15);
+  --border-soft: rgba(26, 18, 8, 0.05);
+  --border-medium: rgba(26, 18, 8, 0.12);
   
   --brand-primary: #1A5C36;
   --brand-secondary: #237848;
   --brand-accent: #C8891A;
-  --brand-soft: #EAF3EE;
+  --brand-soft: #F2F8F5;
   
   /* STATUS COLORS */
   --status-pending: #F59E0B;
@@ -24,16 +27,18 @@
   --status-error: #EF4444;
   
   /* BORDER RADIUS */
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-xl: 32px;
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --radius-xl: 36px;
   --radius-pill: 9999px;
   
-  /* SHADOWS */
-  --shadow-soft: 0 4px 20px rgba(26, 18, 8, 0.05);
-  --shadow-medium: 0 10px 30px rgba(26, 18, 8, 0.1);
-  --shadow-brand: 0 10px 30px rgba(26, 92, 54, 0.15);
+  /* SHADOWS (Editorial Depth) */
+  --shadow-tiny: 0 2px 4px rgba(26, 18, 8, 0.02);
+  --shadow-soft: 0 4px 20px rgba(26, 18, 8, 0.04);
+  --shadow-medium: 0 12px 40px rgba(26, 18, 8, 0.08);
+  --shadow-heavy: 0 20px 60px rgba(26, 18, 8, 0.12);
+  --shadow-brand: 0 12px 30px rgba(26, 92, 54, 0.15);
   
   /* TYPOGRAPHY */
   --font-main: 'Plus Jakarta Sans', system-ui, sans-serif;

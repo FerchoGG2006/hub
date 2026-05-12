@@ -52,20 +52,32 @@ export const RegisterBusiness = () => {
             data.append('email', formData.email);
             data.append('file', formData.file);
 
+            const token = localStorage.getItem('hub_token');
+            const headers = {};
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const res = await fetch(`${API_URL}/api/admin/onboard`, {
                 method: 'POST',
                 body: data,
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('hub_token')}`
-                }
+                headers: headers
             });
 
-            if (!res.ok) throw new Error("Error en activación");
             const json = await res.json();
-            setResult(json);
+            
+            if (!res.ok) {
+                throw new Error(json.message || json.detail || "Error en activación");
+            }
+
+            console.log("Onboarding success:", json);
+            setResult(json.data || json);
             setStep(4);
         } catch (err) {
-            alert("Error: " + err.message);
+            console.error("Onboarding error:", err);
+            alert("Error: " + (err.name === 'TypeError' && err.message === 'Load failed' 
+                ? "No se pudo conectar con el servidor. Verifica tu conexión o configuración de API." 
+                : err.message));
         } finally {
             setLoading(false);
         }
@@ -85,11 +97,11 @@ export const RegisterBusiness = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left mb-10">
                         <div className="bg-cream-deep/30 p-5 rounded-2xl border border-border">
                             <p className="text-[10px] uppercase tracking-widest text-ink-30 mb-2 font-bold">Usuario</p>
-                            <p className="text-sm font-bold text-ink break-all">{result.credentials.user}</p>
+                            <p className="text-sm font-bold text-ink break-all">{result.credentials?.user || 'N/A'}</p>
                         </div>
                         <div className="bg-cream-deep/30 p-5 rounded-2xl border border-border">
                             <p className="text-[10px] uppercase tracking-widest text-ink-30 mb-2 font-bold">Passcode</p>
-                            <p className="text-2xl font-bold text-gold tracking-widest font-mono">{result.credentials.passcode}</p>
+                            <p className="text-2xl font-bold text-gold tracking-widest font-mono">{result.credentials?.passcode || '------'}</p>
                         </div>
                     </div>
 

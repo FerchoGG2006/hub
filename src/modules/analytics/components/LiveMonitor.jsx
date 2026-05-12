@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, Heading, Badge, EmptyState } from '../../../shared/ui';
-import { useWebSocket } from '../../../shared/hooks/useWebSocket';
+import { useWebSocketContext } from '../../../shared/contexts/WebSocketContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -11,12 +11,13 @@ export const LiveMonitor = ({ tenantId }) => {
   const { tenantSlug } = useParams();
   const [stats, setStats] = useState([]);
   const [totalHits, setTotalHits] = useState(0);
-  const { lastMessage } = useWebSocket(tenantId);
+  const { lastMessage } = useWebSocketContext();
 
   const fetchTopStats = useCallback(() => {
     fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/analytics/top`)
       .then(res => res.json())
-      .then(data => {
+      .then(json => {
+        const data = json.data || json;
         if (!Array.isArray(data)) {
           setStats([]);
           return;
@@ -68,12 +69,12 @@ export const LiveMonitor = ({ tenantId }) => {
         </div>
       </header>
 
-      <Card className="flex flex-col items-center justify-center text-center py-16 !rounded-[3rem]">
-        <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-[0.4em] mb-4 font-bold">
+      <Card className="flex flex-col items-center justify-center text-center py-12 !rounded-[2.5rem] shadow-soft bg-white border border-[var(--border-soft)]">
+        <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-[0.4em] mb-4 font-bold opacity-60">
           Total Recibido Hoy (Est.)
         </p>
         <div className="flex flex-col items-center">
-          <span className="text-7xl font-black italic text-[var(--text-primary)] tracking-tighter leading-none mb-4">
+          <span className="text-5xl font-black italic text-[var(--text-primary)] tracking-tighter leading-none mb-6">
             ${totalFormat}
           </span>
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--brand-soft)] text-[var(--brand-primary)] rounded-full">

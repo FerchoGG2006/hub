@@ -107,6 +107,15 @@ def create_order(db: Session, tenant_id: int, order_data: dict) -> models.Order:
         db.commit()
         db.refresh(nuevo_pedido)
         
+        # Sincronizar con la Lista de Oro (CRM)
+        from core.crm import crm_service
+        crm_service.upsert_customer(
+            db, 
+            tenant_id, 
+            phone=nuevo_pedido.phone, 
+            name=nuevo_pedido.customer_name
+        )
+
         # Emitir evento de pedido creado
         emit_event(db, tenant_id, "order_created", {
             "order_id": nuevo_pedido.id,

@@ -65,7 +65,7 @@ async def toggle_product(product_id: int, db: Session = Depends(get_db), current
     p.is_available = not p.is_available
     db.commit()
     
-    await manager.broadcast({"type": "MENU_UPDATE", "event": "PRODUCT_TOGGLE", "product_id": product_id, "tenant_id": p.tenant_id})
+    await manager.broadcast({"type": "MENU_UPDATE", "event": "PRODUCT_TOGGLE", "product_id": product_id, "tenant_id": p.tenant_id}, tenant_id=p.tenant_id)
     return success_response({"is_available": p.is_available})
 
 @router.post("/admin/products", status_code=201)
@@ -103,7 +103,7 @@ async def create_product(
     db.commit()
     db.refresh(new_prod)
     
-    await manager.broadcast({"type": "MENU_UPDATE", "event": "NEW_PRODUCT", "tenant_id": cat.tenant_id})
+    await manager.broadcast({"type": "MENU_UPDATE", "event": "NEW_PRODUCT", "tenant_id": cat.tenant_id}, tenant_id=cat.tenant_id)
     return success_response(new_prod)
 
 class MagicEditRequest(BaseModel):

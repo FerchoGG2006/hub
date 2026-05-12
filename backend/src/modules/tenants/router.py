@@ -80,6 +80,18 @@ def onboard_new_tenant(
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
+    logger.info(f"Iniciando onboarding para: {name} ({slug})")
+    
+    # Validar duplicados antes de procesar
+    existing_tenant = db.query(models.Tenant).filter_by(slug=slug).first()
+    if existing_tenant:
+        raise AppError(message=f"El identificador '{slug}' ya está en uso. Prueba con otro nombre.", status_code=400, code="SLUG_TAKEN")
+    
+    username_to_check = email or f"admin@{slug}.com"
+    existing_user = db.query(models.User).filter_by(username=username_to_check).first()
+    if existing_user:
+        raise AppError(message="Este correo electrónico ya tiene una cuenta activa.", status_code=400, code="USER_EXISTS")
+
     from utils.gemini_extractor import extract_menu_from_image
     try:
         nuevo_tenant = models.Tenant(

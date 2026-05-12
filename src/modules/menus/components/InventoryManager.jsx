@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, Heading, Badge, EmptyState, Button } from '../../../shared/ui';
-import { authService } from '../../auth/authService';
 
 export const InventoryManager = ({ products, toggleProduct, magicSnap }) => {
   return (
@@ -51,7 +50,7 @@ export const InventoryManager = ({ products, toggleProduct, magicSnap }) => {
                   {item.name}
                 </Heading>
                 <p className="font-[var(--font-serif)] italic text-lg text-[var(--text-primary)]">
-                  ${(item.price || 0).toLocaleString('es-CO')}
+                  ${String(item.price || 0).replace(/[^\d]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
                 </p>
                 
                 <div className="mt-3 flex items-center justify-between">

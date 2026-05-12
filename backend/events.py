@@ -124,6 +124,15 @@ def create_event_request(restaurant_slug: str, req: EventCreateRequest, db: Sess
     db.commit()
     db.refresh(nuevo_evento)
 
+    # Sincronizar con la Lista de Oro (CRM)
+    from core.crm import crm_service
+    crm_service.upsert_customer(
+        db, 
+        tenant_id=tenant.id, 
+        phone=nuevo_evento.client_phone, 
+        name=nuevo_evento.client_name
+    )
+
     # Notificar al restaurante por WhatsApp
     extras_text = ", ".join([EXTRAS_LABELS.get(e, e) for e in (req.extras or [])]) or "Ninguno"
     fecha_text = event_date.strftime("%d/%m/%Y %H:%M") if event_date else "Por definir"

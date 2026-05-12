@@ -41,7 +41,9 @@ export const OnboardingTour = ({ onComplete }) => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      onComplete();
+      if (typeof onComplete === 'function') {
+        onComplete();
+      }
     }
   };
 

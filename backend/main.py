@@ -63,6 +63,9 @@ origins = [
     "http://localhost:5173",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
+    "https://platorin.com",
+    "http://platorin.com",
+    "https://www.platorin.com",
 ]
 
 app.add_middleware(
@@ -74,14 +77,15 @@ app.add_middleware(
 )
 
 # WebSocket Endpoint
-@app.websocket("/ws/menu")
-async def websocket_menu(websocket: WebSocket):
-    await manager.connect(websocket)
+@app.websocket("/ws/{tenant_id}")
+async def websocket_endpoint(websocket: WebSocket, tenant_id: int):
+    await manager.connect(websocket, tenant_id)
     try:
         while True:
+            # Keep connection alive
             await websocket.receive_text()
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        manager.disconnect(websocket, tenant_id)
 
 # Include Routers
 app.include_router(auth_router)

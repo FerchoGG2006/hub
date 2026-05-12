@@ -12,21 +12,18 @@
 ## ✨ Transformación Operacional
 
 ### 📈 Maximiza tus Ventas
-<br/>
 
 - **Pedidos & Pagos Digitales:** Reduce tiempos de espera y optimiza la rotación de mesas con autogestión fluida.
 - **WhatsApp & Social Commerce:** Convierte conversaciones en ventas directas sincronizadas con tu inventario.
 - **Recomendaciones con IA:** Motor inteligente que sugiere productos para aumentar el ticket promedio de forma invisible.
 
 ### ⚡ Optimiza tu Operación
-<br/>
 
 - **Kanban de Cocina en Tiempo Real:** Visualiza y gestiona el flujo de pedidos sin caos ni papeles.
 - **Control Multi-Sede:** Monitorea y administra todos tus locales desde un dashboard unificado y profesional.
 - **Analytics Estratégico:** Toma decisiones basadas en datos reales de consumo y comportamiento de clientes.
 
 ### 🤖 Inteligencia & Automatización
-<br/>
 
 - **Automatización de Marketing:** Sincronización con Instagram y TikTok para atraer clientes de forma autónoma.
 - **Gestión de Inventario Inteligente:** Alertas y sugerencias automáticas basadas en la demanda proyectada.
@@ -37,7 +34,6 @@
 ## 🛠️ Stack Tecnológico
 
 ### Frontend
-<br/>
 
 - **Framework:** React 19 + Vite
 - **Animaciones:** Framer Motion
@@ -46,7 +42,6 @@
 - **Utilidades:** html2canvas, jsPDF, React Router 7
 
 ### Backend
-<br/>
 
 - **Framework:** FastAPI (Python)
 - **Base de Datos:** PostgreSQL + SQLAlchemy (Async)
@@ -59,14 +54,12 @@
 ## 🚀 Instalación y Configuración
 
 ### Requisitos Previos
-<br/>
 
 - Node.js (v18+)
 - Python (v3.10+)
 - PostgreSQL
 
 ### Configuración del Frontend
-<br/>
 
 1. Entra al directorio raíz:
 
@@ -87,7 +80,6 @@
    ```
 
 ### Configuración del Backend
-<br/>
 
 1. Navega a la carpeta `backend`:
 

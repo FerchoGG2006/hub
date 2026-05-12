@@ -242,6 +242,20 @@ class PaymentSession(Base):
     order = relationship("Order")
     business = relationship("Tenant")
 
+class Customer(Base):
+    """Base de datos centralizada de clientes para Marketing y CRM."""
+    __tablename__ = "customers"
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    name = Column(String(100))
+    phone = Column(String(20), index=True)
+    email = Column(String(100), nullable=True)
+    total_orders = Column(Integer, default=0)
+    last_interaction = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    tenant = relationship("Tenant")
+
 class Payment(Base):
     """Registros de transacciones de pago reales confirmadas."""
     __tablename__ = "payments"

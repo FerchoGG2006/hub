@@ -31,7 +31,7 @@ async def track_analytics(product_id: int, action: str, tenant_slug: str = "la-r
             "action": action,
             "product_id": product_id,
             "tenant_id": tenant.id
-        })
+        }, tenant_id=tenant.id)
     return success_response({"status": "ok"})
 
 @router.get("/v1/tenant/{slug}/analytics/top")

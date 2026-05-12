@@ -4,7 +4,15 @@ export const productsService = {
   async getTenantProducts(tenantSlug) {
     const response = await fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/menu`);
     if (!response.ok) throw new Error('Error al obtener productos');
-    return response.json();
+    const json = await response.json();
+    const data = json.data || json;
+    
+    // Si la data está agrupada por categorías (objeto), la aplanamos para el InventoryManager
+    if (data && typeof data === 'object' && !Array.isArray(data)) {
+      return Object.values(data).flat();
+    }
+    
+    return Array.isArray(data) ? data : [];
   },
 
   async toggleProductAvailability(productId, token) {

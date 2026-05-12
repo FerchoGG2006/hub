@@ -46,7 +46,7 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
       }} 
       exit={{ opacity: 0, scale: 0.95 }} 
       key={o.id}
-      className="bg-white border border-[var(--border-soft)] rounded-[2rem] p-6 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-medium)] transition-all relative overflow-hidden group"
+      className="bg-[var(--surface-primary)] border border-[var(--border-soft)] rounded-[2rem] p-6 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-medium)] transition-all relative overflow-hidden group"
     >
       {o.is_priority && (
         <div className="absolute top-0 left-0 bg-[var(--brand-accent)] text-white text-[8px] font-black px-4 py-1.5 rounded-br-2xl uppercase tracking-[0.2em] z-10">
@@ -131,10 +131,9 @@ const KanbanColumn = ({ title, items, nextStatus, color, icon, changeStatus, pri
   </div>
 );
 
-export const KanbanBoard = ({ tenantId }) => {
+export const KanbanBoard = ({ tenantId, lastMessage }) => {
   const [orders, setOrders] = useState([]);
   const [stats, setStats] = useState({ avgPrep: '0:00', totalServed: 0 });
-  const { lastMessage } = useWebSocket(tenantId);
 
   const playAlert = useCallback(() => {
     try {
@@ -182,9 +181,10 @@ export const KanbanBoard = ({ tenantId }) => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
-        const data = await res.json();
-        setOrders(data);
-        calculateStats(data);
+        const json = await res.json();
+        const ordersData = json.data || json;
+        setOrders(Array.isArray(ordersData) ? ordersData : []);
+        calculateStats(Array.isArray(ordersData) ? ordersData : []);
       }
     } catch (err) {
       console.error("Load orders error:", err);
@@ -203,9 +203,13 @@ export const KanbanBoard = ({ tenantId }) => {
         playAlert();
         setOrders(prev => [lastMessage.order, ...prev]);
     } else if (lastMessage.type === 'ORDER_UPDATED') {
-        setOrders(prev => prev.map(o => o.id === lastMessage.order_id ? { ...o, status: lastMessage.status, updated_at: new Date().toISOString() } : o));
+        setOrders(prev => {
+            const updated = prev.map(o => o.id === lastMessage.order_id ? { ...o, status: lastMessage.status, updated_at: new Date().toISOString() } : o);
+            calculateStats(updated);
+            return updated;
+        });
     }
-  }, [lastMessage, playAlert]);
+  }, [lastMessage, playAlert, calculateStats]);
 
   const changeStatus = async (id, status) => {
     try {
@@ -215,9 +219,10 @@ export const KanbanBoard = ({ tenantId }) => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
+      const json = await res.json();
+
       if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || "Error actualizando estado");
+        throw new Error(json.message || json.detail || "Error actualizando estado");
       }
 
       setOrders(prev => {
@@ -279,24 +284,6 @@ export const KanbanBoard = ({ tenantId }) => {
 
   return (
     <div className="h-full flex flex-col pt-0 max-w-7xl mx-auto z-10 relative">
-      <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-[var(--border-soft)] pb-10">
-        <div>
-          <Badge variant="brand" className="mb-2">Monitor de Operaciones</Badge>
-          <Heading level={2}>Pedidos en <span className="font-[var(--font-serif)] italic">Tiempo Real</span></Heading>
-          <p className="text-[var(--text-muted)] text-sm mt-1">Sincronización instantánea con el flujo de tu cocina.</p>
-        </div>
-        <div className="flex gap-6 bg-white border border-[var(--border-soft)] p-5 rounded-3xl shadow-sm">
-            <div className="text-center px-4 border-r border-[var(--border-soft)]">
-                <p className="text-[9px] uppercase tracking-widest text-[var(--text-disabled)] mb-1 font-bold">Tiempo Promedio</p>
-                <p className="text-xl font-black text-[var(--brand-accent)] font-mono tracking-tighter">{stats.avgPrep}</p>
-            </div>
-            <div className="text-center px-4">
-                <p className="text-[9px] uppercase tracking-widest text-[var(--text-disabled)] mb-1 font-bold">Servidos Hoy</p>
-                <p className="text-xl font-black text-[var(--brand-primary)] font-mono tracking-tighter">{stats.totalServed}</p>
-            </div>
-        </div>
-      </header>
-
       {orders.length === 0 ? (
          <EmptyState 
            icon="🛎️"

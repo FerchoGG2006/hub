@@ -34,7 +34,7 @@ async def receive_order(slug: str, req: OrderRequest, db: Session = Depends(get_
             "created_at": nuevo.created_at.isoformat(),
             "items_json": nuevo.items_json
         }
-    })
+    }, tenant_id=t.id)
     return success_response({"orderId": nuevo.id}, message="Pedido recibido")
 
 @router.get("/v1/tenant/{slug}/orders/{order_id}")
@@ -75,7 +75,7 @@ async def update_order_status(order_id: int, status: str, db: Session = Depends(
         if not o: 
             raise AppError(message="Pedido no encontrado o acceso denegado", status_code=404)
             
-        await manager.broadcast({"type": "ORDER_UPDATED", "tenant_id": current_user.tenant_id, "order_id": o.id, "status": status})
+        await manager.broadcast({"type": "ORDER_UPDATED", "tenant_id": current_user.tenant_id, "order_id": o.id, "status": status}, tenant_id=current_user.tenant_id)
         return success_response({"status": "ok"})
     except ValueError as e:
         raise AppError(message=str(e), status_code=400)

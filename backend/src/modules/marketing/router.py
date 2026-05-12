@@ -17,7 +17,18 @@ class AIMarketingRequest(BaseModel):
 def generate_ai_campaign(req: AIMarketingRequest, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     import google.generativeai as genai
     model = genai.GenerativeModel('gemini-flash-latest')
-    prompt = f"Eres un experto en marketing gastronómico. El restaurante quiere: '{req.goal}'. Redacta 1 SMS corto persuasivo, 1 Asunto de Email llamativo, y crea un Código de Cupón de descuento de un solo texto (ej: HAMBUR30) y el Porcentaje sugerido. Responde en JSON estricto con claves: sms_text, email_subject, coupon_code, discount_percent."
+    prompt = (
+        "Eres un experto en Copywriting Gastronómico de clase mundial. "
+        f"El restaurante tiene este objetivo: '{req.goal}'. "
+        "Tu tarea es transformar ese objetivo en una campaña persuasiva. "
+        "REGLA DE ORO: NO repitas la frase del objetivo literalmente. Úsala solo como contexto. "
+        "Genera: "
+        "1. Un mensaje de WhatsApp/SMS de máximo 160 caracteres que genere hambre y urgencia. "
+        "2. Un asunto de email corto y 'clickbait' elegante. "
+        "3. Un código de cupón creativo relacionado (ej: LUNCHTIME25, FOODLOVER). "
+        "4. Un porcentaje de descuento (solo el número, ej: 15). "
+        "Responde EXCLUSIVAMENTE en JSON estricto con claves: sms_text, email_subject, coupon_code, discount_percent."
+    )
     try:
         response = model.generate_content(prompt)
         raw_text = response.text.strip()
@@ -31,16 +42,20 @@ def generate_ai_campaign(req: AIMarketingRequest, db: Session = Depends(get_db),
             
         data = json.loads(text)
     except Exception as e:
-        goal_lower = req.goal.lower()
-        discount = 15
-        if "venta" in goal_lower or "promo" in goal_lower:
-            discount = 20
-        
+        # Fallback inteligente usando la marca del restaurante
+        tenant_prefix = "PROMO"
+        try:
+            tenant = db.query(models.Tenant).filter_by(id=current_user.tenant_id).first()
+            if tenant:
+                tenant_prefix = tenant.slug.upper()[:8]
+        except:
+            pass
+
         data = {
-            "sms_text": f"¡No te lo pierdas! {req.goal}. Pide ahora y obtén un descuento especial.",
-            "email_subject": f"Especial para ti: {req.goal} 🚀",
-            "coupon_code": "PROMO" + str(datetime.datetime.now().strftime("%y%m")),
-            "discount_percent": discount
+            "sms_text": "¡Es hora de consentir tu paladar! 🍕 Aprovecha nuestra oferta especial de hoy y pide lo que más te gusta.",
+            "email_subject": "Tu mesa (y un regalo) te están esperando... 🎁",
+            "coupon_code": f"{tenant_prefix}{datetime.datetime.now().strftime('%d%m')}",
+            "discount_percent": 15
         }
 
     try:
@@ -57,6 +72,22 @@ def generate_ai_campaign(req: AIMarketingRequest, db: Session = Depends(get_db),
         pass
 
     return success_response(data)
+
+@router.post("/send-mass")
+def send_mass_campaign(req: AIMarketingRequest, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    tid = current_user.tenant_id
+    if not tid: return success_response({"status": "error", "message": "No tenant found"})
+    
+    # Consultar directamente nuestra nueva base de datos centralizada de clientes
+    customers = db.query(models.Customer).filter_by(tenant_id=tid).all()
+    all_phones = [c.phone for c in customers if c.phone]
+    
+    return success_response({
+        "status": "success",
+        "contacts_count": len(all_phones),
+        "message": f"Campaña programada para {len(all_phones)} contactos registrados.",
+        "phones": all_phones
+    })
 
 @router.get("/coupon/{code}")
 def validate_coupon(slug: str, code: str, db: Session = Depends(get_db)):

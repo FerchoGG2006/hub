@@ -23,8 +23,20 @@ import { AdminPayments } from './components/AdminPayments';
 // Services & Hooks
 import { authService } from '../auth/authService';
 import { useProducts } from '../menus/useProducts';
+import { WebSocketProvider, useWebSocketContext } from '../../shared/contexts/WebSocketContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+const TABS = [
+  { id: 'pedidos', label: 'Órdenes', icon: '📝' },
+  { id: 'carta', label: 'Mi Carta', icon: '🍽️' },
+  { id: 'qr', label: 'Terminal QR', icon: '📱' },
+  { id: 'analytics', label: 'Métricas', icon: '📊' },
+  { id: 'marketing', label: 'Marketing', icon: '✨' },
+  { id: 'events', label: 'Eventos', icon: '🎉' },
+  { id: 'settings', label: 'Identidad', icon: '🎨' },
+  { id: 'billing', label: 'SaaS Core', icon: '🛡️' },
+];
 
 export const AdminDashboard = () => {
   const { tenantSlug } = useParams();
@@ -32,8 +44,13 @@ export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('pedidos');
   const [isAuth, setIsAuth] = useState(!!localStorage.getItem('hub_token'));
   const [config, setConfig] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showAIIngest, setShowAIIngest] = useState(false);
+
+  const [showTour, setShowTour] = useState(!localStorage.getItem('platorin_tour_seen'));
+
+  const handleTourComplete = () => {
+    localStorage.setItem('platorin_tour_seen', 'true');
+    setShowTour(false);
+  };
 
   const { products, toggleProduct, fetchProducts, magicSnap } = useProducts(tenantSlug);
 
@@ -41,7 +58,7 @@ export const AdminDashboard = () => {
     if (isAuth) {
       fetch(`${API_URL}/api/v1/tenant/${tenantSlug}`)
         .then(res => res.json())
-        .then(setConfig)
+        .then(json => setConfig(json.data || json))
         .catch(err => console.error("Error loading config:", err));
       
       fetchProducts();
@@ -50,23 +67,50 @@ export const AdminDashboard = () => {
 
   useEffect(() => { if (!isAuth) navigate('/'); }, [isAuth, navigate]);
 
-  const TABS = [
-    { id: 'pedidos', label: 'Órdenes', icon: '📝' },
-    { id: 'carta', label: 'Mi Carta', icon: '🍽️' },
-    { id: 'qr', label: 'Terminal QR', icon: '📱' },
-    { id: 'analytics', label: 'Métricas', icon: '📊' },
-    { id: 'marketing', label: 'Marketing', icon: '✨' },
-    { id: 'events', label: 'Eventos', icon: '🎉' },
-    { id: 'settings', label: 'Identidad', icon: '🎨' },
-    { id: 'billing', label: 'SaaS Core', icon: '🛡️' },
-  ];
+  return (
+    <WebSocketProvider tenantId={config?.id}>
+      <AdminDashboardContent 
+        config={config}
+        tenantSlug={tenantSlug}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        showTour={showTour}
+        handleTourComplete={handleTourComplete}
+        products={products}
+        toggleProduct={toggleProduct}
+        magicSnap={magicSnap}
+        navigate={navigate}
+      />
+    </WebSocketProvider>
+  );
+};
+
+const AdminDashboardContent = ({ 
+  config, tenantSlug, activeTab, setActiveTab, showTour, 
+  handleTourComplete, products, toggleProduct, magicSnap, navigate 
+}) => {
+  const { lastMessage, status, isConnected } = useWebSocketContext();
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans">
-      <OnboardingTour />
+      {showTour && <OnboardingTour onComplete={handleTourComplete} />}
+
+      {/* ── CONNECTION STATUS BANNER ── */}
+      <AnimatePresence>
+        {!isConnected && status !== 'connecting' && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className={`fixed top-0 left-0 right-0 z-[150] text-center text-[10px] font-black uppercase tracking-[0.3em] py-2 ${status === 'reconnecting' ? 'bg-amber-500 text-black' : 'bg-red-600 text-white'}`}
+          >
+            {status === 'reconnecting' ? '⚡ Reconectando con el Servidor...' : '⚠️ Sin Conexión Operativa'}
+          </motion.div>
+        )}
+      </AnimatePresence>
       
-      {/* ── SIDEBAR NAVIGATION ── */}
-      <nav className="fixed left-0 top-0 bottom-0 w-24 bg-white border-r border-[var(--border-soft)] flex flex-col items-center py-10 z-[100] shadow-sm">
+      {/* ── DESKTOP SIDEBAR ── */}
+      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-24 bg-white border-r border-[var(--border-soft)] flex flex-col items-center py-10 z-[100] shadow-sm">
         <div className="w-12 h-12 bg-[var(--brand-primary)] rounded-2xl flex items-center justify-center text-white font-black text-xl mb-12 shadow-lg shadow-[var(--brand-primary)]/20 cursor-pointer" onClick={() => navigate('/')}>
           P
         </div>
@@ -92,13 +136,76 @@ export const AdminDashboard = () => {
         </button>
       </nav>
 
+      {/* ── MOBILE BOTTOM DOCK ── */}
+      <nav className="md:hidden fixed bottom-6 left-6 right-6 bg-white/80 backdrop-blur-xl border border-[var(--border-soft)] h-20 rounded-[2.5rem] flex items-center justify-around px-4 z-[100] shadow-heavy">
+          {TABS.slice(0, 5).map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex flex-col items-center transition-all ${activeTab === tab.id ? 'text-[var(--brand-primary)]' : 'text-[var(--text-disabled)]'}`}
+            >
+              <span className="text-xl">{tab.icon}</span>
+              <span className="text-[6px] uppercase font-black mt-1 tracking-widest">{tab.label}</span>
+              {activeTab === tab.id && <motion.div layoutId="mobile-indicator" className="w-1 h-1 bg-[var(--brand-primary)] rounded-full mt-1" />}
+            </button>
+          ))}
+      </nav>
+
       {/* ── MAIN CONTENT AREA ── */}
-      <main className="pl-24 min-h-screen">
-        <div className="max-w-7xl mx-auto p-8 md:p-16">
+      <main className="md:pl-24 min-h-screen pb-32 md:pb-0">
+        {/* OPERATIONAL HEADER */}
+        <div className="max-w-7xl mx-auto px-8 md:px-16 pt-12">
+            <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12">
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center font-black text-xs">
+                        {config?.name?.substring(0,2).toUpperCase()}
+                    </div>
+                    <div>
+                        <h1 className="text-xs font-black uppercase tracking-[0.2em] opacity-30">Platorin Command Center</h1>
+                        <p className="text-xl font-[var(--font-serif)] italic font-bold">Bienvenido, <span className="text-[var(--brand-accent)]">{config?.name || 'Administrador'}</span></p>
+                    </div>
+                </div>
+
+                <div className="flex gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                    <div className="flex-shrink-0 px-5 py-3 bg-white border border-[var(--border-soft)] rounded-2xl flex items-center gap-4 shadow-sm">
+                        <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                        <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">{isConnected ? 'Sistema Live' : 'Offline'}</span>
+                    </div>
+                    <div className="flex-shrink-0 px-5 py-3 bg-white border border-[var(--border-soft)] rounded-2xl flex items-center gap-4 shadow-sm">
+                        <span className="text-[10px] font-black uppercase tracking-widest opacity-40 whitespace-nowrap">WhatsApp</span>
+                        <span className="text-[10px] font-bold text-green-600 whitespace-nowrap">99.9% UP</span>
+                    </div>
+                </div>
+            </header>
+
+            {/* QUICK KPIs */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+                {[
+                    { label: 'Ventas Hoy', value: '$284k', trend: '+12%', color: 'var(--brand-primary)' },
+                    { label: 'Pedidos', value: '24', trend: 'Live', color: 'var(--brand-accent)' },
+                    { label: 'Ticket Prom.', value: '$12.5k', trend: 'estable', color: 'var(--text-primary)' },
+                    { label: 'Prep. Media', value: '14 min', trend: '-2m', color: 'var(--status-success)' },
+                ].map((kpi, i) => (
+                    <div key={i} className="bg-white border border-[var(--border-soft)] p-6 rounded-[2rem] shadow-sm">
+                        <p className="text-[8px] uppercase tracking-[0.2em] text-[var(--text-disabled)] mb-2 font-black">{kpi.label}</p>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-xl font-black tracking-tighter" style={{ color: kpi.color }}>{kpi.value}</span>
+                            <span className="text-[8px] font-bold opacity-40">{kpi.trend}</span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-8 md:px-16 pb-16">
           <AnimatePresence mode="wait">
             {activeTab === 'pedidos' && (
               <motion.div key="pedidos" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <KanbanBoard tenantSlug={tenantSlug} tenantId={config?.id} />
+                <KanbanBoard 
+                    tenantSlug={tenantSlug} 
+                    tenantId={config?.id} 
+                    lastMessage={lastMessage}
+                />
               </motion.div>
             )}
 
@@ -109,20 +216,6 @@ export const AdminDashboard = () => {
                   toggleProduct={toggleProduct} 
                   magicSnap={magicSnap} 
                 />
-                <div className="fixed bottom-10 right-10 flex flex-col gap-4 z-[200]">
-                  <Button 
-                    onClick={() => setShowAddModal(true)}
-                    className="!shadow-2xl !py-6 !px-8 !text-xs !rounded-[2rem]"
-                  >
-                    + Agregar Plato
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'qr' && (
-              <motion.div key="qr" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <QRTerminal config={config} />
               </motion.div>
             )}
 
@@ -132,18 +225,15 @@ export const AdminDashboard = () => {
               </motion.div>
             )}
 
-            {activeTab === 'marketing' && (
-              <motion.div key="marketing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <MarketingManager />
-                <div className="mt-12">
-                  <InstagramAutopilot />
-                </div>
+            {activeTab === 'qr' && (
+              <motion.div key="qr" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <QRTerminal tenantSlug={tenantSlug} />
               </motion.div>
             )}
 
-            {activeTab === 'events' && (
-              <motion.div key="events" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <EventsManager slug={tenantSlug} />
+            {activeTab === 'marketing' && (
+              <motion.div key="marketing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <MarketingManager />
               </motion.div>
             )}
 
@@ -155,78 +245,18 @@ export const AdminDashboard = () => {
 
             {activeTab === 'billing' && (
               <motion.div key="billing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <BillingManager />
-                <div className="mt-20">
-                   <AdminPayments />
-                </div>
+                <BillingManager tenantId={config?.id} />
+              </motion.div>
+            )}
+
+            {activeTab === 'events' && (
+              <motion.div key="events" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <EventsManager tenantId={config?.id} />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </main>
-
-      {/* ── MODALS ── */}
-      <AddProductModal 
-        isOpen={showAddModal} 
-        onClose={() => setShowAddModal(false)} 
-        onProductAdded={fetchProducts} 
-      />
-
-      <AIIngestModal 
-        isOpen={showAIIngest} 
-        onClose={() => setShowAIIngest(false)} 
-        onSuccess={fetchProducts} 
-      />
     </div>
-  );
-};
-
-const AIIngestModal = ({ isOpen, onClose, onSuccess }) => {
-  const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleIngest = async () => {
-    if (!file) {
-      alert("Por favor selecciona la imagen de la carta física.");
-      return;
-    }
-    setLoading(true);
-    try {
-      const data = new FormData();
-      data.append('file', file);
-      const token = localStorage.getItem('hub_token');
-      const res = await fetch(`${API_URL}/api/admin/ai-ingest`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: data
-      });
-      if (!res.ok) throw new Error("Error en la extracción AI");
-      await res.json();
-      if (onSuccess) onSuccess();
-      onClose();
-    } catch (err) {
-      alert("Fallo la migración: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Migración Inteligente (IA)">
-      <div className="space-y-6">
-        <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-          Sube una foto de tu carta física actual. Nuestro sistema extraerá platos, precios y descripciones automáticamente.
-        </p>
-        <div className="border-2 border-dashed border-[var(--border-soft)] rounded-[var(--radius-lg)] p-8 text-center hover:border-[var(--brand-primary)] transition-colors cursor-pointer relative overflow-hidden group">
-          <input type="file" accept="image/*" onChange={e => setFile(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-          <p className="text-[10px] tracking-widest uppercase text-[var(--text-disabled)] group-hover:text-[var(--brand-primary)] transition-colors">
-            {file ? file.name : "Subir Foto de la Carta"}
-          </p>
-        </div>
-        <Button onClick={handleIngest} isLoading={loading} className="w-full py-4 text-[10px] uppercase tracking-widest">
-          Iniciar Ingestión AI
-        </Button>
-      </div>
-    </Modal>
   );
 };

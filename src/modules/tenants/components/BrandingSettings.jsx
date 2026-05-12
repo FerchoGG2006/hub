@@ -18,7 +18,8 @@ export const BrandingSettings = () => {
   useEffect(() => {
       fetch(`${API_URL}/api/v1/tenant/${tenantSlug}`)
       .then(r => r.json())
-      .then(d => {
+      .then(json => {
+        const d = json.data || json;
         setFormData({
           brand_color: d.brand_color || '#C8891A',
           whatsapp_number: d.whatsapp_number || '',
