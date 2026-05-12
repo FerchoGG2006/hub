@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import PhoneInputModule from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
@@ -105,9 +106,9 @@ export const RegisterBusiness = () => {
                         </div>
                     </div>
 
-                    <a href={`/admin/${formData.slug}`} className="btn-editorial w-full py-5 justify-center text-sm uppercase tracking-widest">
+                    <Link to={`/admin/${formData.slug}`} className="btn-editorial w-full py-5 justify-center text-sm uppercase tracking-widest">
                         Entrar a mi Panel Admin
-                    </a>
+                    </Link>
                 </motion.div>
             </div>
         );
