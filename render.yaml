@@ -28,6 +28,11 @@ services:
         sync: false
       - key: WOMPI_ENV
         value: sandbox
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: hub-redis
+          property: connectionString
 
   # ─── FRONTEND (React + Vite served via Node) ───
   - type: web
@@ -40,3 +45,9 @@ services:
         value: https://hub-api-2lql.onrender.com
       - key: VITE_FB_APP_ID
         value: 1975318246711677
+
+  # ─── INFRASTRUCTURE (Redis for Horizontal Scaling) ───
+  - type: redis
+    name: hub-redis
+    ipAllowList: [] # Solo accesible internamente por la API
+    plan: free

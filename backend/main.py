@@ -22,6 +22,13 @@ from src.modules.payments.router import router as payments_router
 from src.modules.marketing.router import router as marketing_router
 from src.modules.social.router import router as social_router
 
+# Activar Listeners de Dominio (Modular Monolith)
+import src.modules.crm.service # Activa el registro automático de clientes
+import src.modules.realtime.service # Activa las notificaciones en vivo
+import src.modules.marketing.service # Activa campañas automáticas
+
+
+
 # External Routers (Legacy/Core)
 from events import router as events_router
 from core.payments.webhook_handler import router as payments_webhook_router

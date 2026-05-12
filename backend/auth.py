@@ -35,6 +35,8 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+from src.shared.infra.tenant_context import TenantContext
+
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -52,6 +54,11 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.query(models.User).filter(models.User.username == username).first()
     if user is None:
         raise credentials_exception
+    
+    # Establecer contexto de Tenant para el hilo actual
+    if user.tenant_id:
+        TenantContext.set(user.tenant_id)
+        
     return user
 
 def get_current_superadmin(current_user: models.User = Depends(get_current_user)):
