@@ -138,6 +138,7 @@ const HubLoader = () => {
 };
 
 import { RegisterBusiness } from './modules/auth/RegisterBusiness';
+import { SuperReset } from './modules/auth/SuperReset';
 
 const App = () => {
   return (
@@ -146,6 +147,7 @@ const App = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegisterBusiness />} />
         <Route path="/superadmin" element={<SuperAdmin />} />
+        <Route path="/super-reset" element={<SuperReset />} />
         <Route path="/admin/:tenantSlug/*" element={<AdminDashboard />} />
         <Route path="/t/:tenantSlug" element={<HubLoader />} />
         <Route path="/legal/privacidad" element={<PrivacyPolicy />} />

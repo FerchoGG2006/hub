@@ -70,6 +70,48 @@ def get_all_tenants(db: Session = Depends(get_db), current_user: models.User = D
         })
     return success_response(result)
 
+@router.post("/admin/reset-passcode")
+def reset_passcode(
+    tenant_slug: str = Form(...),
+    new_passcode: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_superadmin)
+):
+    tenant = db.query(models.Tenant).filter_by(slug=tenant_slug).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant no encontrado")
+        
+    user = db.query(models.User).filter_by(tenant_id=tenant.id, role="admin").first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario admin no encontrado")
+        
+    user.hashed_password = auth.get_password_hash(new_passcode)
+    db.commit()
+    
+    return success_response({"message": f"Passcode de {tenant_slug} actualizado con éxito"})
+
+@router.get("/v1/tenant/all-debug")
+def get_all_tenants_debug(db: Session = Depends(get_db)):
+    # BYPASS TEMPORAL PARA EL FUNDADOR
+    tenants = db.query(models.Tenant).all()
+    result = [{"name": t.name, "slug": t.slug} for t in tenants]
+    return success_response(result)
+
+@router.post("/admin/reset-passcode-emergency")
+def reset_passcode_emergency(
+    tenant_slug: str = Form(...),
+    new_passcode: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # BYPASS TEMPORAL PARA EL FUNDADOR
+    tenant = db.query(models.Tenant).filter_by(slug=tenant_slug).first()
+    if not tenant: raise HTTPException(status_code=404, detail="No existe")
+    user = db.query(models.User).filter_by(tenant_id=tenant.id, role="admin").first()
+    if not user: raise HTTPException(status_code=404, detail="No user")
+    user.hashed_password = auth.get_password_hash(new_passcode)
+    db.commit()
+    return success_response({"message": f"Listo! {tenant_slug} tiene nuevo passcode"})
+
 @router.post("/admin/onboard")
 def onboard_new_tenant(
     name: str = Form(...),
