@@ -45,8 +45,26 @@ export const AdminDashboard = () => {
   const [isAuth, setIsAuth] = useState(!!localStorage.getItem('hub_token'));
   const [config, setConfig] = useState(null);
 
-  const [showTour, setShowTour] = useState(!localStorage.getItem('platorin_tour_seen'));
+  const [loginUser, setLoginUser] = useState('');
+  const [loginPass, setLoginPass] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginLoading(true);
+    setLoginError('');
+    try {
+      await authService.login(loginUser, loginPass);
+      setIsAuth(true);
+    } catch {
+      setLoginError('Credenciales inválidas');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const [showTour, setShowTour] = useState(!localStorage.getItem('platorin_tour_seen'));
   const handleTourComplete = () => {
     localStorage.setItem('platorin_tour_seen', 'true');
     setShowTour(false);
@@ -65,7 +83,38 @@ export const AdminDashboard = () => {
     }
   }, [isAuth, tenantSlug, fetchProducts]);
 
-  useEffect(() => { if (!isAuth) navigate('/'); }, [isAuth, navigate]);
+  if (!isAuth) {
+    return (
+      <div className="min-h-screen bg-cream flex items-center justify-center p-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="surface-editorial max-w-md w-full p-10 shadow-2xl">
+          <div className="text-center mb-8">
+            <h1 className="logo text-4xl mb-1">Plato<b>rin</b></h1>
+            <p className="tag-editorial">Panel de Administración</p>
+          </div>
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest text-ink-50 font-bold">Usuario</label>
+              <input type="text" value={loginUser} onChange={e => setLoginUser(e.target.value)}
+                className="w-full bg-cream-deep/20 border border-border rounded-xl py-3.5 px-5 focus:border-gold outline-none transition-all" 
+                placeholder="tu_usuario" autoFocus />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest text-ink-50 font-bold">Contraseña</label>
+              <input type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)}
+                className="w-full bg-cream-deep/20 border border-border rounded-xl py-3.5 px-5 focus:border-gold outline-none transition-all" 
+                placeholder="••••••" />
+            </div>
+            {loginError && <p className="text-red-500 text-xs text-center font-bold">{loginError}</p>}
+            <button type="submit" disabled={loginLoading || !loginUser || !loginPass}
+              className="btn-editorial w-full py-4 justify-center text-sm uppercase tracking-widest disabled:opacity-30">
+              {loginLoading ? 'Verificando...' : 'Ingresar'}
+            </button>
+          </form>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <WebSocketProvider tenantId={config?.id}>
