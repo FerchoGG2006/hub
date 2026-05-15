@@ -13,14 +13,17 @@ export const authService = {
     });
 
     if (!response.ok) throw new Error('Credenciales Inválidas');
-    const data = await response.json();
+    const json = await response.json();
     
-    // Almacenar en localStorage (o retornar para que el hook lo maneje)
-    localStorage.setItem('hub_token', data.access_token);
-    localStorage.setItem('hub_role', data.role);
-    localStorage.setItem('hub_tenant', data.tenant_slug || '');
+    // El backend envuelve la respuesta en success_response: {success, data, message}
+    // Extraemos el objeto real de datos
+    const payload = json.data || json;
     
-    return data;
+    localStorage.setItem('hub_token', payload.access_token);
+    localStorage.setItem('hub_role', payload.role);
+    localStorage.setItem('hub_tenant', payload.tenant_slug || '');
+    
+    return payload;
   },
 
   logout() {

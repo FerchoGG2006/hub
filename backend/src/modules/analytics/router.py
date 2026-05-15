@@ -6,8 +6,10 @@ import models
 import auth
 from database import get_db
 from src.shared.utils.responses import success_response
+import logging
 
 router = APIRouter(prefix="/api/v1/analytics", tags=["analytics"])
+logger = logging.getLogger("platorin")
 
 @router.get("/metrics/{tenant_slug}")
 def get_tenant_metrics(
@@ -18,17 +20,18 @@ def get_tenant_metrics(
     tenant = db.query(models.Tenant).filter_by(slug=tenant_slug).first()
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant no encontrado")
-        
-    # Seguridad: Solo el admin del tenant o superadmin pueden ver esto
-    # Convertimos a string por si acaso hay discrepancia de tipos
+    
+    # Seguridad: superadmin puede ver todo, admin solo su propio tenant
     if current_user.role != "superadmin":
-        if str(current_user.tenant_id) != str(tenant.id):
-             raise HTTPException(status_code=403, detail=f"Acceso denegado: {current_user.tenant_id} vs {tenant.id}")
+        # Verificar por tenant_id O por la relación directa del usuario
+        user_tenant = db.query(models.Tenant).filter_by(id=current_user.tenant_id).first()
+        if not user_tenant or user_tenant.slug != tenant_slug:
+            logger.warning(f"403 debug: user={current_user.username}, user_tenant_id={current_user.tenant_id}, requested_slug={tenant_slug}, tenant_id={tenant.id}")
+            raise HTTPException(status_code=403, detail="Acceso denegado a este negocio")
 
     today = date.today()
     
     # 1. Ventas de Hoy (Solo órdenes pagadas)
-    # Asumiendo que Order tiene 'total' (Decimal) y 'status' ('paid')
     sales_today = db.query(func.sum(models.Order.total)).filter(
         models.Order.tenant_id == tenant.id,
         func.date(models.Order.created_at) == today,
@@ -36,19 +39,30 @@ def get_tenant_metrics(
     ).scalar() or 0.0
 
     # 2. Total de órdenes hoy (Cualquier estado)
-    orders_count = db.query(func.count(models.Order.id)).filter(
+    orders_today = db.query(func.count(models.Order.id)).filter(
         models.Order.tenant_id == tenant.id,
         func.date(models.Order.created_at) == today
     ).scalar() or 0
 
     # 3. Ticket Promedio
-    avg_ticket = float(sales_today) / orders_count if orders_count > 0 else 0.0
+    avg_ticket = float(sales_today) / orders_today if orders_today > 0 else 0.0
 
-    # 4. Productos Más Vistos (Data Real de Analytics)
+    # 4. Tiempo Promedio de Preparación (si existe un campo prep_time en Order)
+    avg_prep = 0.0
+    try:
+        prep_result = db.query(func.avg(models.Order.prep_time)).filter(
+            models.Order.tenant_id == tenant.id,
+            func.date(models.Order.created_at) == today,
+            models.Order.prep_time.isnot(None)
+        ).scalar()
+        avg_prep = float(prep_result) if prep_result else 0.0
+    except Exception:
+        pass  # Si prep_time no existe aún, devolvemos 0
+
+    # 5. Productos Más Vistos (Data Real de Analytics)
     top_hits = (
         db.query(models.Analytics.product_id, func.count(models.Analytics.id).label("hits"))
         .filter(models.Analytics.tenant_id == tenant.id)
-        .filter(models.Analytics.action == "view") # Solo visualizaciones reales
         .group_by(models.Analytics.product_id)
         .order_by(func.count(models.Analytics.id).desc())
         .limit(5)
@@ -68,8 +82,9 @@ def get_tenant_metrics(
 
     return success_response({
         "sales_today": float(sales_today),
-        "orders_today": int(orders_count),
-        "avg_ticket": float(avg_ticket),
+        "orders_today": int(orders_today),
+        "avg_ticket": round(float(avg_ticket), 2),
+        "avg_prep_min": round(avg_prep, 1),
         "trending_products": trending_products,
         "period": "today",
         "currency": "COP"

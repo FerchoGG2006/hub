@@ -222,7 +222,9 @@ const AdminDashboardContent = ({
                     </div>
                     <div className="flex-shrink-0 px-5 py-3 bg-white border border-[var(--border-soft)] rounded-2xl flex items-center gap-4 shadow-sm">
                         <span className="text-[10px] font-black uppercase tracking-widest opacity-40 whitespace-nowrap">WhatsApp</span>
-                        <span className="text-[10px] font-bold text-green-600 whitespace-nowrap">99.9% UP</span>
+                        <span className={`text-[10px] font-bold whitespace-nowrap ${config?.whatsapp_number ? 'text-green-600' : 'text-[var(--text-disabled)]'}`}>
+                          {config?.whatsapp_number ? 'Conectado' : 'No configurado'}
+                        </span>
                     </div>
                 </div>
             </header>
