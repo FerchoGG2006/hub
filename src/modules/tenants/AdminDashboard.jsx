@@ -190,19 +190,34 @@ const AdminDashboardContent = ({
       </nav>
 
       {/* ── MOBILE BOTTOM DOCK ── */}
-      <nav className="md:hidden fixed bottom-6 left-6 right-6 bg-white/80 backdrop-blur-xl border border-[var(--border-soft)] h-20 rounded-[2.5rem] flex items-center justify-around px-4 z-[100] shadow-heavy">
-          {TABS.slice(0, 5).map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex flex-col items-center transition-all ${activeTab === tab.id ? 'text-[var(--brand-primary)]' : 'text-[var(--text-disabled)]'}`}
-            >
-              <span className="text-xl">{tab.icon}</span>
-              <span className="text-[6px] uppercase font-black mt-1 tracking-widest">{tab.label}</span>
-              {activeTab === tab.id && <motion.div layoutId="mobile-indicator" className="w-1 h-1 bg-[var(--brand-primary)] rounded-full mt-1" />}
-            </button>
-          ))}
-      </nav>
+      <div className="md:hidden fixed bottom-6 left-6 right-6 z-[100]">
+        <nav className="bg-white/80 backdrop-blur-xl border border-[var(--border-soft)] h-20 rounded-[2.5rem] flex items-center px-6 shadow-heavy overflow-x-auto no-scrollbar scroll-smooth snap-x">
+            <div className="flex items-center gap-8 pr-4">
+              {TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex flex-col items-center min-w-[50px] snap-center transition-all ${activeTab === tab.id ? 'text-[var(--brand-primary)]' : 'text-[var(--text-disabled)]'}`}
+                >
+                  <span className="text-xl">{tab.icon}</span>
+                  <span className="text-[6px] uppercase font-black mt-1 tracking-widest">{tab.label}</span>
+                  {activeTab === tab.id && <motion.div layoutId="mobile-indicator" className="w-1 h-1 bg-[var(--brand-primary)] rounded-full mt-1" />}
+                </button>
+              ))}
+              
+              {/* Logout inside mobile scroll for convenience */}
+              <button 
+                onClick={() => { authService.logout(); window.location.reload(); }}
+                className="flex flex-col items-center min-w-[50px] snap-center text-[var(--status-error)] opacity-60"
+              >
+                <span className="text-xl">🚪</span>
+                <span className="text-[6px] uppercase font-black mt-1 tracking-widest">Salir</span>
+              </button>
+            </div>
+        </nav>
+        {/* Visual mask to indicate more scroll */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-12 bg-gradient-to-l from-white/80 to-transparent pointer-events-none rounded-r-[2.5rem]" />
+      </div>
 
       {/* ── MAIN CONTENT AREA ── */}
       <main className="md:pl-24 min-h-screen pb-32 md:pb-0">
