@@ -166,3 +166,12 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ── PAGEFLIP: Ocultar peek visual al hover, pero mantener zonas de interacción ── */
+.stf__corner {
+  opacity: 0 !important;
+}
+.stf__corner:active,
+.stf__corner.--active {
+  opacity: 1 !important;
+}

@@ -77,24 +77,10 @@ const CategoryHero = ({ meta, restaurantName }) => (
       minHeight: 0,
     }}
   >
-    <motion.div
-      animate={{ y: [0, -8, 0] }}
-      transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-      style={{
-        width: 120, height: 120, borderRadius: 36,
-        background: `${meta.accent}16`,
-        border: `1.5px solid ${meta.accent}28`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 60,
-        boxShadow: `0 20px 60px ${meta.accent}22, 0 0 0 1px ${meta.accent}10`,
-      }}
-    >
-      {meta.icon}
-    </motion.div>
 
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '60%' }}>
       <div style={{ flex: 1, height: 1, background: `${meta.accent}20` }} />
-      <span style={{ fontSize: 14, opacity: 0.3 }}>{meta.icon}</span>
+      <div style={{ width: 6, height: 6, borderRadius: '50%', background: `${meta.accent}40` }} />
       <div style={{ flex: 1, height: 1, background: `${meta.accent}20` }} />
     </div>
 
@@ -144,6 +130,7 @@ const NavArrow = ({ direction, visible, onClick }) => (
       e.stopPropagation();
       if (visible) onClick();
     }}
+    onPointerDown={(e) => e.stopPropagation()}
     style={{
       width: 44,
       height: 44,
@@ -246,7 +233,7 @@ const CompactProductRow = ({ item, accent, onAdd, onClick }) => (
         style={{ color: '#1a1008' }}>
         {item.name}
       </p>
-      {item.description && (
+      {(item.desc || item.description) && (
         <p className="text-[9px] font-light leading-tight mt-[1px] opacity-60 italic"
           style={{ 
             color: '#1a1008',
@@ -255,7 +242,7 @@ const CompactProductRow = ({ item, accent, onAdd, onClick }) => (
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden'
           }}>
-          {item.description}
+          {item.desc || item.description}
         </p>
       )}
     </div>
@@ -379,12 +366,24 @@ export const MenuEngine = ({ config }) => {
     })();
   }, [config?.slug]);
 
-  /* ── Inicialización de PageFlip (SOLO UNA VEZ) ──────────── */
+  /* ── Inicialización de PageFlip ──────────── */
   useEffect(() => {
-    if (!allMenuData || !bookRef.current || isInitialized.current) return;
-    const timer = setTimeout(() => {
+    if (!allMenuData || !bookRef.current) return;
+    
+    let timer;
+    const initFlip = () => {
       try {
-        if (pflip.current) pflip.current.destroy();
+        if (pflip.current) {
+          pflip.current.destroy();
+          pflip.current = null;
+          isInitialized.current = false;
+        }
+
+        const pages = document.querySelectorAll('.page-item');
+        if (pages.length === 0) {
+          timer = setTimeout(initFlip, 150);
+          return;
+        }
 
         pflip.current = new PageFlip(bookRef.current, {
           width: 360, height: 640,
@@ -396,42 +395,42 @@ export const MenuEngine = ({ config }) => {
           mobileScrollSupport: false,
           usePortrait: true,
           flippingTime: 700,
-          swipeDistance: 0, // Disable internal swipe
+          swipeDistance: 30,
           showPageCorners: false,
-          disableFlipByClick: true,
-          useMouseEvents: false, // Disable all internal touch/mouse
+          disableFlipByClick: false,
+          useMouseEvents: true,
           autoSize: true,
-          clickEventForward: false,
+          clickEventForward: true,
         });
 
-        const pages = document.querySelectorAll('.page-item');
-        if (pages.length > 0) {
-          pflip.current.loadFromHTML(pages);
-          pflip.current.on('flip', (e) => {
-            setCurrentPage(e.data);
-            currentPageRef.current = e.data;
-            handleInteraction();
+        pflip.current.loadFromHTML(pages);
+        window.__pflip = pflip.current; // DEBUG: expose for console testing
+        console.log('[MenuEngine] PageFlip initialized OK, pages:', pflip.current.getPageCount());
+        pflip.current.on('flip', (e) => {
+          setCurrentPage(e.data);
+          currentPageRef.current = e.data;
+          handleInteraction();
+          isFlippingRef.current = false;
+        });
+        pflip.current.on('changeState', (e) => {
+          if (e.data === 'flipping' || e.data === 'user_fold' || e.data === 'folding') {
+            isFlippingRef.current = true;
+          } else if (e.data === 'read') {
             isFlippingRef.current = false;
-          });
-          pflip.current.on('changeState', (e) => {
-            if (e.data === 'flipping' || e.data === 'user_fold' || e.data === 'folding') {
-              isFlippingRef.current = true;
-            } else if (e.data === 'read') {
-              isFlippingRef.current = false;
-            }
-          });
-          isInitialized.current = true;
-        }
+          }
+        });
+        isInitialized.current = true;
       } catch (e) {
         console.error('PageFlip init error:', e);
       }
-    }, 300); // ✅ Reducido a 300ms para mejor respuesta
+    };
+
+    timer = setTimeout(initFlip, 400);
 
     return () => {
       clearTimeout(timer);
-      // ✅ NO destruimos aquí; lo hacemos solo al desmontar abajo
     };
-  }, [allMenuData, handleInteraction]); // ✅ Solo depende de los datos y callbacks, no de viewport
+  }, [allMenuData, handleInteraction]);
 
   // Destrucción al desmontar
   useEffect(() => {
@@ -475,24 +474,26 @@ export const MenuEngine = ({ config }) => {
         if (isFlippingRef.current) return; // Si ya hay una animación en curso, esperamos
         
         handleInteraction();
-        if (dx < 0 && pflip.current) {
+        if (dx < 0) {
           // Swipe IZQUIERDA -> Siguiente
           if (currentPageRef.current < totalPagesRef.current - 1) {
-            try { 
-              pflip.current.flipNext('top'); 
-            } catch (_) { 
-              pflip.current.turnToPage(currentPageRef.current + 1); 
+            const target = currentPageRef.current + 1;
+            if (pflip.current) {
+              try { pflip.current.turnToPage(target); } catch (_) { /* ignored */ }
             }
+            setCurrentPage(target);
+            currentPageRef.current = target;
             if (navigator.vibrate) navigator.vibrate(12);
           }
-        } else if (dx > 0 && pflip.current) {
+        } else if (dx > 0) {
           // Swipe DERECHA -> Anterior
           if (currentPageRef.current > 0) {
-            try { 
-              pflip.current.flipPrev('top'); 
-            } catch (_) { 
-              pflip.current.turnToPage(currentPageRef.current - 1); 
+            const target = currentPageRef.current - 1;
+            if (pflip.current) {
+              try { pflip.current.turnToPage(target); } catch (_) { /* ignored */ }
             }
+            setCurrentPage(target);
+            currentPageRef.current = target;
             if (navigator.vibrate) navigator.vibrate(12);
           }
         }
@@ -507,44 +508,64 @@ export const MenuEngine = ({ config }) => {
     };
   }, [allMenuData, handleInteraction]);
 
-  /* ── Navigation handlers — turnToPage es 100% fiable ──── */
+  /* ── Navigation handlers ──── */
+  const goToPage = useCallback((pageNum) => {
+    handleInteraction();
+    console.log('[goToPage] called with page:', pageNum, 'pflip exists:', !!pflip.current, 'window.__pflip:', !!window.__pflip);
+    
+    // Use window.__pflip as fallback if pflip.current is lost
+    const pf = pflip.current || window.__pflip;
+    if (!pf) {
+      console.warn('[goToPage] ABORTED - no pflip instance');
+      return;
+    }
+    const maxPages = pf.getPageCount();
+    if (pageNum < 0 || pageNum >= maxPages) {
+      console.warn('[goToPage] ABORTED - invalid page', pageNum, 'max:', maxPages);
+      return;
+    }
+    
+    try {
+      console.log('[goToPage] calling turnToPage(' + pageNum + '), state:', pf.getState());
+      pf.turnToPage(pageNum);
+      setCurrentPage(pageNum);
+      currentPageRef.current = pageNum;
+      console.log('[goToPage] SUCCESS');
+    } catch (e) {
+      console.warn("[goToPage] turnToPage failed:", e);
+    }
+    if (navigator.vibrate) navigator.vibrate(15);
+  }, [handleInteraction]);
+
   const goPrev = useCallback(() => {
     handleInteraction();
-    if (!pflip.current || currentPage <= 0) return;
+    const pf = pflip.current || window.__pflip;
+    if (!pf || currentPage <= 0) return;
     try { 
-      pflip.current.update();
-      pflip.current.flipPrev('top'); 
-    } catch (e) {
-      pflip.current.turnToPage(currentPage - 1);
+      pf.flipPrev('top');
+    } catch (_) {
+      try { pf.turnToPage(currentPage - 1); } catch (__) { /* ignored */ }
+      setCurrentPage(currentPage - 1);
+      currentPageRef.current = currentPage - 1;
     }
     if (navigator.vibrate) navigator.vibrate(8);
   }, [handleInteraction, currentPage]);
 
   const goNext = useCallback(() => {
     handleInteraction();
-    if (!pflip.current || currentPage >= totalPagesRef.current - 1) return;
+    const pf = pflip.current || window.__pflip;
+    if (!pf) return;
+    const maxPages = pf.getPageCount();
+    if (currentPage >= maxPages - 1) return;
     try { 
-      pflip.current.update();
-      pflip.current.flipNext('top'); 
-    } catch (e) {
-      pflip.current.turnToPage(currentPage + 1);
+      pf.flipNext('top');
+    } catch (_) {
+      try { pf.turnToPage(currentPage + 1); } catch (__) { /* ignored */ }
+      setCurrentPage(currentPage + 1);
+      currentPageRef.current = currentPage + 1;
     }
     if (navigator.vibrate) navigator.vibrate(8);
   }, [handleInteraction, currentPage]);
-
-  const goToPage = useCallback((pageNum) => {
-    handleInteraction();
-    if (!pflip.current || pageNum < 0 || pageNum >= totalPagesRef.current) return;
-    
-    try {
-      pflip.current.turnToPage(pageNum);
-      setCurrentPage(pageNum);
-      currentPageRef.current = pageNum;
-    } catch (e) {
-      console.warn("Manual turn failed", e);
-    }
-    if (navigator.vibrate) navigator.vibrate(15);
-  }, [handleInteraction]);
 
   const categories     = allMenuData ? Object.keys(allMenuData) : [];
   const totalPages     = categories.length;
@@ -718,10 +739,6 @@ export const MenuEngine = ({ config }) => {
                           <div className="flex items-center justify-between mb-1.5">
                             <motion.div initial={{ x:-14, opacity:0 }} animate={{ x:0, opacity:1 }}
                               className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-lg flex items-center justify-center"
-                                style={{ background:`${meta.accent}15`, border:`0.5px solid ${meta.accent}30` }}>
-                                <span style={{ fontSize:13 }}>{meta.icon}</span>
-                              </div>
                             </motion.div>
                             <span className="font-mono text-[10px] italic"
                               style={{ color:'rgba(30,20,8,0.2)' }}>

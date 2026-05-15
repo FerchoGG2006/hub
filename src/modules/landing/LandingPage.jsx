@@ -122,7 +122,7 @@ export const LandingPage = () => {
     }
 
     const text = `Hola Platorin! Quiero empezar 🙌\n\n🍽 Restaurante: ${nombre}\n👤 Nombre: ${contacto}\n📍 Ciudad: ${ciudad || 'No indicada'}\n📋 Plan de interés: ${plan || 'No seleccionado'}\n💬 Mensaje: ${mensaje || 'Ninguno'}`;
-    window.open('https://wa.me/573001234567?text=' + encodeURIComponent(text), '_blank');
+    window.open('https://wa.me/573005390069?text=' + encodeURIComponent(text), '_blank');
     setFormSuccess(true);
   };
 
