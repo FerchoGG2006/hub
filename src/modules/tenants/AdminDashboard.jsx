@@ -41,8 +41,12 @@ const TABS = [
 export const AdminDashboard = () => {
   const { tenantSlug } = useParams();
   const navigate = useNavigate();
+  const storedToken = localStorage.getItem('hub_token');
+  const storedTenant = localStorage.getItem('hub_tenant');
+  const storedRole = localStorage.getItem('hub_role');
+  // Solo consideramos autenticado si hay token Y (el tenant coincide O es superadmin)
+  const [isAuth, setIsAuth] = useState(!!storedToken && (storedTenant === tenantSlug || storedRole === 'superadmin'));
   const [activeTab, setActiveTab] = useState('pedidos');
-  const [isAuth, setIsAuth] = useState(!!localStorage.getItem('hub_token'));
   const [config, setConfig] = useState(null);
 
   const [loginUser, setLoginUser] = useState('');
