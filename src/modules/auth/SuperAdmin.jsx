@@ -144,10 +144,10 @@ const ResetPasscodeModal = ({ tenant, onClose }) => {
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       });
-      const data = await res.json();
+      await res.json();
       setStatus('Passcode actualizado con éxito');
       setTimeout(onClose, 1500);
-    } catch (err) {
+    } catch {
       setStatus('Error actualizando');
     } finally {
       setLoading(false);

@@ -138,7 +138,6 @@ const HubLoader = () => {
 };
 
 import { RegisterBusiness } from './modules/auth/RegisterBusiness';
-import { SuperReset } from './modules/auth/SuperReset';
 
 const App = () => {
   return (
