@@ -1,24 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, Heading, Button, Badge } from '../../../shared/ui';
 import { PaymentGatewayModal } from '../../tenants/components/PaymentGatewayModal';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
-export const BillingManager = () => {
-  const [bData, setBData] = useState({ subscription_status: 'active', valid_until: null });
+export const BillingManager = ({ config }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  const fetchBilling = useCallback(() => {
-    fetch(`${API_URL}/api/admin/billing`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('hub_token')}` }
-    })
-      .then(r => r.json())
-      .then(setBData)
-      .catch(console.warn);
-  }, []);
-
-  useEffect(() => { fetchBilling(); }, [fetchBilling]);
+  const isSuspended = config?.subscription_status === 'suspended';
+  const validUntil = config?.valid_until;
 
   const handleSubscribe = () => {
     setShowPaymentModal(true);
@@ -26,18 +15,17 @@ export const BillingManager = () => {
 
   const handlePaymentSuccess = async () => {
     try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const res = await fetch(`${API_URL}/api/admin/billing/subscribe`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('hub_token')}` }
       });
       if(!res.ok) throw new Error("Synchronization Error");
-      fetchBilling();
+      window.location.reload();
     } catch (err) {
       console.warn("Sync Error", err);
     }
   };
-
-  const isSuspended = bData.subscription_status === 'suspended';
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 max-w-4xl mx-auto">
@@ -56,7 +44,7 @@ export const BillingManager = () => {
              {isSuspended ? 'Núcleo Restringido' : 'Suscripción Activa'}
           </Heading>
           <p className="text-[9px] text-[var(--text-disabled)] uppercase tracking-[0.3em] font-black">
-             Vencimiento: {bData.valid_until ? new Date(bData.valid_until).toLocaleDateString() : 'Acceso Vitalicio'}
+             Vencimiento: {validUntil ? new Date(validUntil).toLocaleDateString() : 'Acceso Vitalicio'}
           </p>
         </div>
       </Card>

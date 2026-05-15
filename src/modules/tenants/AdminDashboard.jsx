@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -143,6 +143,20 @@ const AdminDashboardContent = ({
   handleTourComplete, products, toggleProduct, magicSnap, navigate 
 }) => {
   const { lastMessage, status, isConnected } = useWebSocketContext();
+  const navRef = useRef(null);
+  const tabRefs = useRef({});
+
+  // Auto-scroll to active tab
+  useEffect(() => {
+    const activeBtn = tabRefs.current[activeTab];
+    if (activeBtn && navRef.current) {
+      activeBtn.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      });
+    }
+  }, [activeTab]);
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans">
@@ -191,13 +205,17 @@ const AdminDashboardContent = ({
 
       {/* ── MOBILE BOTTOM DOCK ── */}
       <div className="md:hidden fixed bottom-6 left-6 right-6 z-[100]">
-        <nav className="bg-white/80 backdrop-blur-xl border border-[var(--border-soft)] h-20 rounded-[2.5rem] flex items-center px-6 shadow-heavy overflow-x-auto no-scrollbar scroll-smooth snap-x">
-            <div className="flex items-center gap-8 pr-4">
+        <nav 
+          ref={navRef}
+          className="bg-white/80 backdrop-blur-xl border border-[var(--border-soft)] h-20 rounded-[2.5rem] flex items-center px-4 shadow-heavy overflow-x-auto no-scrollbar scroll-smooth snap-x"
+        >
+            <div className="flex items-center gap-8 px-10">
               {TABS.map(tab => (
                 <button
                   key={tab.id}
+                  ref={el => tabRefs.current[tab.id] = el}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex flex-col items-center min-w-[50px] snap-center transition-all ${activeTab === tab.id ? 'text-[var(--brand-primary)]' : 'text-[var(--text-disabled)]'}`}
+                  className={`flex flex-col items-center min-w-[60px] snap-center transition-all ${activeTab === tab.id ? 'text-[var(--brand-primary)] scale-110' : 'text-[var(--text-disabled)] opacity-60'}`}
                 >
                   <span className="text-xl">{tab.icon}</span>
                   <span className="text-[6px] uppercase font-black mt-1 tracking-widest">{tab.label}</span>
@@ -205,18 +223,19 @@ const AdminDashboardContent = ({
                 </button>
               ))}
               
-              {/* Logout inside mobile scroll for convenience */}
+              {/* Logout inside mobile scroll */}
               <button 
                 onClick={() => { authService.logout(); window.location.reload(); }}
-                className="flex flex-col items-center min-w-[50px] snap-center text-[var(--status-error)] opacity-60"
+                className="flex flex-col items-center min-w-[60px] snap-center text-[var(--status-error)] opacity-40"
               >
                 <span className="text-xl">🚪</span>
                 <span className="text-[6px] uppercase font-black mt-1 tracking-widest">Salir</span>
               </button>
             </div>
         </nav>
-        {/* Visual mask to indicate more scroll */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-12 bg-gradient-to-l from-white/80 to-transparent pointer-events-none rounded-r-[2.5rem]" />
+        {/* Visual mask indicator */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-12 bg-gradient-to-l from-white/90 to-transparent pointer-events-none rounded-r-[2.5rem]" />
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-12 bg-gradient-to-r from-white/90 to-transparent pointer-events-none rounded-l-[2.5rem]" />
       </div>
 
       {/* ── MAIN CONTENT AREA ── */}
@@ -300,13 +319,13 @@ const AdminDashboardContent = ({
 
             {activeTab === 'billing' && (
               <motion.div key="billing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <BillingManager tenantId={config?.id} />
+                <BillingManager config={config} />
               </motion.div>
             )}
 
             {activeTab === 'events' && (
               <motion.div key="events" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <EventsManager tenantId={config?.id} />
+                <EventsManager slug={tenantSlug} />
               </motion.div>
             )}
           </AnimatePresence>
