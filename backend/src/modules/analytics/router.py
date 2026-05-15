@@ -20,8 +20,10 @@ def get_tenant_metrics(
         raise HTTPException(status_code=404, detail="Tenant no encontrado")
         
     # Seguridad: Solo el admin del tenant o superadmin pueden ver esto
-    if current_user.role != "superadmin" and current_user.tenant_id != tenant.id:
-        raise HTTPException(status_code=403, detail="Acceso denegado")
+    # Convertimos a string por si acaso hay discrepancia de tipos
+    if current_user.role != "superadmin":
+        if str(current_user.tenant_id) != str(tenant.id):
+             raise HTTPException(status_code=403, detail=f"Acceso denegado: {current_user.tenant_id} vs {tenant.id}")
 
     today = date.today()
     

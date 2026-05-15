@@ -227,23 +227,8 @@ const AdminDashboardContent = ({
                 </div>
             </header>
 
-            {/* QUICK KPIs */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-                {[
-                    { label: 'Ventas Hoy', value: '$284k', trend: '+12%', color: 'var(--brand-primary)' },
-                    { label: 'Pedidos', value: '24', trend: 'Live', color: 'var(--brand-accent)' },
-                    { label: 'Ticket Prom.', value: '$12.5k', trend: 'estable', color: 'var(--text-primary)' },
-                    { label: 'Prep. Media', value: '14 min', trend: '-2m', color: 'var(--status-success)' },
-                ].map((kpi, i) => (
-                    <div key={i} className="bg-white border border-[var(--border-soft)] p-6 rounded-[2rem] shadow-sm">
-                        <p className="text-[8px] uppercase tracking-[0.2em] text-[var(--text-disabled)] mb-2 font-black">{kpi.label}</p>
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-xl font-black tracking-tighter" style={{ color: kpi.color }}>{kpi.value}</span>
-                            <span className="text-[8px] font-bold opacity-40">{kpi.trend}</span>
-                        </div>
-                    </div>
-                ))}
-            </div>
+            {/* HEADER ESPACIADOR */}
+            <div className="h-4" />
         </div>
 
         <div className="max-w-7xl mx-auto px-8 md:px-16 pb-16">

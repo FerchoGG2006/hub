@@ -100,15 +100,27 @@ export const RegisterBusiness = () => {
                             <p className="text-[10px] uppercase tracking-widest text-ink-30 mb-2 font-bold">Usuario</p>
                             <p className="text-sm font-bold text-ink break-all">{result.credentials?.user || 'N/A'}</p>
                         </div>
-                        <div className="bg-cream-deep/30 p-5 rounded-2xl border border-border">
-                            <p className="text-[10px] uppercase tracking-widest text-ink-30 mb-2 font-bold">Passcode</p>
+                        <div 
+                            className="bg-cream-deep/30 p-5 rounded-2xl border border-gold/30 cursor-pointer hover:bg-gold/5 transition-all group relative"
+                            onClick={() => {
+                                navigator.clipboard.writeText(result.credentials?.passcode);
+                                alert("Passcode copiado al portapapeles");
+                            }}
+                        >
+                            <p className="text-[10px] uppercase tracking-widest text-ink-30 mb-2 font-bold">Passcode (Toca para copiar)</p>
                             <p className="text-2xl font-bold text-gold tracking-widest font-mono">{result.credentials?.passcode || '------'}</p>
+                            <span className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">📋</span>
                         </div>
                     </div>
 
-                    <Link to={`/admin/${formData.slug}`} className="btn-editorial w-full py-5 justify-center text-sm uppercase tracking-widest">
-                        Entrar a mi Panel Admin
-                    </Link>
+                    <div className="space-y-4">
+                        <Link to={`/admin/${formData.slug}`} className="btn-editorial w-full py-5 justify-center text-sm uppercase tracking-widest">
+                            Entrar a mi Panel Admin
+                        </Link>
+                        <p className="text-[10px] uppercase tracking-widest text-ink-30 font-bold">
+                            ⚠️ Por seguridad, toma una captura de pantalla de esta ficha.
+                        </p>
+                    </div>
                 </motion.div>
             </div>
         );
