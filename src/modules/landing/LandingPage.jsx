@@ -281,7 +281,7 @@ export const LandingPage = () => {
         </div>
 
         <section className="sect">
-          <div className="rv"><span className="tag">El problema</span>
+          <div className="rv">
             <h2 className="sh">¿Cuántos pedidos perdiste hoy<br />en <span className="si">WhatsApp?</span></h2>
             <p className="ss">El 78% de restaurantes en Colombia toman pedidos por WhatsApp. Sin organización, cada mensaje es caos que se convierte en pérdida.</p>
           </div>
@@ -293,7 +293,7 @@ export const LandingPage = () => {
         </section>
 
         <section className="how-sect">
-          <div className="rv"><span className="tag">Cómo funciona</span>
+          <div className="rv">
             <h2 className="sh sh-white">De caos a control<br />en <span className="si">3 pasos.</span></h2>
             <p className="ss ss-white">Sin técnicos. Listo desde el celular en 15 minutos.</p>
           </div>
@@ -306,7 +306,7 @@ export const LandingPage = () => {
         </section>
 
         <section className="feat-sect">
-          <div className="rv"><span className="tag g">Funcionalidades</span>
+          <div className="rv">
             <h2 className="sh">Todo lo que necesitas.<br /><span className="si">Nada que no uses.</span></h2>
           </div>
           <div className="feat-grid">
@@ -341,7 +341,7 @@ export const LandingPage = () => {
         </section>
 
         <section className="testi-sect">
-          <div className="rv" style={{ textAlign: 'center' }}><span className="tag g">Testimonios</span>
+          <div className="rv" style={{ textAlign: 'center' }}>
             <h2 className="sh">Lo que dicen los restaurantes<br />que <span className="si">ya lo usan</span></h2>
           </div>
           <div className="testi-grid">
@@ -352,7 +352,7 @@ export const LandingPage = () => {
         </section>
 
         <section className="price-sect">
-          <div className="rv" style={{ textAlign: 'center' }}><span className="tag">Precios</span>
+          <div className="rv" style={{ textAlign: 'center' }}>
             <h2 className="sh sh-white">Sin sorpresas.<br /><span className="si">Sin letra pequeña.</span></h2>
             <p className="ss ss-white" style={{ margin: '0 auto' }}>Cancela cuando quieras. Soporte en español por WhatsApp en todos los planes.</p>
           </div>
@@ -390,7 +390,7 @@ export const LandingPage = () => {
       {/* PAGE: CÓMO FUNCIONA */}
       <div id="page-como-funciona" className={`page ${activePage === 'como-funciona' ? 'active' : ''}`}>
         <div className="page-hero">
-          <span className="tag">Guía completa</span>
+          
           <h2 className="sh">Cómo funciona <span className="si">Platorin</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>De la primera configuración al primer pedido organizado, en menos de 15 minutos.</p>
         </div>
@@ -402,7 +402,7 @@ export const LandingPage = () => {
         </div>
 
         <section className="sect">
-          <div className="rv"><span className="tag">Configuración inicial</span>
+          <div className="rv">
             <h2 className="sh">Paso a paso para<br /><span className="si">comenzar hoy.</span></h2>
           </div>
           <div className="steps-wrap" style={{ borderColor: 'var(--border)', background: 'var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden', marginTop: '3rem' }}>
@@ -448,7 +448,7 @@ export const LandingPage = () => {
         </section>
 
         <section className="how-sect">
-          <div className="rv"><span className="tag">El flujo del cliente</span>
+          <div className="rv">
             <h2 className="sh sh-white">Lo que vive tu cliente<br /><span className="si">en cada pedido.</span></h2>
           </div>
           <div className="steps-wrap" style={{ marginTop: '3rem' }}>
@@ -459,7 +459,7 @@ export const LandingPage = () => {
         </section>
 
         <section className="sect" style={{ background: 'white' }}>
-          <div className="rv"><span className="tag g">Preguntas frecuentes</span>
+          <div className="rv">
             <h2 className="sh">Todo lo que quieres<br /><span className="si">saber.</span></h2>
           </div>
           <div className="faq-wrap">
@@ -495,7 +495,7 @@ export const LandingPage = () => {
       {/* PAGE: PRECIOS */}
       <div id="page-precios" className={`page ${activePage === 'precios' ? 'active' : ''}`}>
         <div className="page-hero">
-          <span className="tag">Precios</span>
+          
           <h2 className="sh">Planes para cada<br /><span className="si">restaurante.</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>Sin sorpresas. Sin letra pequeña. Cancela cuando quieras.</p>
         </div>
@@ -509,7 +509,7 @@ export const LandingPage = () => {
         </section>
 
         <section className="sect" style={{ background: 'white' }}>
-          <div className="rv"><span className="tag g">Comparación</span>
+          <div className="rv">
             <h2 className="sh">¿Qué incluye<br /><span className="si">cada plan?</span></h2>
           </div>
           <div className="compare-wrap rv d1">
@@ -541,7 +541,7 @@ export const LandingPage = () => {
         </section>
 
         <section className="sect">
-          <div className="rv" style={{ textAlign: 'center' }}><span className="tag">FAQ precios</span>
+          <div className="rv" style={{ textAlign: 'center' }}>
             <h2 className="sh">Preguntas frecuentes<br /><span className="si">sobre los planes.</span></h2>
           </div>
           <div className="faq-wrap">
@@ -574,7 +574,7 @@ export const LandingPage = () => {
       {/* PAGE: HISTORIA */}
       <div id="page-historia" className={`page ${activePage === 'historia' ? 'active' : ''}`}>
         <div className="page-hero">
-          <span className="tag">Nuestra historia</span>
+          
           <h2 className="sh">Nacimos en <span className="si">Valledupar.</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>Una herramienta real, construida desde el corazón del Caribe colombiano para restaurantes de todo el país.</p>
         </div>
@@ -582,7 +582,7 @@ export const LandingPage = () => {
         <section className="sect">
           <div className="historia-grid">
             <div className="rv">
-              <span className="tag">Cómo empezó</span>
+              
               <h2 className="sh">El problema lo vivimos<br /><span className="si">en carne propia.</span></h2>
               <p style={{ fontSize: '0.95rem', color: 'var(--ink-50)', lineHeight: '1.85', marginBottom: '1rem', fontWeight: '300' }}>Valledupar es una ciudad donde la comida es cultura. Cada restaurante tiene historia, cada cocinera tiene su sazón. Pero cuando el mediodía llegaba, el caos era el mismo en todos: WhatsApp desbordado, pedidos perdidos, errores en cocina.</p>
               <p style={{ fontSize: '0.95rem', color: 'var(--ink-50)', lineHeight: '1.85', marginBottom: '1rem', fontWeight: '300' }}>Vimos dueños de restaurantes que no podían ni almorzar de tanto WhatsApp que tenían que atender. Vimos cocinas que preparaban el plato equivocado porque el mensaje era confuso. Vimos clientes que se iban porque nadie les respondía a tiempo.</p>
@@ -605,7 +605,7 @@ export const LandingPage = () => {
         </section>
 
         <section className="sect" style={{ background: 'white', paddingTop: '5rem' }}>
-          <div className="rv" style={{ textAlign: 'center' }}><span className="tag">Valores</span>
+          <div className="rv" style={{ textAlign: 'center' }}>
             <h2 className="sh">Lo que nos mueve<br /><span className="si">cada día.</span></h2>
           </div>
           <div className="values-grid" style={{ maxWidth: '800px', margin: '3rem auto 0', gridTemplateColumns: 'repeat(2,1fr)' }}>
@@ -638,7 +638,7 @@ export const LandingPage = () => {
       {/* PAGE: CONTACTO */}
       <div id="page-contacto" className={`page ${activePage === 'contacto' ? 'active' : ''}`}>
         <div className="page-hero">
-          <span className="tag">Contacto</span>
+          
           <h2 className="sh">Hablemos.<br /><span className="si">Sin formularios eternos.</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>La forma más rápida de empezar es por WhatsApp. Respondemos en minutos.</p>
         </div>
@@ -707,13 +707,13 @@ export const LandingPage = () => {
       {/* PAGE: AYUDA */}
       <div id="page-ayuda" className={`page ${activePage === 'ayuda' ? 'active' : ''}`}>
         <div className="page-hero">
-          <span className="tag g">Centro de ayuda</span>
+          
           <h2 className="sh">¿En qué podemos<br /><span className="si">ayudarte?</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>Encuentra respuestas rápidas o escríbenos directamente por WhatsApp.</p>
         </div>
 
         <section className="sect">
-          <div className="rv" style={{ textAlign: 'center' }}><span className="tag g">Categorías</span><h2 className="sh">Temas <span className="si">frecuentes.</span></h2></div>
+          <div className="rv" style={{ textAlign: 'center' }}><h2 className="sh">Temas <span className="si">frecuentes.</span></h2></div>
           <div className="ayuda-grid">
             <div className="ayuda-card rv d1" onClick={() => goTo('como-funciona')}><div className="ico">🚀</div><h3>Primeros pasos</h3><p>Cómo crear tu cuenta, subir tu menú y compartir el QR con tus clientes.</p></div>
             <div className="ayuda-card rv d2"><div className="ico">💳</div><h3>Pagos con Wompi</h3><p>Cómo conectar Wompi, métodos de pago disponibles y cómo recibes el dinero.</p></div>
@@ -725,7 +725,7 @@ export const LandingPage = () => {
         </section>
 
         <section className="sect" style={{ background: 'white', paddingTop: 0 }}>
-          <div className="rv"><span className="tag">Preguntas frecuentes</span><h2 className="sh">Las preguntas que más<br /><span className="si">nos hacen.</span></h2></div>
+          <div className="rv"><h2 className="sh">Las preguntas que más<br /><span className="si">nos hacen.</span></h2></div>
           <div className="faq-wrap">
             <div className="faq-item"><button className="faq-q" onClick={toggleFaq}>¿Cómo actualizo un precio en el menú?<span className="faq-arrow">+</span></button><div className="faq-a"><div className="faq-a-inner">Entra a tu panel, selecciona el plato que quieres editar, cambia el precio y guarda. El cambio se refleja en tu carta en tiempo real, sin necesidad de reimprimir nada.</div></div></div>
             <div className="faq-item"><button className="faq-q" onClick={toggleFaq}>¿Cómo marco un plato como agotado?<span className="faq-arrow">+</span></button><div className="faq-a"><div className="faq-a-inner">En tu panel, al lado de cada plato hay un botón de "disponible/agotado". Al marcarlo, el plato aparece con un aviso de agotado en tu carta y el cliente no puede agregarlo al pedido. Disponible en plan Pro en adelante.</div></div></div>
@@ -756,7 +756,7 @@ export const LandingPage = () => {
       {/* PAGE: BLOG */}
       <div id="page-blog" className={`page ${activePage === 'blog' ? 'active' : ''}`}>
         <div className="page-hero">
-          <span className="tag">Blog</span>
+          
           <h2 className="sh">Ideas para vender<br /><span className="si">más en tu restaurante.</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>Consejos prácticos de gastronomía, tecnología y negocios para restaurantes colombianos.</p>
         </div>
@@ -789,7 +789,7 @@ export const LandingPage = () => {
       {/* PAGE: PRIVACIDAD */}
       <div id="page-privacidad" className={`page ${activePage === 'privacidad' ? 'active' : ''}`}>
         <div className="page-hero">
-          <span className="tag">Legal</span>
+          
           <h2 className="sh">Política de <span className="si">Privacidad</span></h2>
           <p className="ss" style={{ textAlign: 'center', margin: '0 auto' }}>Última actualización: mayo 2025</p>
         </div>
