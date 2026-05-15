@@ -10,6 +10,7 @@ export const SuperAdmin = () => {
   const [showAIModal, setShowAIModal] = useState(false);
   const [tenants, setTenants] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [resetModal, setResetModal] = useState({ show: false, tenant: null });
   const navigate = useNavigate();
 
   const loadTenants = () => {
@@ -82,11 +83,18 @@ export const SuperAdmin = () => {
                 </div>
               </div>
               
-              <button 
-                onClick={() => navigate(`/admin/${t.slug}`)}
-                className="w-full py-3 rounded-xl bg-dark text-bone text-[10px] uppercase tracking-widest hover:bg-amber-500 hover:text-bone transition-colors font-bold tactile-button">
-                Entrar como Admin
-              </button>
+              <div className="flex flex-col gap-2">
+                <button 
+                  onClick={() => navigate(`/admin/${t.slug}`)}
+                  className="w-full py-3 rounded-xl bg-dark text-bone text-[10px] uppercase tracking-widest hover:bg-amber-500 hover:text-bone transition-colors font-bold tactile-button">
+                  Entrar como Admin
+                </button>
+                <button 
+                  onClick={() => setResetModal({ show: true, tenant: t })}
+                  className="w-full py-2 rounded-xl border border-dark/10 text-dark/30 text-[9px] uppercase tracking-widest hover:border-amber-500/30 hover:text-amber-500 transition-colors font-bold">
+                  Gestionar Accesos
+                </button>
+              </div>
             </div>
            );
         })}
@@ -102,8 +110,74 @@ export const SuperAdmin = () => {
 
       <AnimatePresence>
         {showAIModal && <AIOnboardingModal onClose={() => setShowAIModal(false)} onSuccess={loadTenants} />}
+        {resetModal.show && (
+          <ResetPasscodeModal 
+            tenant={resetModal.tenant} 
+            onClose={() => setResetModal({ show: false, tenant: null })} 
+          />
+        )}
       </AnimatePresence>
     </div>
+  );
+};
+
+/* ── COMPONENTE: RESET PASSCODE MODAL ── */
+const ResetPasscodeModal = ({ tenant, onClose }) => {
+  const [newPass, setNewPass] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState('');
+
+  const handleReset = async () => {
+    if (!newPass || newPass.length < 4) {
+      alert("Mínimo 4 dígitos.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('hub_token');
+      const formData = new URLSearchParams();
+      formData.append('tenant_slug', tenant.slug);
+      formData.append('new_passcode', newPass);
+
+      const res = await fetch(`${API_URL}/api/admin/reset-passcode`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await res.json();
+      setStatus('Passcode actualizado con éxito');
+      setTimeout(onClose, 1500);
+    } catch (err) {
+      setStatus('Error actualizando');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-bone/80 backdrop-blur-md">
+      <div className="bg-bone border border-dark/10 rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl text-center">
+        <h2 className="text-xl font-bold mb-2">Seguridad: {tenant.name}</h2>
+        <p className="text-[10px] uppercase tracking-widest text-dark/30 mb-8">Asignar nuevo passcode de acceso</p>
+        
+        <input 
+          type="text" 
+          maxLength="6" 
+          value={newPass} 
+          onChange={e => setNewPass(e.target.value.replace(/\D/g, ''))}
+          className="w-full bg-dark/5 border border-dark/10 rounded-2xl p-4 text-center text-2xl font-mono tracking-[0.5em] mb-6 outline-none focus:border-amber-500 transition-colors"
+          placeholder="000000"
+        />
+        
+        <div className="flex flex-col gap-3">
+          <button onClick={handleReset} disabled={loading} className="w-full py-4 bg-dark text-bone font-black uppercase tracking-widest text-[10px] rounded-2xl tactile-button">
+            {loading ? 'Procesando...' : 'Confirmar Cambio'}
+          </button>
+          <button onClick={onClose} className="text-[9px] uppercase tracking-widest text-dark/40 font-bold hover:text-dark">Cancelar</button>
+        </div>
+        {status && <p className="mt-4 text-xs font-bold text-amber-500">{status}</p>}
+      </div>
+    </motion.div>
   );
 };
 

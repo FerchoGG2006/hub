@@ -147,7 +147,6 @@ const App = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegisterBusiness />} />
         <Route path="/superadmin" element={<SuperAdmin />} />
-        <Route path="/super-reset" element={<SuperReset />} />
         <Route path="/admin/:tenantSlug/*" element={<AdminDashboard />} />
         <Route path="/t/:tenantSlug" element={<HubLoader />} />
         <Route path="/legal/privacidad" element={<PrivacyPolicy />} />

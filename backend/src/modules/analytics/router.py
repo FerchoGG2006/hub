@@ -1,66 +1,90 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from datetime import date
 import models
+import auth
 from database import get_db
 from src.shared.utils.responses import success_response
-from src.shared.errors.app_error import AppError
-from src.shared.utils.websocket_manager import manager
 
-router = APIRouter(prefix="/api", tags=["analytics"])
+router = APIRouter(prefix="/api/v1/analytics", tags=["analytics"])
 
-@router.post("/v1/events/product-view")
-def track_product_view(product_id: int, tenant_id: int, db: Session = Depends(get_db)):
-    from core.events.event_bus import emit_event
-    emit_event(db, tenant_id, "product_viewed", {"product_id": product_id})
-    return success_response(None, message="Event tracked")
-
-@router.post("/analytics/track")
-async def track_analytics(product_id: int, action: str, tenant_slug: str = "la-rivera", db: Session = Depends(get_db)):
+@router.get("/metrics/{tenant_slug}")
+def get_tenant_metrics(
+    tenant_slug: str, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
     tenant = db.query(models.Tenant).filter_by(slug=tenant_slug).first()
     if not tenant:
-        return success_response({"status": "ignored"}, message="Tenant not found")
+        raise HTTPException(status_code=404, detail="Tenant no encontrado")
+        
+    # Seguridad: Solo el admin del tenant o superadmin pueden ver esto
+    if current_user.role != "superadmin" and current_user.tenant_id != tenant.id:
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+
+    today = date.today()
+    
+    # 1. Ventas de Hoy (Solo órdenes pagadas)
+    # Asumiendo que Order tiene 'total' (Decimal) y 'status' ('paid')
+    sales_today = db.query(func.sum(models.Order.total)).filter(
+        models.Order.tenant_id == tenant.id,
+        func.date(models.Order.created_at) == today,
+        models.Order.status == 'paid'
+    ).scalar() or 0.0
+
+    # 2. Total de órdenes hoy (Cualquier estado)
+    orders_count = db.query(func.count(models.Order.id)).filter(
+        models.Order.tenant_id == tenant.id,
+        func.date(models.Order.created_at) == today
+    ).scalar() or 0
+
+    # 3. Ticket Promedio
+    avg_ticket = float(sales_today) / orders_count if orders_count > 0 else 0.0
+
+    # 4. Productos Más Vistos (Data Real de Analytics)
+    top_hits = (
+        db.query(models.Analytics.product_id, func.count(models.Analytics.id).label("hits"))
+        .filter(models.Analytics.tenant_id == tenant.id)
+        .filter(models.Analytics.action == "view") # Solo visualizaciones reales
+        .group_by(models.Analytics.product_id)
+        .order_by(func.count(models.Analytics.id).desc())
+        .limit(5)
+        .all()
+    )
+
+    trending_products = []
+    for pid, hits in top_hits:
+        p = db.query(models.Product).filter_by(id=pid).first()
+        if p:
+            trending_products.append({
+                "id": p.id,
+                "name": p.name,
+                "hits": hits,
+                "price": p.price
+            })
+
+    return success_response({
+        "sales_today": float(sales_today),
+        "orders_today": int(orders_count),
+        "avg_ticket": float(avg_ticket),
+        "trending_products": trending_products,
+        "period": "today",
+        "currency": "COP"
+    })
+
+@router.post("/track")
+def track_event(
+    product_id: int, 
+    action: str, 
+    tenant_slug: str, 
+    db: Session = Depends(get_db)
+):
+    tenant = db.query(models.Tenant).filter_by(slug=tenant_slug).first()
+    if not tenant:
+        return success_response({"status": "ignored"})
         
     log = models.Analytics(tenant_id=tenant.id, product_id=product_id, action=action)
     db.add(log)
     db.commit()
-
-    if action == "add_to_cart":
-        await manager.broadcast({
-            "type": "ANALYTICS_UPDATE",
-            "action": action,
-            "product_id": product_id,
-            "tenant_id": tenant.id
-        }, tenant_id=tenant.id)
     return success_response({"status": "ok"})
-
-@router.get("/v1/tenant/{slug}/analytics/top")
-def get_tenant_top_analytics(slug: str, db: Session = Depends(get_db)):
-    tenant = db.query(models.Tenant).filter_by(slug=slug).first()
-    if not tenant:
-        return success_response([])
-        
-    top_hits = (
-        db.query(models.Analytics.product_id, func.count(models.Analytics.id).label("hits"))
-        .filter(models.Analytics.tenant_id == tenant.id)
-        .filter(models.Analytics.action == "add_to_cart")
-        .group_by(models.Analytics.product_id)
-        .order_by(func.count(models.Analytics.id).desc())
-        .limit(10)
-        .all()
-    )
-
-    result = []
-    for product_id, hits in top_hits:
-        p = db.query(models.Product).filter(models.Product.id == product_id).first()
-        if p:
-            result.append({"id": p.id, "name": p.name, "hits": hits})
-            
-    if len(result) == 0:
-        prods = db.query(models.Product).filter_by(tenant_id=tenant.id, is_available=True).limit(5).all()
-        base_hits = 120
-        for p in prods:
-            result.append({"id": p.id, "name": p.name, "hits": base_hits})
-            base_hits -= int(base_hits * 0.3)
-            
-    return success_response(result)
