@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, Heading, Badge, Button, EmptyState } from '../../../shared/ui';
+import { Card, Heading, Badge, Button, EmptyState, Modal } from '../../../shared/ui';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -9,21 +9,21 @@ const PAYMENT_ICONS = {
   transferencia: '🏦', pse: '🏦', otro: '💰'
 };
 
-const TableCard = ({ mesa, onClose }) => {
+const TableCard = ({ mesa, onInitiateClose, isClosing }) => {
   const [expanded, setExpanded] = useState(false);
-  const [closing, setClosing] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
 
   const allItems = mesa.orders.flatMap(o => o.items || []);
-  const elapsed = mesa.oldest_order 
-    ? Math.floor((Date.now() - new Date(mesa.oldest_order).getTime()) / 60000)
-    : 0;
 
-  const handleClose = async () => {
-    if (!confirm(`¿Cerrar Mesa ${mesa.table_number}?\n\nTotal a cobrar: $${mesa.total.toLocaleString()} COP`)) return;
-    setClosing(true);
-    await onClose(mesa.table_number);
-    setClosing(false);
-  };
+  useEffect(() => {
+    if (!mesa.oldest_order) return;
+    const updateElapsed = () => {
+      setElapsed(Math.floor((Date.now() - new Date(mesa.oldest_order).getTime()) / 60000));
+    };
+    updateElapsed();
+    const interval = setInterval(updateElapsed, 60000);
+    return () => clearInterval(interval);
+  }, [mesa.oldest_order]);
 
   return (
     <motion.div 
@@ -112,12 +112,12 @@ const TableCard = ({ mesa, onClose }) => {
 
               {/* Botón cobrar */}
               <Button 
-                onClick={handleClose}
-                disabled={closing}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onInitiateClose(mesa); }}
+                disabled={isClosing}
                 className="w-full py-5 text-[10px] font-black uppercase tracking-[0.25em] !rounded-2xl"
                 style={{ backgroundColor: mesa.all_completed ? 'var(--brand-primary)' : 'var(--brand-accent)' }}
               >
-                {closing ? 'Procesando...' : `💰 Cobrar Mesa ${mesa.table_number} — $${mesa.total.toLocaleString()}`}
+                {isClosing ? 'Procesando...' : `💰 Cobrar Mesa ${mesa.table_number} — $${mesa.total.toLocaleString()}`}
               </Button>
             </div>
           </motion.div>
@@ -130,14 +130,15 @@ const TableCard = ({ mesa, onClose }) => {
 export const CajaManager = () => {
   const [mesas, setMesas] = useState([]);
   const [resumen, setResumen] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const token = localStorage.getItem('hub_token');
-  const headers = { 'Authorization': `Bearer ${token}` };
+  const [mesaToClose, setMesaToClose] = useState(null);
+  const [closingTables, setClosingTables] = useState({});
 
   const fetchMesas = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/admin/caja/mesas-abiertas`, { headers });
+      const token = localStorage.getItem('hub_token');
+      const res = await fetch(`${API_URL}/api/admin/caja/mesas-abiertas`, { 
+        headers: { 'Authorization': `Bearer ${token}` } 
+      });
       if (res.ok) {
         const json = await res.json();
         setMesas(json.data || []);
@@ -149,7 +150,10 @@ export const CajaManager = () => {
 
   const fetchResumen = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/admin/caja/resumen`, { headers });
+      const token = localStorage.getItem('hub_token');
+      const res = await fetch(`${API_URL}/api/admin/caja/resumen`, { 
+        headers: { 'Authorization': `Bearer ${token}` } 
+      });
       if (res.ok) {
         const json = await res.json();
         setResumen(json.data || {});
@@ -160,16 +164,21 @@ export const CajaManager = () => {
   }, []);
 
   useEffect(() => {
-    Promise.all([fetchMesas(), fetchResumen()]).then(() => setLoading(false));
+    const init = async () => {
+      await Promise.all([fetchMesas(), fetchResumen()]);
+    };
+    init();
     const interval = setInterval(() => { fetchMesas(); fetchResumen(); }, 15000);
     return () => clearInterval(interval);
   }, [fetchMesas, fetchResumen]);
 
   const handleCloseMesa = async (tableNumber) => {
+    setClosingTables(prev => ({ ...prev, [tableNumber]: true }));
     try {
+      const token = localStorage.getItem('hub_token');
       const res = await fetch(`${API_URL}/api/admin/caja/cerrar-mesa/${tableNumber}`, {
         method: 'POST',
-        headers,
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       if (res.ok) {
         fetchMesas();
@@ -178,9 +187,17 @@ export const CajaManager = () => {
         const json = await res.json();
         alert(json.message || 'Error cerrando mesa');
       }
-    } catch (err) {
+    } catch {
       alert('Error de conexión');
     }
+    setClosingTables(prev => ({ ...prev, [tableNumber]: false }));
+  };
+
+  const confirmAndClose = async () => {
+    if (!mesaToClose) return;
+    const num = mesaToClose.table_number;
+    setMesaToClose(null);
+    await handleCloseMesa(num);
   };
 
   return (
@@ -257,12 +274,41 @@ export const CajaManager = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <AnimatePresence>
               {mesas.map(mesa => (
-                <TableCard key={mesa.table_number} mesa={mesa} onClose={handleCloseMesa} />
+                <TableCard 
+                  key={mesa.table_number} 
+                  mesa={mesa} 
+                  onInitiateClose={setMesaToClose} 
+                  isClosing={closingTables[mesa.table_number]}
+                />
               ))}
             </AnimatePresence>
           </div>
         )}
       </div>
+
+      {/* Modal de Confirmación */}
+      <Modal 
+        isOpen={!!mesaToClose} 
+        onClose={() => setMesaToClose(null)}
+        title={mesaToClose ? `Cerrar Mesa ${mesaToClose.table_number}` : ''}
+      >
+        {mesaToClose && (
+          <div>
+            <p className="text-[var(--text-muted)] text-sm mb-6">
+              ¿Estás seguro de cerrar esta mesa y marcar sus pedidos como cobrados? <br/><br/>
+              El total a cobrar es de <span className="font-bold text-[var(--brand-primary)] text-lg">${mesaToClose.total.toLocaleString()} COP</span>.
+            </p>
+            <div className="flex gap-4 mt-8">
+              <Button variant="secondary" className="flex-1" onClick={() => setMesaToClose(null)}>
+                Cancelar
+              </Button>
+              <Button className="flex-1 bg-[var(--brand-primary)]" onClick={confirmAndClose}>
+                Sí, Cobrar
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </motion.div>
   );
 };
