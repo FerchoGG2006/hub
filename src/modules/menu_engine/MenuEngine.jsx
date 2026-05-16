@@ -202,76 +202,105 @@ const LoadingSkeleton = () => (
 );
 
 // ───── CompactProductRow (sin cambios) ─────
-const CompactProductRow = ({ item, accent, onAdd, onClick }) => (
-  <motion.div
-    initial={{ opacity: 0, x: -6 }}
-    animate={{ opacity: 1, x: 0 }}
-    className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
-    style={{
-      background: 'rgba(255,255,255,0.52)',
-      border: '0.5px solid rgba(184,120,32,0.14)',
-      minHeight: 46,
-    }}
-    onClick={onClick}
-  >
-    {/* Left accent stripe */}
-    <div className="absolute left-0 top-[20%] bottom-[20%] w-[2px] rounded-r-full"
-      style={{ background:`linear-gradient(to bottom, transparent, ${accent}80, transparent)` }} />
+const CompactProductRow = React.memo(({ item, accent, onSelect }) => {
+  const { addToCart } = useCart();
+  const rowRef = useRef(null);
 
-    {/* Thumbnail */}
-    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
-      style={{ background:`${accent}12` }}>
-      {item.image_url
-        ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-        : <span style={{ fontSize: 17 }}>{item.icon || '🍽️'}</span>
-      }
-    </div>
+  useEffect(() => {
+    const el = rowRef.current;
+    if (!el) return;
+    
+    const blockEvent = (e) => {
+      e.stopPropagation();
+    };
 
-    {/* Name + description */}
-    <div className="flex-1 min-w-0">
-      <p className="text-[11.5px] font-bold uppercase tracking-tight leading-tight truncate"
-        style={{ color: '#1a1008' }}>
-        {item.name}
-      </p>
-      {(item.desc || item.description) && (
-        <p className="text-[9px] font-light leading-tight mt-[1px] opacity-60 italic"
-          style={{ 
-            color: '#1a1008',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
-          }}>
-          {item.desc || item.description}
+    el.addEventListener('pointerdown', blockEvent, { capture: true });
+    el.addEventListener('pointerup', blockEvent, { capture: true });
+    el.addEventListener('touchstart', blockEvent, { capture: true, passive: true });
+    el.addEventListener('touchend', blockEvent, { capture: true });
+    
+    return () => {
+      el.removeEventListener('pointerdown', blockEvent);
+      el.removeEventListener('pointerup', blockEvent);
+      el.removeEventListener('touchstart', blockEvent);
+      el.removeEventListener('touchend', blockEvent);
+    };
+  }, []);
+
+  return (
+    <motion.div
+      ref={rowRef}
+      initial={{ opacity: 0, x: -6 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
+      style={{
+        background: 'rgba(255,255,255,0.52)',
+        border: '0.5px solid rgba(184,120,32,0.14)',
+        minHeight: 46,
+      }}
+      onClick={onSelect}
+    >
+      {/* Left accent stripe */}
+      <div className="absolute left-0 top-[20%] bottom-[20%] w-[2px] rounded-r-full"
+        style={{ background:`linear-gradient(to bottom, transparent, ${accent}80, transparent)` }} />
+
+      {/* Thumbnail */}
+      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
+        style={{ background:`${accent}12` }}>
+        {item.image_url
+          ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+          : <span style={{ fontSize: 17 }}>{item.icon || '🍽️'}</span>
+        }
+      </div>
+
+      {/* Name + description */}
+      <div className="flex-1 min-w-0">
+        <p className="text-[11.5px] font-bold uppercase tracking-tight leading-tight truncate"
+          style={{ color: '#1a1008' }}>
+          {item.name}
         </p>
-      )}
-    </div>
+        {(item.desc || item.description) && (
+          <p className="text-[9px] font-light leading-tight mt-[1px] opacity-60 italic"
+            style={{ 
+              color: '#1a1008',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden'
+            }}>
+            {item.desc || item.description}
+          </p>
+        )}
+      </div>
 
-    {/* Price — $ separated explicitly */}
-    <div className="flex items-center gap-2 flex-shrink-0">
-      <span className="text-[12.5px] font-bold"
-        style={{ color: '#1a1008', fontVariantNumeric: 'tabular-nums' }}>
-        {'$'}{formatPrice(item.price)}
-      </span>
-      <button
-        className="w-[28px] h-[28px] rounded-[8px] flex items-center justify-center active:scale-90 transition-transform relative z-50"
-        style={{ background: '#1a1008', touchAction: 'manipulation' }}
-        onClick={e => { 
-          e.stopPropagation(); 
-          if (item.type === 'variant' || (item.variants && item.variants.length > 0)) {
-            onClick(); // Open modal for variant selection
-          } else {
-            onAdd(); 
-          }
-        }}
-      >
-        <svg width="12" height="12" viewBox="0 0 10 10" fill="none">
-          <path d="M5 2v6M2 5h6" stroke="#f7e8b0" strokeWidth="1.6" strokeLinecap="round" />
-        </svg>
-      </button>
-    </div>
-  </motion.div>
-);
+      {/* Price — $ separated explicitly */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <span className="text-[12.5px] font-bold"
+          style={{ color: '#1a1008', fontVariantNumeric: 'tabular-nums' }}>
+          {'$'}{formatPrice(item.price)}
+        </span>
+        <button
+          className="w-[28px] h-[28px] rounded-[8px] flex items-center justify-center active:scale-90 transition-transform relative z-50"
+          style={{ background: '#1a1008', touchAction: 'manipulation' }}
+          onClick={e => { 
+            e.stopPropagation(); 
+            if (item.type === 'variant' || (item.variants && item.variants.length > 0)) {
+              onSelect(); 
+            } else {
+              addToCart(item);
+            }
+          }}
+          onTouchEnd={e => e.stopPropagation()}
+          onPointerUp={e => e.stopPropagation()}
+        >
+          <svg width="12" height="12" viewBox="0 0 10 10" fill="none">
+            <path d="M5 2v6M2 5h6" stroke="#f7e8b0" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+    </motion.div>
+  );
+});
 
 // ═══════════════════════════════════════════════════════════════
 //  MAIN ENGINE – REESCRITO PARA FIABILIDAD TOTAL
@@ -395,9 +424,9 @@ export const MenuEngine = ({ config }) => {
           mobileScrollSupport: false,
           usePortrait: true,
           flippingTime: 700,
-          swipeDistance: 30,
+          swipeDistance: 60,
           showPageCorners: false,
-          disableFlipByClick: false,
+          disableFlipByClick: true,
           useMouseEvents: true,
           autoSize: true,
           clickEventForward: true,
@@ -535,7 +564,7 @@ export const MenuEngine = ({ config }) => {
       console.warn("[goToPage] turnToPage failed:", e);
     }
     if (navigator.vibrate) navigator.vibrate(15);
-  }, [handleInteraction]);
+  }, [handleInteraction, currentPage]);
 
   const goPrev = useCallback(() => {
     handleInteraction();
@@ -706,7 +735,9 @@ export const MenuEngine = ({ config }) => {
                           paddingRight:  18,
                           paddingBottom: 70,
                         }}
+                        onClick={e => e.stopPropagation()}
                       >
+
                         {/* Top accent */}
                         <div className="absolute top-0 left-0 right-0 h-[2px]"
                           style={{ background:`linear-gradient(to right, transparent, ${meta.accent}30, transparent)` }} />
@@ -769,8 +800,7 @@ export const MenuEngine = ({ config }) => {
                               key={item.id}
                               item={item}
                               accent={meta.accent}
-                              onAdd={() => { addToCart(item); handleInteraction(); }}
-                              onClick={() => { setSelectedProduct(item); handleInteraction(); }}
+                              onSelect={() => { setSelectedProduct(item); handleInteraction(); }}
                             />
                           ))}
                         </div>

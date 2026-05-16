@@ -178,11 +178,13 @@ async def close_table(
     })
 
 
+from datetime import datetime, timezone, date
+
 @router.get("/admin/caja/resumen")
 def get_cash_summary(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     """Resumen de caja del día: total cobrado, desglose por método de pago, pedidos abiertos vs cerrados."""
     tenant_id = current_user.tenant_id
-    today = date.today()
+    today = datetime.now(timezone.utc).date()
     
     # Total pagado hoy
     paid_today = db.query(

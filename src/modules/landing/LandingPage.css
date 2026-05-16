@@ -117,7 +117,7 @@ nav#nav.solid{background:rgba(245,240,232,0.96);backdrop-filter:blur(16px);borde
 .pc{padding:2.5rem 2rem;border-right:1px solid var(--border);background:white;transition:background 0.2s}
 .pc:last-child{border-right:none}
 .pc:hover{background:var(--cream)}
-.pc-n{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:3.5rem;font-weight:600;color:var(--cream-mid);line-height:1;margin-bottom:1.25rem}
+.pc-n{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:3.5rem;font-weight:600;color:var(--gold);opacity:0.25;line-height:1;margin-bottom:1.25rem}
 .pc h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:1rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:0.5rem;color:var(--ink)}
 .pc p{font-size:0.875rem;color:var(--ink-50);line-height:1.75;font-weight:300}
 
@@ -127,7 +127,7 @@ nav#nav.solid{background:rgba(245,240,232,0.96);backdrop-filter:blur(16px);borde
 .step{padding:2.75rem 2rem;border-right:1px solid rgba(255,255,255,0.07);transition:background 0.2s}
 .step:last-child{border-right:none}
 .step:hover{background:rgba(255,255,255,0.03)}
-.step-n{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:4rem;font-weight:600;color:rgba(255,255,255,0.06);line-height:1;margin-bottom:1.5rem}
+.step-n{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:4rem;font-weight:600;color:white;opacity:0.18;line-height:1;margin-bottom:1.5rem}
 .step-ico{width:42px;height:42px;border-radius:var(--r-sm);background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.15);display:flex;align-items:center;justify-content:center;font-size:1rem;margin-bottom:1.25rem}
 .step h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:1rem;font-weight:700;color:white;letter-spacing:-0.02em;margin-bottom:0.5rem}
 .step p{font-size:0.875rem;color:rgba(255,255,255,0.4);line-height:1.75;font-weight:300}
