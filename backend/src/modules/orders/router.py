@@ -69,3 +69,166 @@ async def update_order_status(order_id: int, status: str, db: Session = Depends(
         return success_response({"status": "ok"})
     except ValueError as e:
         raise AppError(message=str(e), status_code=400)
+
+
+# ═══════════════════════════════════════════════════════════
+#  CAJA / COMANDAS — Gestión de mesas abiertas y cobros
+# ═══════════════════════════════════════════════════════════
+
+from sqlalchemy import func, case
+from datetime import date
+import json as json_module
+
+@router.get("/admin/caja/mesas-abiertas")
+def get_open_tables(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    """Retorna las mesas con pedidos activos (no pagados ni cancelados), agrupadas por table_number."""
+    tenant_id = current_user.tenant_id
+    
+    active_statuses = ["pending", "preparing", "ready", "completed"]
+    
+    active_orders = (
+        db.query(models.Order)
+        .filter(
+            models.Order.tenant_id == tenant_id,
+            models.Order.status.in_(active_statuses),
+            models.Order.table_number.isnot(None),
+            models.Order.table_number != ""
+        )
+        .order_by(models.Order.created_at.asc())
+        .all()
+    )
+    
+    # Agrupar por mesa
+    mesas = {}
+    for o in active_orders:
+        mesa = o.table_number
+        if mesa not in mesas:
+            mesas[mesa] = {
+                "table_number": mesa,
+                "orders": [],
+                "total": 0,
+                "oldest_order": o.created_at.isoformat() if o.created_at else None,
+                "all_completed": True,
+            }
+        
+        items = []
+        try:
+            items = json_module.loads(o.items_json) if isinstance(o.items_json, str) else (o.items_json or [])
+        except Exception:
+            pass
+        
+        mesas[mesa]["orders"].append({
+            "id": o.id,
+            "status": o.status,
+            "total_price": o.total_price,
+            "customer_name": o.customer_name,
+            "payment_method": o.payment_method,
+            "items": items,
+            "created_at": o.created_at.isoformat() if o.created_at else None,
+        })
+        mesas[mesa]["total"] += (o.total_price or 0)
+        
+        if o.status != "completed":
+            mesas[mesa]["all_completed"] = False
+    
+    return success_response(list(mesas.values()))
+
+
+@router.post("/admin/caja/cerrar-mesa/{table_number}")
+async def close_table(
+    table_number: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Marca todos los pedidos activos de una mesa como 'paid' y cierra la mesa."""
+    tenant_id = current_user.tenant_id
+    
+    active_orders = (
+        db.query(models.Order)
+        .filter(
+            models.Order.tenant_id == tenant_id,
+            models.Order.table_number == table_number,
+            models.Order.status.in_(["pending", "preparing", "ready", "completed"])
+        )
+        .all()
+    )
+    
+    if not active_orders:
+        raise AppError(message=f"No hay pedidos activos en mesa {table_number}", status_code=404)
+    
+    total_cobrado = 0
+    for order in active_orders:
+        order.status = "paid"
+        total_cobrado += (order.total_price or 0)
+    
+    db.commit()
+    
+    # Notificar via WebSocket
+    await manager.broadcast({
+        "type": "TABLE_CLOSED",
+        "table_number": table_number,
+        "total": total_cobrado,
+        "tenant_id": tenant_id
+    }, tenant_id=tenant_id)
+    
+    return success_response({
+        "message": f"Mesa {table_number} cerrada",
+        "total_cobrado": total_cobrado,
+        "orders_closed": len(active_orders)
+    })
+
+
+@router.get("/admin/caja/resumen")
+def get_cash_summary(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    """Resumen de caja del día: total cobrado, desglose por método de pago, pedidos abiertos vs cerrados."""
+    tenant_id = current_user.tenant_id
+    today = date.today()
+    
+    # Total pagado hoy
+    paid_today = db.query(
+        func.sum(models.Order.total_price),
+        func.count(models.Order.id)
+    ).filter(
+        models.Order.tenant_id == tenant_id,
+        models.Order.status == "paid",
+        func.date(models.Order.created_at) == today
+    ).first()
+    
+    total_ventas = paid_today[0] or 0
+    total_pedidos_cerrados = paid_today[1] or 0
+    
+    # Desglose por método de pago
+    payment_breakdown = (
+        db.query(
+            models.Order.payment_method,
+            func.sum(models.Order.total_price),
+            func.count(models.Order.id)
+        )
+        .filter(
+            models.Order.tenant_id == tenant_id,
+            models.Order.status == "paid",
+            func.date(models.Order.created_at) == today
+        )
+        .group_by(models.Order.payment_method)
+        .all()
+    )
+    
+    metodos = {}
+    for method, total, count in payment_breakdown:
+        metodos[method or "otro"] = {"total": total or 0, "count": count or 0}
+    
+    # Pedidos activos (aún no pagados)
+    active_count = db.query(func.count(models.Order.id)).filter(
+        models.Order.tenant_id == tenant_id,
+        models.Order.status.in_(["pending", "preparing", "ready", "completed"]),
+        func.date(models.Order.created_at) == today
+    ).scalar() or 0
+    
+    return success_response({
+        "fecha": today.isoformat(),
+        "total_ventas": int(total_ventas),
+        "pedidos_cerrados": total_pedidos_cerrados,
+        "pedidos_activos": active_count,
+        "ticket_promedio": round(total_ventas / total_pedidos_cerrados, 0) if total_pedidos_cerrados > 0 else 0,
+        "metodos_pago": metodos
+    })

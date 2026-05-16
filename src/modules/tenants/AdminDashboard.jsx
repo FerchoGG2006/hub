@@ -19,6 +19,7 @@ import { InstagramAutopilot } from './components/InstagramAutopilot';
 import { OnboardingTour } from './components/OnboardingTour';
 import { EventsManager } from './components/EventsManager';
 import { AdminPayments } from './components/AdminPayments';
+import { CajaManager } from './components/CajaManager';
 
 // Services & Hooks
 import { authService } from '../auth/authService';
@@ -29,6 +30,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const TABS = [
   { id: 'pedidos', label: 'Órdenes', icon: '📝' },
+  { id: 'caja', label: 'Caja', icon: '💰' },
   { id: 'carta', label: 'Mi Carta', icon: '🍽️' },
   { id: 'qr', label: 'Terminal QR', icon: '📱' },
   { id: 'analytics', label: 'Métricas', icon: '📊' },
@@ -280,6 +282,12 @@ const AdminDashboardContent = ({
                     tenantId={config?.id} 
                     lastMessage={lastMessage}
                 />
+              </motion.div>
+            )}
+
+            {activeTab === 'caja' && (
+              <motion.div key="caja" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <CajaManager />
               </motion.div>
             )}
 

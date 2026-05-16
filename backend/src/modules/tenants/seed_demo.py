@@ -222,8 +222,15 @@ def _create_demo_orders(db: Session, tenant_id: int, products: list, customers: 
             total += unit_price * qty
         
         customer = random.choice(customers) if customers else None
-        delivery = random.choice(["mesa", "domicilio", "recoger"])
+        # Órdenes activas (Kanban) siempre son de mesa, para que aparezcan en Caja
+        if status in ("pending", "preparing", "ready", "completed"):
+            delivery = "mesa"
+        else:
+            delivery = random.choice(["mesa", "domicilio", "recoger"])
         payment = random.choice(["efectivo", "nequi", "wompi"])
+        
+        # Asegurar table_number para pedidos en mesa
+        table_num = str(random.randint(1, 8)) if delivery == "mesa" else None
         
         order = models.Order(
             tenant_id=tenant_id,
@@ -233,7 +240,7 @@ def _create_demo_orders(db: Session, tenant_id: int, products: list, customers: 
             total_price=total,
             items_json=json.dumps(items),
             status=status,
-            table_number=str(random.randint(1, 12)) if delivery == "mesa" else None,
+            table_number=table_num,
             phone=customer.phone if customer else "3001234567",
             customer_name=customer.name if customer else "Cliente Demo",
             created_at=created,

@@ -13,7 +13,7 @@ VALID_STATUS_TRANSITIONS = {
     "paid": ["preparing", "cancelled"],
     "preparing": ["ready", "cancelled"],
     "ready": ["completed", "cancelled"],
-    "completed": [],
+    "completed": ["paid", "cancelled"],
     "cancelled": []
 }
 
