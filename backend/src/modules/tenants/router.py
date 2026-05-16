@@ -171,6 +171,14 @@ def onboard_new_tenant(
         except Exception as e:
             logger.error(f"Error procesando menú IA: {e}")
 
+        # ── Seed demo data para dashboard vivo desde el minuto 1 ──
+        try:
+            from src.modules.tenants.seed_demo import seed_restaurant_demo
+            seed_restaurant_demo(db, nuevo_tenant.id)
+            logger.info(f"Demo data sembrado para {slug}")
+        except Exception as e:
+            logger.error(f"Error sembrando demo data: {e}")
+
         try:
             front_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
             if email:
@@ -192,3 +200,20 @@ def onboard_new_tenant(
     except Exception as e:
         logger.error(f"FATAL ERROR ONBOARDING: {str(e)}")
         raise AppError(message=f"Error interno: {str(e)}", status_code=500)
+
+
+@router.post("/admin/seed-demo/{tenant_slug}")
+def seed_demo_for_tenant(
+    tenant_slug: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_superadmin)
+):
+    """Siembra datos demo para un tenant existente (solo superadmin)."""
+    tenant = db.query(models.Tenant).filter_by(slug=tenant_slug).first()
+    if not tenant:
+        raise AppError(message="Tenant no encontrado", status_code=404)
+    
+    from src.modules.tenants.seed_demo import seed_restaurant_demo
+    seed_restaurant_demo(db, tenant.id)
+    
+    return success_response({"message": f"Demo data sembrado para '{tenant.name}'"})
