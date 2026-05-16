@@ -55,9 +55,10 @@ def seed_restaurant_demo(db: Session, tenant_id: int):
             return
         
         products = db.query(models.Product).filter_by(tenant_id=tenant_id).all()
-        if not products:
-            logger.info(f"[seed_demo] Tenant {tenant_id} sin productos, creando menú demo...")
-            products = _create_fallback_menu(db, tenant_id)
+        if len(products) < 5:
+            logger.info(f"[seed_demo] Tenant {tenant_id} con solo {len(products)} productos, agregando menú demo...")
+            extra = _create_fallback_menu(db, tenant_id)
+            products = products + extra
         
         logger.info(f"[seed_demo] Sembrando demo para '{tenant.name}' con {len(products)} productos")
         
