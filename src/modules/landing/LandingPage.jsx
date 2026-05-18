@@ -215,7 +215,7 @@ export const LandingPage = () => {
       )}
 
       {/* WA FAB */}
-      <a href="https://wa.me/573001234567?text=Hola%2C%20quiero%20saber%20más%20sobre%20Platorin" target="_blank" className="wa-fab" aria-label="WhatsApp">
+      <a href="https://wa.me/573005390069?text=Hola%2C%20quiero%20saber%20más%20sobre%20Platorin" target="_blank" className="wa-fab" aria-label="WhatsApp">
         <svg width="26" height="26" fill="white" viewBox="0 0 24 24">
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a8.26 8.26 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479s1.065 2.875 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
           <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.112 1.523 5.835L0 24l6.341-1.5A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.813 9.813 0 01-4.984-1.361l-.357-.212-3.766.889.929-3.657-.232-.375A9.818 9.818 0 012.182 12C2.182 6.568 6.568 2.182 12 2.182S21.818 6.568 21.818 12 17.432 21.818 12 21.818z" />
@@ -226,7 +226,7 @@ export const LandingPage = () => {
       <div id="page-home" className={`page ${activePage === 'home' ? 'active' : ''}`}>
         <section className="hero">
           <div className="hero-left">
-            <div className="hero-eyebrow"><div className="eyebrow-dot"></div><span className="eyebrow-text">Más de 200 restaurantes en Colombia</span></div>
+            {/* <div className="hero-eyebrow"><div className="eyebrow-dot"></div><span className="eyebrow-text">Más de 55 restaurantes en Colombia</span></div> */}
             <h1>Tu menú digital.<br /><span className="italic-line">Tus pedidos en orden.</span></h1>
             <p className="hero-sub">Digitaliza tu carta y recibe cada pedido organizado directamente en WhatsApp. Sin apps que descargar, sin complicaciones, sin perder ninguno.</p>
             <div className="hero-ctas">
@@ -235,7 +235,7 @@ export const LandingPage = () => {
             </div>
             <div className="hero-trust">
               <div className="trust-faces"><div className="trust-face">JR</div><div className="trust-face">MC</div><div className="trust-face">AT</div><div className="trust-face">LP</div></div>
-              <div className="trust-text"><strong>a los restaurantes</strong><br />ya organizan sus pedidos con Platorin</div>
+              <div className="trust-text"><strong>Restaurantes que</strong><br />ya organizan sus pedidos con Platorin</div>
             </div>
           </div>
           <div className="hero-visual">
@@ -321,7 +321,6 @@ export const LandingPage = () => {
 
         <section className="origin-sect">
           <div className="rv">
-            <div className="origin-tag">🪗 Nuestro origen</div>
             <h2>Nacimos en Valledupar.<br />Crecimos en<br /><span className="si">toda Colombia.</span></h2>
             <p>Platorin nació en Valledupar, Cesar — donde la gastronomía es identidad, el vallenato es cultura y los restaurantes se llenan a mediodía. Vimos de cerca cómo los dueños perdían pedidos y no dormían por el caos del WhatsApp.</p>
             <div className="origin-quote"><p>Conocemos el caos del almuerzo del mediodía porque lo vivimos primero aquí, en casa.</p><cite>— Equipo Platorin, Valledupar, Cesar</cite></div>
@@ -358,8 +357,8 @@ export const LandingPage = () => {
           </div>
           <div className="price-grid">
             <div className="pc2 rv d1"><div className="pname">Gratis</div><div className="pamt">$0</div><div className="pperiod">Para empezar, sin tarjeta</div><div className="pline"></div><ul className="plist"><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>1 carta digital activa</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Hasta 50 pedidos al mes</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Código QR incluido</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Pedidos por WhatsApp</li></ul><button className="pbtn pbtn-o" onClick={() => goTo('contacto')}>Empezar gratis</button></div>
-            <div className="pc2 feat-p rv d2"><div className="pb">Más popular</div><div className="pname">Pro</div><div className="pamt">$89<small>.000 COP</small></div><div className="pperiod">por mes · cancela cuando quieras</div><div className="pline"></div><ul className="plist"><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Cartas y pedidos ilimitados</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>QR personalizado con tu logo</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Panel de estadísticas</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Cobros con Wompi incluido</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Soporte prioritario por WhatsApp</li></ul><button className="pbtn pbtn-s" onClick={() => goTo('contacto')}>Empezar con Pro</button></div>
-            <div className="pc2 rv d3"><div className="pname">Cadena</div><div className="pamt">$189<small>.000 COP</small></div><div className="pperiod">por mes · hasta 5 sedes</div><div className="pline"></div><ul className="plist"><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Todo lo del plan Pro</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Hasta 5 sedes en un panel</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Informes de ventas por sede</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Onboarding personalizado</li></ul><button className="pbtn pbtn-o" onClick={() => goTo('contacto')}>Hablar con ventas</button></div>
+            <div className="pc2 feat-p rv d2"><div className="pb">Más popular</div><div className="pname">Pro</div><div className="pamt">$90<small>.000/mes</small></div><div className="pperiod">por mes · cancela cuando quieras</div><div className="pline"></div><ul className="plist"><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Cartas y pedidos ilimitados</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>QR personalizado con tu logo</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Panel de estadísticas</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Cobros con Wompi incluido</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Soporte prioritario por WhatsApp</li></ul><button className="pbtn pbtn-s" onClick={() => goTo('contacto')}>Empezar con Pro</button></div>
+            <div className="pc2 rv d3"><div className="pname">Cadena</div><div className="pamt">$190<small>.000/mes</small></div><div className="pperiod">por mes · hasta 5 sedes</div><div className="pline"></div><ul className="plist"><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Todo lo del plan Pro</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Hasta 5 sedes en un panel</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Informes de ventas por sede</li><li><div className="pck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" /></svg></div>Onboarding personalizado</li></ul><button className="pbtn pbtn-o" onClick={() => goTo('contacto')}>Hablar con ventas</button></div>
           </div>
           <div style={{ textAlign: 'center', marginTop: '2rem' }}><button className="btn-outline" style={{ borderColor: 'rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.6)' }} onClick={() => goTo('precios')}>Ver comparación completa →</button></div>
         </section>
@@ -369,7 +368,7 @@ export const LandingPage = () => {
           <p className="rv d1">Empieza hoy. En 15 minutos tienes tu carta lista y tus pedidos ordenados.</p>
           <div className="cta-row rv d2">
             <button className="btn-dark" onClick={() => navigate('/register')}>Empezar gratis →</button>
-            <a href="https://wa.me/573001234567?text=Hola%2C%20quiero%20probar%20Platorin" target="_blank" className="btn-wa">
+            <a href="https://wa.me/573005390069?text=Hola%2C%20quiero%20probar%20Platorin" target="_blank" className="btn-wa">
               <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a8.26 8.26 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479s1.065 2.875 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.112 1.523 5.835L0 24l6.341-1.5A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.813 9.813 0 01-4.984-1.361l-.357-.212-3.766.889.929-3.657-.232-.375A9.818 9.818 0 012.182 12C2.182 6.568 6.568 2.182 12 2.182S21.818 6.568 21.818 12 17.432 21.818 12 21.818z" /></svg>
               Hablar por WhatsApp
             </a>
@@ -381,7 +380,7 @@ export const LandingPage = () => {
             <div><div className="footer-logo" onClick={() => goTo('home')}>Plato<b>rin</b></div><p className="footer-desc">Carta digital y pedidos por WhatsApp para restaurantes en toda Colombia. Nacidos en Valledupar, Cesar.</p></div>
             <div><div className="fc-title">Producto</div><button className="fc-link" onClick={() => goTo('como-funciona')}>Cómo funciona</button><button className="fc-link" onClick={() => goTo('precios')}>Precios</button><button className="fc-link" onClick={() => goTo('contacto')}>Demo gratuita</button></div>
             <div><div className="fc-title">Empresa</div><button className="fc-link" onClick={() => goTo('historia')}>Nuestra historia</button><button className="fc-link" onClick={() => goTo('blog')}>Blog</button><button className="fc-link" onClick={() => goTo('contacto')}>Contacto</button></div>
-            <div><div className="fc-title">Soporte</div><button className="fc-link" onClick={() => goTo('ayuda')}>Centro de ayuda</button><a href="https://wa.me/573001234567" target="_blank" className="fc-link">WhatsApp directo</a><button className="fc-link" onClick={() => goTo('privacidad')}>Privacidad</button></div>
+            <div><div className="fc-title">Soporte</div><button className="fc-link" onClick={() => goTo('ayuda')}>Centro de ayuda</button><a href="https://wa.me/573005390069" target="_blank" className="fc-link">WhatsApp directo</a><button className="fc-link" onClick={() => goTo('privacidad')}>Privacidad</button></div>
           </div>
           <div className="footer-bottom"><span className="footer-cr">© 2026 Platorin. Todos los derechos reservados.</span><div className="footer-made">Hecho con <span>♥</span> en Valledupar, Colombia 🇨🇴</div></div>
         </footer>
@@ -478,7 +477,7 @@ export const LandingPage = () => {
           <p className="rv d1">14 días gratis. Sin tarjeta. Sin compromisos.</p>
           <div className="cta-row rv d2">
             <button className="btn-dark" onClick={() => navigate('/register')}>Empezar gratis →</button>
-            <a href="https://wa.me/573001234567" target="_blank" className="btn-wa">Preguntar por WhatsApp</a>
+            <a href="https://wa.me/573005390069" target="_blank" className="btn-wa">Preguntar por WhatsApp</a>
           </div>
         </section>
         <footer>
@@ -554,10 +553,10 @@ export const LandingPage = () => {
 
         <section className="cta-sect">
           <h2 className="rv">Empieza gratis.<br /><span className="si">Sin compromisos.</span></h2>
-          <p className="rv d1">14 días con todas las funciones Pro, sin tarjeta de crédito.</p>
+          <p className="rv d1">1 mes con todas las funciones Pro, sin tarjeta de crédito.</p>
           <div className="cta-row rv d2">
             <button className="btn-dark" onClick={() => navigate('/register')}>Activar prueba gratis →</button>
-            <a href="https://wa.me/573001234567" target="_blank" className="btn-wa">Preguntar por WhatsApp</a>
+            <a href="https://wa.me/573005390069" target="_blank" className="btn-wa">Preguntar por WhatsApp</a>
           </div>
         </section>
         <footer>
@@ -618,7 +617,7 @@ export const LandingPage = () => {
 
         <section className="cta-sect">
           <h2 className="rv">Únete a los restaurantes<br /><span className="si">que ya cambiaron.</span></h2>
-          <p className="rv d1">14 días gratis. Sin tarjeta. Sin compromisos.</p>
+          <p className="rv d1">1 mes gratis. Sin tarjeta. Sin compromisos.</p>
           <div className="cta-row rv d2">
             <button className="btn-dark" onClick={() => navigate('/register')}>Empezar gratis →</button>
             <a href="https://wa.me/573005390069" target="_blank" className="btn-wa">Hablar con el equipo</a>
@@ -672,8 +671,8 @@ export const LandingPage = () => {
                         <select className="form-select" id="f-plan">
                           <option value="">Selecciona un plan</option>
                           <option value="gratis">Gratis — Empezar a probar</option>
-                          <option value="pro">Pro — $89.000/mes</option>
-                          <option value="cadena">Cadena — $189.000/mes</option>
+                          <option value="pro">Pro — $90.000/mes</option>
+                          <option value="cadena">Cadena — $190.000/mes</option>
                           <option value="no-se">No sé todavía, necesito asesoría</option>
                         </select>
                       </div>
@@ -739,7 +738,7 @@ export const LandingPage = () => {
           <h2 className="rv">¿No encontraste<br /><span className="si">lo que buscabas?</span></h2>
           <p className="rv d1">Escríbenos directamente. Respondemos en minutos.</p>
           <div className="cta-row rv d2">
-            <a href="https://wa.me/573001234567?text=Hola%2C%20tengo%20una%20pregunta%20sobre%20Platorin" target="_blank" className="btn-wa">Preguntar por WhatsApp</a>
+            <a href="https://wa.me/573005390069?text=Hola%2C%20tengo%20una%20pregunta%20sobre%20Platorin" target="_blank" className="btn-wa">Preguntar por WhatsApp</a>
           </div>
         </section>
         <footer>
@@ -772,7 +771,7 @@ export const LandingPage = () => {
         </section>
         <section className="cta-sect">
           <h2 className="rv">¿Listo para organizar<br /><span className="si">tu restaurante?</span></h2>
-          <p className="rv d1">14 días gratis. Sin tarjeta. Sin compromisos.</p>
+          <p className="rv d1">1 mes gratis. Sin tarjeta. Sin compromisos.</p>
           <div className="cta-row rv d2"><button className="btn-dark" onClick={() => goTo('contacto')}>Empezar gratis →</button></div>
         </section>
         <footer>

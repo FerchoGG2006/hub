@@ -147,8 +147,8 @@ const App = () => {
         <Route path="/register" element={<RegisterBusiness />} />
         <Route path="/superadmin" element={<SuperAdmin />} />
         <Route path="/admin/:tenantSlug/*" element={<AdminDashboard />} />
-        <Route path="/t/:tenantSlug" element={<HubLoader />} />
         <Route path="/legal/privacidad" element={<PrivacyPolicy />} />
+        <Route path="/:tenantSlug" element={<HubLoader />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

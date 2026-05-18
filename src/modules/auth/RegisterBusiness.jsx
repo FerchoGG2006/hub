@@ -164,7 +164,7 @@ export const RegisterBusiness = () => {
                                                 className="w-full bg-cream-deep/20 border border-border rounded-xl py-4 px-6 focus:border-gold outline-none transition-all font-mono text-sm" 
                                             />
                                             <p className="text-[11px] text-ink-30 font-mono pl-2">
-                                                Tu link será: <span className="text-gold font-bold">platorin.com/t/{formData.slug || 'tu-negocio'}</span>
+                                                Tu link será: <span className="text-gold font-bold">platorin.com/{formData.slug || 'tu-negocio'}</span>
                                             </p>
                                         </div>
                                     </div>

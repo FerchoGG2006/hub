@@ -44,7 +44,7 @@ export const QRTerminal = ({ config }) => {
     setIsGenerating(false);
   };
 
-  const menuUrl = table ? `${window.location.origin}/t/${tenantSlug}?mesa=${table}` : `${window.location.origin}/t/${tenantSlug}`;
+  const menuUrl = table ? `${window.location.origin}/${tenantSlug}?mesa=${table}` : `${window.location.origin}/${tenantSlug}`;
   
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl mx-auto py-0 flex flex-col items-center gap-8">

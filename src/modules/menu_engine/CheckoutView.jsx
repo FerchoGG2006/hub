@@ -108,7 +108,7 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
 
     setIsSubmitting(true);
     const finalLocation = method === 'mesa' ? (tableParam || tableNumber) : (method === 'domicilio' ? address : 'Para Recoger');
-    const tenantSlug = config?.slug || window.location.pathname.split('/t/')[1]?.split('?')[0]?.split('/')[0] || '';
+    const tenantSlug = config?.slug || window.location.pathname.split('/')[1]?.split('?')[0] || '';
     
     try {
       // 1. Send to Live Kitchen (via useOrders hook)

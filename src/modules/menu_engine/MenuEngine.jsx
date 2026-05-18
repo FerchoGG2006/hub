@@ -564,7 +564,7 @@ export const MenuEngine = ({ config }) => {
       console.warn("[goToPage] turnToPage failed:", e);
     }
     if (navigator.vibrate) navigator.vibrate(15);
-  }, [handleInteraction, currentPage]);
+  }, [handleInteraction]);
 
   const goPrev = useCallback(() => {
     handleInteraction();
