@@ -166,13 +166,13 @@ const Step1Loading = () => (
   </motion.div>
 );
 
-const Step2Payment = ({ paymentData, onManualVerify }) => (
+const Step2Payment = ({ paymentData, onManualVerify, isMobile }) => (
   <motion.div
     key="step2"
     initial={{ opacity: 0, scale: 0.97 }}
     animate={{ opacity: 1, scale: 1 }}
     exit={{ opacity: 0, scale: 0.97 }}
-    style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
+    style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
   >
     {/* Info strip */}
     <div style={{
@@ -191,10 +191,10 @@ const Step2Payment = ({ paymentData, onManualVerify }) => (
     {/* iFrame / portal */}
     <div style={{
       background: T.white,
-      borderRadius: 20,
+      borderRadius: 16,
       overflow: 'hidden',
       border: `1px solid ${T.border}`,
-      aspectRatio: '4/5',
+      height: isMobile ? 440 : 500,
       position: 'relative',
     }}>
       {paymentData?.paymentUrl ? (
@@ -359,6 +359,14 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
   const [step, setStep] = useState(1);
   const [paymentData, setPaymentData] = useState(null);
   const [timeLeft, setTimeLeft] = useState(900);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => { injectFonts(); }, []);
 
@@ -468,7 +476,7 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
             onClick={e => e.stopPropagation()}
             style={{
               background: T.cream,
-              borderRadius: 32,
+              borderRadius: isMobile ? 24 : 32,
               width: '100%', maxWidth: 460,
               overflow: 'hidden',
               boxShadow: '0 32px 80px rgba(26,18,8,0.25)',
@@ -486,7 +494,7 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
             </div>
 
             {/* Inner padding */}
-            <div style={{ padding: '2.5rem 2.25rem 2rem' }}>
+            <div style={{ padding: isMobile ? '2.25rem 1.15rem 1.5rem' : '2.5rem 2.25rem 2rem' }}>
 
               {/* ── Top-Right Close Button ── */}
               <button 
@@ -549,7 +557,7 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
               <div style={{ minHeight: 300 }}>
                 <AnimatePresence mode="wait">
                   {step === 1 && <Step1Loading />}
-                  {step === 2 && <Step2Payment paymentData={paymentData} onManualVerify={() => setStep(3)} />}
+                  {step === 2 && <Step2Payment paymentData={paymentData} onManualVerify={() => setStep(3)} isMobile={isMobile} />}
                   {step === 3 && <Step3Verifying />}
                   {step === 4 && <Step4Success />}
                 </AnimatePresence>
