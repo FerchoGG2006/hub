@@ -142,10 +142,10 @@ const CategoryHero = ({ meta, restaurantName }) => (
 const NavArrow = ({ direction, visible, onClick }) => (
   <button
     onClick={(e) => {
+      e.preventDefault();
       e.stopPropagation();
       if (visible) onClick();
     }}
-    onPointerDown={(e) => e.stopPropagation()}
     style={{
       width: 44,
       height: 44,
@@ -767,9 +767,10 @@ export const MenuEngine = ({ config }) => {
             <img 
               src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1600&q=80" 
               alt="Showroom Gastronómico" 
-              className="w-full h-full object-cover brightness-[0.45] saturate-[0.8]"
+              className="w-full h-full object-cover brightness-[0.55] saturate-[0.85]"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#FAF8F5] via-black/20 to-black/45" />
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#FAF8F5] to-transparent pointer-events-none" />
           </div>
 
           <div className="relative z-10 text-center px-6 max-w-4xl space-y-8 flex flex-col items-center">
@@ -1170,9 +1171,10 @@ export const MenuEngine = ({ config }) => {
             <img 
               src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1600&q=80" 
               alt="Showroom Gastronómico" 
-              className="w-full h-full object-cover brightness-[0.45] saturate-[0.8]"
+              className="w-full h-full object-cover brightness-[0.55] saturate-[0.85]"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#FAF8F5] via-black/20 to-black/45" />
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#FAF8F5] to-transparent pointer-events-none" />
           </div>
 
           <div className="relative z-10 text-center px-6 max-w-4xl space-y-8 flex flex-col items-center">
@@ -1736,7 +1738,12 @@ export const MenuEngine = ({ config }) => {
         >
           {/* Event button */}
           <button
-            onPointerUp={() => { setShowEventWizard(true); handleInteraction(); }}
+            onClick={(e) => { 
+              e.preventDefault();
+              e.stopPropagation();
+              setShowEventWizard(true); 
+              handleInteraction(); 
+            }}
             className="flex items-center gap-1.5 rounded-full px-4 py-2 flex-shrink-0 active:scale-95 transition-all"
             style={{
               background: 'linear-gradient(to right, rgb(252, 211, 77) 0%, rgb(245, 158, 11) 100%)',
@@ -1757,7 +1764,11 @@ export const MenuEngine = ({ config }) => {
           <div className="flex-1 flex items-center justify-center gap-1.5 overflow-hidden px-1">
             {mobileCategories.map((_, i) => (
               <div key={i}
-                onPointerUp={() => goToPage(i)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  goToPage(i);
+                }}
                 style={{
                   width: i === currentPage ? 16 : 5,
                   height: 5,
