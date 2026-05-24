@@ -118,7 +118,21 @@ export const RegisterBusiness = () => {
                     </div>
 
                     <div className="space-y-4">
-                        <Link to={`/admin/${formData.slug || placeholderSlug}`} className="btn-editorial w-full py-5 justify-center text-sm uppercase tracking-widest">
+                        <Link 
+                            to={`/admin/${formData.slug || placeholderSlug}`} 
+                            onClick={async () => {
+                                if (result.credentials?.passcode) {
+                                    try {
+                                        await navigator.clipboard.writeText(result.credentials.passcode);
+                                    } catch (e) {
+                                        console.error("Failed to copy passcode:", e);
+                                    }
+                                }
+                                localStorage.setItem('platorin_auto_user', result.credentials?.user || '');
+                                localStorage.setItem('platorin_auto_pass', result.credentials?.passcode || '');
+                            }}
+                            className="btn-editorial w-full py-5 justify-center text-sm uppercase tracking-widest"
+                        >
                             Entrar a mi Panel Admin
                         </Link>
                         <p className="text-[10px] uppercase tracking-widest text-ink-30 font-bold">

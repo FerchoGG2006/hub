@@ -51,8 +51,8 @@ export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('pedidos');
   const [config, setConfig] = useState(null);
 
-  const [loginUser, setLoginUser] = useState('');
-  const [loginPass, setLoginPass] = useState('');
+  const [loginUser, setLoginUser] = useState(() => localStorage.getItem('platorin_auto_user') || '');
+  const [loginPass, setLoginPass] = useState(() => localStorage.getItem('platorin_auto_pass') || '');
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
 
@@ -63,6 +63,8 @@ export const AdminDashboard = () => {
     try {
       await authService.login(loginUser, loginPass);
       setIsAuth(true);
+      localStorage.removeItem('platorin_auto_user');
+      localStorage.removeItem('platorin_auto_pass');
     } catch {
       setLoginError('Credenciales inválidas');
     } finally {
@@ -76,7 +78,7 @@ export const AdminDashboard = () => {
     setShowTour(false);
   };
 
-  const { products, toggleProduct, fetchProducts, magicSnap } = useProducts(tenantSlug);
+  const { products, toggleProduct, fetchProducts, magicSnap, updateImage } = useProducts(tenantSlug);
 
   useEffect(() => {
     if (isAuth) {
@@ -134,6 +136,7 @@ export const AdminDashboard = () => {
         products={products}
         toggleProduct={toggleProduct}
         magicSnap={magicSnap}
+        updateImage={updateImage}
         navigate={navigate}
       />
     </WebSocketProvider>
@@ -142,7 +145,7 @@ export const AdminDashboard = () => {
 
 const AdminDashboardContent = ({ 
   config, tenantSlug, activeTab, setActiveTab, showTour, 
-  handleTourComplete, products, toggleProduct, magicSnap, navigate 
+  handleTourComplete, products, toggleProduct, magicSnap, updateImage, navigate 
 }) => {
   const { lastMessage, status, isConnected } = useWebSocketContext();
   const navRef = useRef(null);
@@ -179,17 +182,17 @@ const AdminDashboardContent = ({
       </AnimatePresence>
       
       {/* ── DESKTOP SIDEBAR ── */}
-      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-24 bg-white border-r border-[var(--border-soft)] flex flex-col items-center py-10 z-[100] shadow-sm">
-        <div className="w-12 h-12 bg-[var(--brand-primary)] rounded-2xl flex items-center justify-center text-white font-black text-xl mb-12 shadow-lg shadow-[var(--brand-primary)]/20 cursor-pointer" onClick={() => navigate('/')}>
+      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-24 bg-white border-r border-[var(--border-soft)] flex-col items-center py-6 z-[100] shadow-sm overflow-y-auto no-scrollbar">
+        <div className="flex-shrink-0 w-12 h-12 bg-[var(--brand-primary)] rounded-2xl flex items-center justify-center text-white font-black text-xl mb-8 shadow-lg shadow-[var(--brand-primary)]/20 cursor-pointer" onClick={() => navigate('/')}>
           P
         </div>
         
-        <div className="flex-1 flex flex-col gap-6">
+        <div className="flex flex-col gap-6 w-full items-center mb-8">
           {TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center transition-all group ${activeTab === tab.id ? 'bg-[var(--brand-primary)] text-white shadow-xl shadow-[var(--brand-primary)]/20' : 'text-[var(--text-disabled)] hover:bg-[var(--bg-secondary)]'}`}
+              className={`flex-shrink-0 w-14 h-14 rounded-2xl flex flex-col items-center justify-center transition-all group ${activeTab === tab.id ? 'bg-[var(--brand-primary)] text-white shadow-xl shadow-[var(--brand-primary)]/20' : 'text-[var(--text-disabled)] hover:bg-[var(--bg-secondary)]'}`}
             >
               <span className="text-xl">{tab.icon}</span>
               <span className="text-[7px] uppercase font-black mt-1 tracking-widest">{tab.label}</span>
@@ -199,7 +202,7 @@ const AdminDashboardContent = ({
 
         <button 
           onClick={() => { authService.logout(); window.location.reload(); }}
-          className="w-12 h-12 rounded-2xl bg-[var(--status-error)]/5 text-[var(--status-error)] flex items-center justify-center hover:bg-[var(--status-error)]/10 transition-colors"
+          className="flex-shrink-0 w-12 h-12 mt-auto rounded-2xl bg-[var(--status-error)]/5 text-[var(--status-error)] flex items-center justify-center hover:bg-[var(--status-error)]/10 transition-colors"
         >
           🚪
         </button>
@@ -297,6 +300,7 @@ const AdminDashboardContent = ({
                   products={products} 
                   toggleProduct={toggleProduct} 
                   magicSnap={magicSnap} 
+                  updateImage={updateImage}
                 />
               </motion.div>
             )}
