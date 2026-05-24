@@ -179,8 +179,11 @@ export const EventsManager = ({ slug }) => {
   useEffect(() => {
     fetch(`${API_URL}/api/v1/tenant/${slug}`)
       .then(r => r.json())
-      .then(d => setTenantId(d.id))
-      .catch(() => {});
+      .then(d => {
+        setTenantId(d.data?.id || d.id);
+        if (!(d.data?.id || d.id)) setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, [slug]);
 
   const fetchEvents = useCallback(async () => {

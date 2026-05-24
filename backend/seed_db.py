@@ -10,11 +10,7 @@ if not DATABASE_URL:
     print("Falta DATABASE_URL en .env")
     exit(1)
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"sslmode": "require", "options": "-c timezone=utc", "keepalives": 1, "keepalives_idle": 30, "keepalives_interval": 10, "keepalives_count": 5}
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+from database import engine, SessionLocal
 
 def seed_data():
     print("Limpiando y Recreando esquema Multi-Tenant en Neon DB...")

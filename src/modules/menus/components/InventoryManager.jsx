@@ -16,12 +16,12 @@ export const InventoryManager = ({ products, toggleProduct, magicSnap }) => {
            <label className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--brand-accent)]/10 text-[var(--brand-accent)] border border-[var(--brand-accent)]/20 rounded-[var(--radius-xl)] font-semibold text-sm hover:bg-[var(--brand-accent)]/20 cursor-pointer transition-all active:scale-95">
               <span className="text-xl">📸</span>
               <span>Foto-Plato (IA)</span>
-              <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
+              <input type="file" className="hidden" accept="image/*" multiple onChange={async (e) => {
+                const files = Array.from(e.target.files);
+                if (files.length === 0) return;
                  try {
-                   await magicSnap(file);
-                   alert("✅ ¡Plato creado mágicamente!");
+                   await magicSnap(files);
+                   alert(`✅ ¡${files.length} imágenes procesadas mágicamente!`);
                  } catch { alert("Error en el análisis visual."); }
                }} />
            </label>
@@ -38,13 +38,34 @@ export const InventoryManager = ({ products, toggleProduct, magicSnap }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((item) => (
             <Card key={item.id} className="group hover:border-[var(--brand-accent)]/30 transition-all !p-5 flex items-center gap-5">
-              <div className={`w-20 h-20 rounded-2xl bg-[var(--bg-secondary)] overflow-hidden border border-[var(--border-soft)] ${!item.is_available ? 'grayscale opacity-40' : 'group-hover:scale-105 transition-transform'}`}>
+              <label className={`relative w-20 h-20 rounded-2xl bg-[var(--bg-secondary)] overflow-hidden border border-[var(--border-soft)] cursor-pointer group/img ${!item.is_available ? 'grayscale opacity-40' : 'hover:scale-105 transition-transform'}`}>
                 {item.image || item.image_url ? (
                   <img src={item.image || item.image_url} alt={item.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-3xl opacity-30">🍽️</div>
                 )}
-              </div>
+                
+                {/* Overlay on Hover */}
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
+                  <span className="text-white text-xl">📸</span>
+                </div>
+
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (file && updateImage) {
+                      try {
+                        await updateImage(item.id, file);
+                      } catch (err) {
+                        alert("Error al subir la imagen");
+                      }
+                    }
+                  }}
+                />
+              </label>
               <div className="flex-1 min-w-0">
                 <Heading level={4} className={`!text-sm uppercase tracking-wider truncate ${!item.is_available ? 'text-[var(--text-disabled)] line-through' : ''}`}>
                   {item.name}

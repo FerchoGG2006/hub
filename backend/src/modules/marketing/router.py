@@ -82,6 +82,16 @@ def send_mass_campaign(req: AIMarketingRequest, db: Session = Depends(get_db), c
     customers = db.query(models.Customer).filter_by(tenant_id=tid).all()
     all_phones = [c.phone for c in customers if c.phone]
     
+    # Envío real a través de Meta Cloud API usando la utilidad existente
+    from events import send_whatsapp_message
+    
+    # Intentamos buscar el texto generado de la campaña o usamos un texto persuasivo por defecto
+    sms_text = req.goal or "¡Aprovecha hoy nuestro descuento exclusivo! Toca el link y pide en Platorin."
+    
+    for c in customers:
+        if c.phone:
+            send_whatsapp_message(c.phone, sms_text)
+    
     return success_response({
         "status": "success",
         "contacts_count": len(all_phones),

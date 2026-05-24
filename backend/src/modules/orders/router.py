@@ -178,6 +178,37 @@ async def close_table(
     })
 
 
+from pydantic import BaseModel
+
+class AdminAddOrderRequest(BaseModel):
+    items_json: str
+    total_price: int
+
+@router.post("/admin/caja/mesas-abiertas/{table_number}/add-order")
+async def add_order_to_table(
+    table_number: str,
+    req: AdminAddOrderRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Permite al admin agregar una orden adicional a una mesa existente."""
+    order_data = {
+        "table_number": table_number,
+        "payment_method": "efectivo",
+        "delivery_method": "mesa",
+        "total_price": req.total_price,
+        "items_json": req.items_json,
+        "customer_name": "Agregado en Caja",
+        "phone": ""
+    }
+    nuevo = await OrderService.create_order(db, current_user.tenant_id, order_data)
+    
+    # Optionally force status to pending to skip pending_payment logic
+    nuevo.status = "pending"
+    db.commit()
+    
+    return success_response({"orderId": nuevo.id, "message": "Productos agregados a la mesa"})
+
 from datetime import datetime, timezone, date
 
 @router.get("/admin/caja/resumen")

@@ -42,5 +42,18 @@ export const useProducts = (tenantSlug) => {
     }
   }, [fetchProducts]);
 
-  return { products, toggleProduct, fetchProducts, magicSnap, loading, error };
+  const updateImage = useCallback(async (productId, file) => {
+    const token = localStorage.getItem('hub_token');
+    setLoading(true);
+    try {
+      await productsService.updateProductImage(productId, file, token);
+      fetchProducts();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchProducts]);
+
+  return { products, toggleProduct, fetchProducts, magicSnap, updateImage, loading, error };
 };
