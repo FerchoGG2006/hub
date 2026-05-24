@@ -64,9 +64,6 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
           </span>
         </div>
         <div className="text-right">
-          <p className="font-[var(--font-serif)] italic text-lg leading-none mb-1 font-medium text-[var(--text-primary)]">
-            ${(o.total_price || 0).toLocaleString()}
-          </p>
           <p className={`text-[9px] font-black tracking-[0.2em] uppercase ${isCritical ? 'text-[var(--status-error)] animate-pulse' : isUrgent ? 'text-[var(--status-pending)]' : 'text-[var(--text-disabled)]'}`}>
             {formatTime(elapsed)}
           </p>
