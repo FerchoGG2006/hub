@@ -36,8 +36,8 @@ const TABS = [
   { id: 'analytics', label: 'Métricas', icon: '📊' },
   { id: 'marketing', label: 'Marketing', icon: '✨' },
   { id: 'events', label: 'Eventos', icon: '🎉' },
-  { id: 'settings', label: 'Identidad', icon: '🎨' },
-  { id: 'billing', label: 'SaaS Core', icon: '🛡️' },
+  // { id: 'settings', label: 'Identidad', icon: '🎨' },
+  // { id: 'billing', label: 'SaaS Core', icon: '🛡️' },
 ];
 
 export const AdminDashboard = () => {
