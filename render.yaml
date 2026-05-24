@@ -7,7 +7,7 @@ services:
     startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_oZXsypkIR20u@ep-snowy-salad-ama4nvfw-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+        value: postgresql://platorin_user:vGCQkb6wkWzYmNGoHUg8NwaErT2TAkxs@dpg-d89b74ml51nc7388m26g-a/platorin
       - key: GEMINI_API_KEY
         value: AIzaSyAF4jl-4aMZK9pk5uOcRJ95PWOyQTz8JY8
       - key: JWT_SECRET
