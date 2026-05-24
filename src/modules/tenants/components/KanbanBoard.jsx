@@ -59,7 +59,9 @@ const OrderCard = ({ o, nextStatus, color, changeStatus, printOrder }) => {
           <Heading level={4} className="!text-sm uppercase font-bold tracking-tight truncate max-w-[150px]">
             {o.customer_name || 'Mesa Local'}
           </Heading>
-          <span className="text-[8px] text-[var(--text-disabled)] font-black tracking-[0.3em] uppercase">ID_TX_{o.id}</span>
+          <span className="text-[8px] text-[var(--text-disabled)] font-black tracking-[0.3em] uppercase">
+            {o.table_number ? `Mesa ${o.table_number}` : `Pedido #${o.id}`}
+          </span>
         </div>
         <div className="text-right">
           <p className="font-[var(--font-serif)] italic text-lg leading-none mb-1 font-medium text-[var(--text-primary)]">
