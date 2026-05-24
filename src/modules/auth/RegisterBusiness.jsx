@@ -35,8 +35,7 @@ export const RegisterBusiness = () => {
 
     const handleNameChange = (e) => {
         const name = e.target.value;
-        const slug = generateSlug(name);
-        setFormData(prev => ({ ...prev, name, slug }));
+        setFormData(prev => ({ ...prev, name }));
     };
 
     const handleNext = () => setStep(s => s + 1);
@@ -46,12 +45,15 @@ export const RegisterBusiness = () => {
         setLoading(true);
         try {
             const data = new FormData();
+            const finalSlug = formData.slug || generateSlug(formData.name);
             data.append('name', formData.name);
-            data.append('slug', formData.slug);
+            data.append('slug', finalSlug);
             data.append('brand_color', formData.brand_color);
             data.append('whatsapp_number', formData.whatsapp_number);
             data.append('email', formData.email);
-            data.append('file', formData.file);
+            if (formData.file) {
+                data.append('file', formData.file);
+            }
 
             const token = localStorage.getItem('hub_token');
             const headers = {};
@@ -84,6 +86,8 @@ export const RegisterBusiness = () => {
         }
     };
 
+    const placeholderSlug = generateSlug(formData.name) || 'tu-negocio';
+
     if (step === 4 && result) {
         return (
             <div className="min-h-screen bg-cream flex items-center justify-center p-6">
@@ -114,7 +118,7 @@ export const RegisterBusiness = () => {
                     </div>
 
                     <div className="space-y-4">
-                        <Link to={`/admin/${formData.slug}`} className="btn-editorial w-full py-5 justify-center text-sm uppercase tracking-widest">
+                        <Link to={`/admin/${formData.slug || placeholderSlug}`} className="btn-editorial w-full py-5 justify-center text-sm uppercase tracking-widest">
                             Entrar a mi Panel Admin
                         </Link>
                         <p className="text-[10px] uppercase tracking-widest text-ink-30 font-bold">
@@ -158,18 +162,18 @@ export const RegisterBusiness = () => {
                                         <div className="space-y-2">
                                             <input 
                                                 type="text" 
-                                                placeholder="ej: el-fogon-dorado" 
+                                                placeholder={placeholderSlug} 
                                                 value={formData.slug} 
                                                 onChange={e => setFormData({...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/\s+/g, '-')})}
                                                 className="w-full bg-cream-deep/20 border border-border rounded-xl py-4 px-6 focus:border-gold outline-none transition-all font-mono text-sm" 
                                             />
                                             <p className="text-[11px] text-ink-30 font-mono pl-2">
-                                                Tu link será: <span className="text-gold font-bold">platorin.com/{formData.slug || 'tu-negocio'}</span>
+                                                Tu link será: <span className="text-gold font-bold">platorin.com/{formData.slug || placeholderSlug}</span>
                                             </p>
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={handleNext} disabled={!formData.name || !formData.slug} className="btn-editorial w-full py-5 justify-center mt-4 uppercase tracking-widest disabled:opacity-20">
+                                <button onClick={handleNext} disabled={!formData.name} className="btn-editorial w-full py-5 justify-center mt-4 uppercase tracking-widest disabled:opacity-20">
                                     Siguiente Paso →
                                 </button>
                             </motion.div>
@@ -237,7 +241,7 @@ export const RegisterBusiness = () => {
                                 
                                 <div className="flex gap-4 pt-4">
                                     <button onClick={handleBack} className="btn-editorial-outline py-4 px-8 font-bold">Atrás</button>
-                                    <button onClick={handleSubmit} disabled={!formData.file || loading} 
+                                    <button onClick={handleSubmit} disabled={loading} 
                                         className="btn-editorial flex-1 py-4 justify-center uppercase tracking-[0.2em]">
                                         {loading ? 'Activando...' : 'Finalizar Registro'}
                                     </button>

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Form, UploadFile, File
 from sqlalchemy.orm import Session
+from typing import List
 import models
 import auth
 from database import get_db
@@ -12,7 +13,7 @@ from pydantic import BaseModel
 router = APIRouter(prefix="/api", tags=["menus"])
 
 @router.get("/v1/tenant/{slug}/menu")
-def get_tenant_menu(slug: str, db: Session = Depends(get_db)):
+def get_tenant_menu(slug: str, include_unavailable: bool = False, db: Session = Depends(get_db)):
     tenant = db.query(models.Tenant).filter_by(slug=slug).first()
     if not tenant:
         raise AppError(message="Tenant no encontrado", status_code=404, code="TENANT_NOT_FOUND")
@@ -37,7 +38,7 @@ def get_tenant_menu(slug: str, db: Session = Depends(get_db)):
                     for v in p.variants
                 ]
             }
-            for p in cat.products
+            for p in cat.products if (p.is_available or include_unavailable)
         ]
         if prods:
             grouped_menu[cat.name] = prods
@@ -106,6 +107,31 @@ async def create_product(
     await manager.broadcast({"type": "MENU_UPDATE", "event": "NEW_PRODUCT", "tenant_id": cat.tenant_id}, tenant_id=cat.tenant_id)
     return success_response(new_prod)
 
+@router.patch("/admin/products/{product_id}/image", status_code=200)
+async def update_product_image(
+    product_id: int,
+    image: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    prod = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not prod:
+        raise AppError(message="Producto no encontrado", status_code=404)
+
+    if current_user.role != "superadmin" and current_user.tenant_id != prod.tenant_id:
+        raise AppError(message="No tienes permiso para modificar este producto", status_code=403)
+
+    if image.filename == "":
+        raise AppError(message="Archivo vacío", status_code=400)
+
+    image_url = upload_product_image(image)
+    prod.image_url = image_url
+    db.commit()
+    db.refresh(prod)
+
+    await manager.broadcast({"type": "MENU_UPDATE", "event": "PRODUCT_UPDATED", "tenant_id": prod.tenant_id}, tenant_id=prod.tenant_id)
+    return success_response({"image_url": image_url})
+
 class MagicEditRequest(BaseModel):
     name: str
     price: str
@@ -122,40 +148,43 @@ def magic_edit_endpoint(
 
 @router.post("/admin/ai-ingest")
 def ai_ingest_tenant_menu(
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
     from utils.gemini_extractor import extract_menu_from_image
+    from typing import List
+    
     if not current_user.tenant_id:
         raise AppError(message="Los superadmins deben usar el onboarding global.", status_code=400)
 
-    image_bytes = file.file.read()
-    menu_data = extract_menu_from_image(image_bytes)
-    
-    for category_data in menu_data:
-        cat_name = category_data.get("category", "Miscelaneo")
-        cat_icon = category_data.get("icon", "🍽️")
+    for file in files:
+        image_bytes = file.file.read()
+        menu_data = extract_menu_from_image(image_bytes)
         
-        cat = db.query(models.Category).filter_by(tenant_id=current_user.tenant_id, name=cat_name).first()
-        if not cat:
-            cat = models.Category(tenant_id=current_user.tenant_id, name=cat_name, icon=cat_icon)
-            db.add(cat)
+        for category_data in menu_data:
+            cat_name = category_data.get("category", "Miscelaneo")
+            cat_icon = category_data.get("icon", "🍽️")
+            
+            cat = db.query(models.Category).filter_by(tenant_id=current_user.tenant_id, name=cat_name).first()
+            if not cat:
+                cat = models.Category(tenant_id=current_user.tenant_id, name=cat_name, icon=cat_icon)
+                db.add(cat)
+                db.commit()
+                db.refresh(cat)
+                
+            products = category_data.get("products", [])
+            for p in products:
+                nuevo_prod = models.Product(
+                    tenant_id=current_user.tenant_id,
+                    category_id=cat.id,
+                    name=p.get("name", "Plato Desconocido"),
+                    description=p.get("description", ""),
+                    price=str(p.get("price", "$0")),
+                    emoji=p.get("emoji", "🍽️")
+                )
+                db.add(nuevo_prod)
+                
             db.commit()
-            db.refresh(cat)
             
-        products = category_data.get("products", [])
-        for p in products:
-            nuevo_prod = models.Product(
-                tenant_id=current_user.tenant_id,
-                category_id=cat.id,
-                name=p.get("name", "Plato Desconocido"),
-                description=p.get("description", ""),
-                price=str(p.get("price", "$0")),
-                emoji=p.get("emoji", "🍽️")
-            )
-            db.add(nuevo_prod)
-            
-        db.commit()
-        
-    return success_response(None, message="Carta migrada vía IA exitosamente")
+    return success_response(None, message=f"Carta migrada vía IA exitosamente ({len(files)} imágenes)")

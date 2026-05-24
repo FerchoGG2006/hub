@@ -10,6 +10,8 @@ import { useViewport916 } from '../../shared/hooks/useViewport916';
 import { useViewportMode } from './core/hooks/useViewportMode';
 import { useMenuStore } from './core/store/menuStore';
 import { CheckoutPanel } from './CheckoutPanel';
+import { DesktopEditorialView } from './DesktopEditorialView';
+import { useWebSocket } from '../../shared/hooks/useWebSocket';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -307,6 +309,15 @@ export const MenuEngine = ({ config }) => {
     zSetViewportMode(mode);
   }, [mode, zSetViewportMode]);
 
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
+  const { lastMessage } = useWebSocket(config?.id);
+
+  useEffect(() => {
+    if (lastMessage?.type === 'MENU_UPDATE') {
+      setRefetchTrigger(prev => prev + 1);
+    }
+  }, [lastMessage]);
+
   const [allMenuData, setAllMenuData] = useState(null); // Complete data (for Desktop continuous scroll)
   const [paginatedMenuData, setPaginatedMenuData] = useState(null); // Paginated data (for Mobile PageFlip)
   
@@ -359,8 +370,10 @@ export const MenuEngine = ({ config }) => {
           fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/categories`, { signal: AbortSignal.timeout(4000) }),
         ]);
         if (!menuRes.ok) throw new Error(`HTTP ${menuRes.status}`);
-        const data = await menuRes.json();
-        const catsData = await catsRes.json().catch(() => []);
+        const menuJson = await menuRes.json();
+        const catsJson = await catsRes.json().catch(() => ({ data: [] }));
+        const data = menuJson.data || menuJson;
+        const catsData = catsJson.data || catsJson || [];
 
         const FALLBACK_ACCENTS = ['#10b981','#f97316','#f59e0b','#06b6d4','#ec4899'];
         catsData.forEach((c, idx) => {
@@ -399,40 +412,114 @@ export const MenuEngine = ({ config }) => {
             }
           }
         });
+
+        // Ensure an even number of pages for Desktop 2-page spread
+        if (Object.keys(paginated).length % 2 !== 0) {
+          paginated['FIN_DEL_MENU'] = [];
+          CATEGORY_META['FIN_DEL_MENU'] = { accent: '#B87D1A', icon: '👋', label: 'Fin del Menú' };
+        }
+
         totalPagesRef.current = Object.keys(paginated).length;
         setPaginatedMenuData(paginated);
 
-      } catch {
-        setAllMenuData(STATIC_MENU);
-        if (Object.keys(STATIC_MENU).length > 0) {
-          setActiveCategory(Object.keys(STATIC_MENU)[0]);
-        }
+      } catch (error) {
+        console.error("MenuEngine fetch error:", error);
         
-        // Paginate static menu for mobile fallback
-        const ITEMS_PER_PAGE = 10;
-        const paginated = {};
-        Object.keys(STATIC_MENU).forEach(catName => {
-          const prods = STATIC_MENU[catName];
-          if (prods.length <= ITEMS_PER_PAGE) paginated[catName] = prods;
-          else {
-            for (let i = 0; i < prods.length; i += ITEMS_PER_PAGE) {
-              const pn  = Math.floor(i / ITEMS_PER_PAGE) + 1;
-              const key = i === 0 ? catName : `${catName} ${pn}`;
-              paginated[key] = prods.slice(i, i + ITEMS_PER_PAGE);
-              if (i > 0 && CATEGORY_META[catName]) {
-                CATEGORY_META[key] = {
-                  ...CATEGORY_META[catName],
-                  label: `${CATEGORY_META[catName].label || catName} Pt. ${pn}`,
-                };
-              }
+        const errorMenu = {
+          [`ERROR: ${error.message}`]: [
+            {
+              id: 999,
+              name: "Error",
+              description: String(error.stack).substring(0, 150),
+              price: "0",
+              emoji: "❌",
             }
-          }
-        });
-        totalPagesRef.current = Object.keys(paginated).length;
-        setPaginatedMenuData(paginated);
+          ]
+        };
+        
+        setAllMenuData(errorMenu);
+        setActiveCategory(Object.keys(errorMenu)[0]);
+        
+        const pag = {
+          [`ERROR: ${error.message}`]: errorMenu[`ERROR: ${error.message}`]
+        };
+        CATEGORY_META[`ERROR: ${error.message}`] = { accent: '#ff0000', icon: '❌', label: 'Error' };
+        
+        pag['FIN_DEL_MENU'] = [];
+        CATEGORY_META['FIN_DEL_MENU'] = { accent: '#B87D1A', icon: '👋', label: 'Fin del Menú' };
+        
+        totalPagesRef.current = 2;
+        setPaginatedMenuData(pag);
       }
     })();
-  }, [config?.slug]);
+  }, [config?.slug, refetchTrigger]);
+
+  // ── Desktop PageFlip Setup ──
+  const desktopBookRef = useRef(null);
+  const desktopPflip = useRef(null);
+  const desktopIsFlipping = useRef(false);
+
+  useEffect(() => {
+    if (mode === 'mobile' || !paginatedMenuData || !desktopBookRef.current) return;
+    let timer;
+    const initFlip = () => {
+      try {
+        if (desktopPflip.current) {
+          desktopPflip.current.destroy();
+          desktopPflip.current = null;
+        }
+        const pages = desktopBookRef.current.querySelectorAll('.desktop-page-item');
+        if (pages.length === 0 || desktopBookRef.current.clientWidth === 0) {
+          timer = setTimeout(initFlip, 150);
+          return;
+        }
+        desktopPflip.current = new PageFlip(desktopBookRef.current, {
+          width: 500, height: 700,
+          size: 'stretch',
+          minWidth: 250, maxWidth: 650,
+          minHeight: 400, maxHeight: 900,
+          maxShadowOpacity: 0.25,
+          showCover: false, 
+          mobileScrollSupport: false,
+          usePortrait: false, 
+          flippingTime: 800,
+          swipeDistance: 60,
+          showPageCorners: true,
+          disableFlipByClick: true,
+          useMouseEvents: true,
+          autoSize: true,
+          clickEventForward: true,
+        });
+        desktopPflip.current.loadFromHTML(pages);
+        desktopPflip.current.on('flip', (e) => {
+          setCurrentPage(e.data);
+          currentPageRef.current = e.data;
+          handleInteraction();
+          desktopIsFlipping.current = false;
+        });
+        desktopPflip.current.on('changeState', (e) => {
+          if (e.data === 'flipping' || e.data === 'user_fold' || e.data === 'folding') {
+            desktopIsFlipping.current = true;
+          } else if (e.data === 'read') {
+            desktopIsFlipping.current = false;
+          }
+        });
+      } catch (e) { console.error('Desktop PageFlip error:', e); }
+    };
+    timer = setTimeout(initFlip, 400);
+    return () => { clearTimeout(timer); if (desktopPflip.current) desktopPflip.current.destroy(); };
+  }, [mode, paginatedMenuData]);
+
+  const desktopGoToPage = (pageNum) => {
+    if (!desktopPflip.current) return;
+    try {
+      desktopPflip.current.turnToPage(pageNum);
+      setCurrentPage(pageNum);
+      currentPageRef.current = pageNum;
+    } catch(e) {
+      console.debug("Page turn error", e);
+    }
+  };
 
   // ─── Inicialización de PageFlip (Only on Mobile Mode) ──
   useEffect(() => {
@@ -447,7 +534,7 @@ export const MenuEngine = ({ config }) => {
           isInitialized.current = false;
         }
 
-        const pages = document.querySelectorAll('.page-item');
+        const pages = bookRef.current.querySelectorAll('.page-item');
         if (pages.length === 0) {
           timer = setTimeout(initFlip, 150);
           return;
@@ -498,8 +585,15 @@ export const MenuEngine = ({ config }) => {
     };
 
     timer = setTimeout(initFlip, 400);
-    return () => clearTimeout(timer);
-  }, [paginatedMenuData, mode, handleInteraction]);
+    return () => {
+      clearTimeout(timer);
+      if (pflip.current) {
+        try { pflip.current.destroy(); } catch (e) { /* ignore */ }
+        pflip.current = null;
+        isInitialized.current = false;
+      }
+    };
+  }, [paginatedMenuData, mode, handleInteraction, refetchTrigger]);
 
   // PageFlip Destructor
   useEffect(() => {
@@ -707,411 +801,24 @@ export const MenuEngine = ({ config }) => {
   // ── LOADING STATE ──
   if (!allMenuData || !paginatedMenuData) return <LoadingSkeleton />;
 
-  // ─── DESKTOP & TABLET VIEWPORT (SCROLLING EDITORIAL VIEW) ──────────────────
+  // ─── DESKTOP & TABLET VIEWPORT (EDITORIAL CINEMATOGRÁFICO) ──────────────────
   if (isDesktop || mode === 'tablet') {
-    const desktopCategories = Object.keys(allMenuData);
-
-    const scrollToCategory = (catName) => {
-      setActiveCategory(catName);
-      const element = document.getElementById(`cat-section-${catName}`);
-      if (element) {
-        const yOffset = -80; // Height of sticky navigation bar
-        const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }
-    };
-
-    const scrollToMenu = () => {
-      const element = document.getElementById('menu-start-anchor');
-      if (element) {
-        const y = element.getBoundingClientRect().top + window.pageYOffset - 80;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }
-    };
-
     return (
-      <div className="luxury-editorial-menu min-h-screen w-full bg-[#FAF8F5] text-[#120F0D] flex flex-col font-sans antialiased overflow-x-hidden relative">
-        <style>{`
-          .luxury-editorial-menu {
-            --bg-cream: #FAF8F5;
-            --coal-black: #120F0D;
-            --forest-green: #0C3A20;
-            --gold: #B87D1A;
-            --serif: 'Cormorant Garamond', Georgia, serif;
-            --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
-          }
-          .font-serif { font-family: var(--serif); }
-          .font-sans { font-family: var(--sans); }
-          .no-scrollbar::-webkit-scrollbar { display: none; }
-          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-          .editorial-tab {
-            font-family: var(--sans);
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.72rem;
-            letter-spacing: 0.18em;
-            color: rgba(18, 15, 13, 0.4);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            padding: 1.25rem 0.5rem;
-            position: relative;
-          }
-          .editorial-tab.active {
-            color: var(--coal-black);
-            font-weight: 800;
-          }
-        `}</style>
-
-        {/* 1. HERO INMERSIVO DE PANTALLA COMPLETA */}
-        <header className="w-full h-screen relative flex items-center justify-center overflow-hidden bg-black">
-          <div className="absolute inset-0 w-full h-full scale-[1.05] pointer-events-none">
-            <img 
-              src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1600&q=80" 
-              alt="Showroom Gastronómico" 
-              className="w-full h-full object-cover brightness-[0.55] saturate-[0.85]"
-            />
-            <div className="absolute inset-0 bg-black/40" />
-            <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#FAF8F5] to-transparent pointer-events-none" />
-          </div>
-
-          <div className="relative z-10 text-center px-6 max-w-4xl space-y-8 flex flex-col items-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-              className="space-y-2"
-            >
-              <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-[#B87D1A] block">
-                EXPERIENCIA GASTRONÓMICA
-              </span>
-              <h1 className="font-serif italic text-6xl md:text-8xl text-white font-light tracking-tight leading-none drop-shadow-sm">
-                {restaurantName}
-              </h1>
-              <p className="font-serif italic text-lg md:text-2xl text-white/70 font-light mt-4 tracking-wide max-w-xl mx-auto">
-                Sabores del Caribe colombiano reinterpretados en cocina de autor.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 1 }}
-              className="flex items-center gap-6 pt-4"
-            >
-              <button
-                onClick={scrollToMenu}
-                className="px-8 py-4.5 rounded-full border border-white/20 text-white text-[10px] font-bold uppercase tracking-[0.25em] bg-white/5 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 active:scale-95 shadow-2xl"
-              >
-                Ver la carta
-              </button>
-              <button
-                onClick={() => setShowEventWizard(true)}
-                className="px-8 py-4.5 rounded-full text-black text-[10px] font-bold uppercase tracking-[0.25em] bg-amber-400 hover:bg-amber-500 transition-all duration-300 active:scale-95 shadow-2xl"
-              >
-                Reservar Evento
-              </button>
-            </motion.div>
-          </div>
-
-          {/* Scroll down indicator */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50 cursor-pointer pointer-events-auto" onClick={scrollToMenu}>
-            <span className="text-[9px] uppercase tracking-[0.25em] text-black">Deslizar</span>
-            <motion.div 
-              animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity }}
-              className="w-[1px] h-8 bg-black"
-            />
-          </div>
-        </header>
-
-        <div id="menu-start-anchor" />
-
-        {/* 2. STICKY EDITORIAL CATEGORY NAVIGATION */}
-        <nav className="sticky top-0 z-40 w-full bg-[#FAF8F5]/85 backdrop-blur-xl border-b border-black/[0.04]">
-          <div className="max-w-4xl mx-auto px-6 flex items-center justify-between">
-            <div className="flex items-center gap-10 overflow-x-auto no-scrollbar py-1">
-              {desktopCategories.map((cat) => {
-                const isActive = cat === activeCategory;
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => scrollToCategory(cat)}
-                    className={`editorial-tab ${isActive ? 'active' : ''}`}
-                  >
-                    {cat}
-                    {isActive && (
-                      <motion.div 
-                        layoutId="editorialActiveIndicator"
-                        className="absolute bottom-0 left-2 right-2 h-[2.5px] bg-[#B87D1A] rounded-full"
-                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-            <span className="font-serif italic text-lg text-black/30 font-bold pr-2">
-              {restaurantName}
-            </span>
-          </div>
-        </nav>
-
-        {/* 3. CENTER COLUMN: PORTFOLIO SHOWCASE */}
-        <main className="w-full max-w-4xl mx-auto px-6 pt-16 pb-32">
-          {desktopCategories.map((cat) => {
-            const items = allMenuData[cat] || [];
-            return (
-              <section key={cat} id={`cat-section-${cat}`} className="py-10 scroll-mt-20">
-                <div className="flex items-center gap-6 py-6">
-                  <h2 className="font-serif italic text-4xl font-light tracking-tight text-[#120F0D]">
-                    {cat}
-                  </h2>
-                  <div className="flex-1 h-[0.5px] bg-black/[0.08]" />
-                  <span className="font-sans text-[8px] font-bold text-black/30 uppercase tracking-[0.2em]">
-                    {items.length} Creaciones
-                  </span>
-                </div>
-
-                <div className="flex flex-col">
-                  {items.map((item, idx) => {
-                    const isEven = idx % 2 === 0;
-                    const itemImg = item.image || item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800';
-                    return (
-                      <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0, y: 35 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-120px" }}
-                        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                        className={`flex flex-col md:flex-row gap-8 md:gap-14 items-center py-12 md:py-16 border-b border-black/[0.03] last:border-b-0 ${
-                          isEven ? 'md:flex-row' : 'md:flex-row-reverse'
-                        }`}
-                      >
-                        {/* Immersive Photo */}
-                        <div 
-                          className="w-full md:w-[55%] aspect-[16/11] rounded-[1.8rem] overflow-hidden bg-[#F7F2E9] relative group cursor-pointer shadow-md border border-black/[0.02]"
-                          onClick={() => setSelectedProduct(item)}
-                        >
-                          <img 
-                            src={itemImg} 
-                            alt={item.name} 
-                            className="w-full h-full object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
-                          />
-                          {item.badge && (
-                            <span className="absolute top-5 left-5 px-3.5 py-1.5 rounded-full text-[7.5px] font-black uppercase tracking-[0.25em] bg-white/95 text-[#0C3A20] shadow-sm">
-                              ✦ {item.badge}
-                            </span>
-                          )}
-                          {item.time && (
-                            <span className="absolute bottom-5 right-5 px-2.5 py-0.5 rounded bg-black/60 text-white text-[8px] font-black uppercase tracking-wider">
-                              ⏱ {item.time}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Details */}
-                        <div className="w-full md:w-[45%] flex flex-col justify-center space-y-5 text-left">
-                          <div className="space-y-1.5">
-                            <h3 className="font-serif italic text-3xl font-bold tracking-tight text-[#120F0D] leading-tight">
-                              {item.name}
-                            </h3>
-                            <p className="text-xs text-black/55 font-light leading-relaxed font-sans">
-                              {item.desc || item.description || 'Una composición de sabores exclusivos elaborada con ingredientes seleccionados de primera calidad, diseñados por nuestro chef.'}
-                            </p>
-                          </div>
-
-                          <div className="flex items-center gap-6 pt-2">
-                            <span className="text-lg font-bold text-[#0C3A20] font-sans">
-                              ${formatPrice(item.price)}
-                            </span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (item.variants && item.variants.length > 0) {
-                                  setSelectedProduct(item);
-                                } else {
-                                  addToCart(item);
-                                  if (navigator.vibrate) navigator.vibrate(12);
-                                }
-                              }}
-                              className="flex items-center gap-2 px-5 py-3 rounded-full border border-black/10 hover:border-black hover:bg-black hover:text-white transition-all text-[9px] font-black uppercase tracking-[0.2em] font-sans active:scale-95"
-                            >
-                              [+] Agregar
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </section>
-            );
-          })}
-        </main>
-
-        {/* 4. FLOATING GLASS CART FAB */}
-        <AnimatePresence>
-          {cart.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed bottom-8 right-8 z-50 pointer-events-none"
-            >
-              <button
-                onClick={() => setShowCartDrawer(true)}
-                className="pointer-events-auto py-4 px-7 rounded-full flex items-center gap-4 bg-[#120F0D]/90 text-white shadow-2xl border border-white/10 hover:bg-black transition-all active:scale-95"
-                style={{
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                }}
-              >
-                <span className="text-base">🛍️</span>
-                <div className="flex flex-col text-left">
-                  <span className="text-[7.5px] uppercase tracking-[0.25em] text-[#B87D1A] font-black leading-none mb-1">TU PEDIDO</span>
-                  <span className="text-[10px] font-black uppercase tracking-wider leading-none">
-                    {totalQty} platos · <span className="text-amber-400 font-bold">{totalStr}</span>
-                  </span>
-                </div>
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* 5. CINEMATIC GLASS DRAWER */}
-        <AnimatePresence>
-          {showCartDrawer && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.4 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[900]"
-                onClick={() => setShowCartDrawer(false)}
-              />
-              <motion.div
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-                className="fixed z-[901] flex flex-col inset-y-0 right-0 w-[420px] rounded-l-[2.5rem] border-l shadow-2xl"
-                style={{
-                  background: 'rgba(253, 248, 239, 0.96)',
-                  backdropFilter: 'blur(25px)',
-                  WebkitBackdropFilter: 'blur(25px)',
-                  borderLeftColor: 'rgba(18, 15, 13, 0.06)'
-                }}
-              >
-                <div className="flex-1 overflow-hidden p-2">
-                  <CheckoutPanel isSidebar={false} onClose={() => setShowCartDrawer(false)} />
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-
-        {/* Event Wizard Modal */}
-        <AnimatePresence>
-          {showEventWizard && (
-            <EventWizard slug={config?.slug || 'la-rivera'} onClose={() => setShowEventWizard(false)} />
-          )}
-        </AnimatePresence>
-
-        {/* Product Customizer & Options Modal */}
-        <AnimatePresence>
-          {selectedProduct && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[950] flex items-center justify-center p-6 bg-black/75 backdrop-blur-md"
-              onClick={() => setSelectedProduct(null)}
-            >
-              <motion.div
-                initial={{ scale: 0.95, y: 30 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.95, y: 30 }}
-                className="w-full max-w-md overflow-hidden bg-white rounded-[2.5rem] shadow-2xl border border-black/5 flex flex-col"
-                onClick={e => e.stopPropagation()}
-              >
-                <div className="relative aspect-[16/10] bg-black/5 flex-shrink-0">
-                  <img
-                    src={selectedProduct.image || selectedProduct.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800'}
-                    className="w-full h-full object-cover" 
-                    alt={selectedProduct.name}
-                  />
-                  <button 
-                    onClick={() => setSelectedProduct(null)}
-                    className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center bg-white/80 backdrop-blur shadow text-black"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div className="p-6 space-y-6 text-left overflow-y-auto max-h-[55vh] no-scrollbar">
-                  <div className="space-y-1">
-                    {selectedProduct.badge && (
-                      <span className="text-[8px] font-black uppercase tracking-[0.25em] text-[#B87D1A] block">
-                        ✦ {selectedProduct.badge}
-                      </span>
-                    )}
-                    <h3 className="text-xl font-bold tracking-tight text-[#120F0D]">{selectedProduct.name}</h3>
-                    <p className="text-xs font-light leading-relaxed text-black/60">
-                      {selectedProduct.desc || selectedProduct.description || 'Una experiencia gastronómica exclusiva elaborada bajo estrictos estándares por nuestro chef de cocina.'}
-                    </p>
-                  </div>
-
-                  {/* Variant Selector */}
-                  {selectedProduct.variants && selectedProduct.variants.length > 0 && (
-                    <div className="space-y-2.5">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-black/30">Selecciona Opción</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {selectedProduct.variants.map(v => (
-                          <button 
-                            key={v.id}
-                            onClick={() => setSelectedProduct({...selectedProduct, selectedVariant: v})}
-                            className={`px-4 py-3.5 rounded-xl text-[11px] font-bold transition-all border text-center ${
-                              selectedProduct.selectedVariant?.id === v.id
-                                ? 'bg-black text-white border-black'
-                                : 'bg-black/5 text-[#120F0D]/75 border-transparent'
-                            }`}
-                          >
-                            {v.name} (+${formatPrice(v.price)})
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Bottom Add Action */}
-                  <div className="flex items-center justify-between border-t border-black/[0.04] pt-4 mt-2">
-                    <div className="flex flex-col">
-                      <span className="text-[9px] uppercase tracking-widest text-black/30 font-bold">PRECIO</span>
-                      <span className="text-2xl font-black text-[#0C3A20]">
-                        ${formatPrice(selectedProduct.selectedVariant ? selectedProduct.selectedVariant.price : selectedProduct.price)}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => { 
-                        const toAdd = selectedProduct.selectedVariant 
-                          ? { ...selectedProduct, price: selectedProduct.selectedVariant.price, variant_id: selectedProduct.selectedVariant.id, name: `${selectedProduct.name} (${selectedProduct.selectedVariant.name})` }
-                          : selectedProduct;
-                        addToCart(toAdd); 
-                        setSelectedProduct(null); 
-                        if (navigator.vibrate) navigator.vibrate(12);
-                      }}
-                      className="px-8 py-4.5 rounded-full font-bold uppercase text-[9px] tracking-[0.2em] bg-[#120F0D] text-white hover:bg-[#0C3A20] transition-colors active:scale-95"
-                    >
-                      Añadir a la Orden
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      <DesktopEditorialView
+        allMenuData={allMenuData}
+        config={config}
+        restaurantName={restaurantName}
+        cart={cart}
+        addToCart={addToCart}
+        selectedProduct={selectedProduct}
+        setSelectedProduct={setSelectedProduct}
+        showCartDrawer={showCartDrawer}
+        setShowCartDrawer={setShowCartDrawer}
+        formatPriceFn={formatPrice}
+      />
     );
   }
+
 
   // ─── TABLET VIEWPORT: CARTA VERTICAL RÁPIDA ──────────────────
   if (mode === 'tablet') {
@@ -1165,69 +872,7 @@ export const MenuEngine = ({ config }) => {
           }
         `}</style>
 
-        {/* 1. HERO INMERSIVO DE PANTALLA COMPLETA */}
-        <header className="w-full h-screen relative flex items-center justify-center overflow-hidden bg-black">
-          <div className="absolute inset-0 w-full h-full scale-[1.05] pointer-events-none">
-            <img 
-              src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1600&q=80" 
-              alt="Showroom Gastronómico" 
-              className="w-full h-full object-cover brightness-[0.55] saturate-[0.85]"
-            />
-            <div className="absolute inset-0 bg-black/40" />
-            <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#FAF8F5] to-transparent pointer-events-none" />
-          </div>
 
-          <div className="relative z-10 text-center px-6 max-w-4xl space-y-8 flex flex-col items-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-              className="space-y-2"
-            >
-              <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-[#B87D1A] block">
-                EXPERIENCIA GASTRONÓMICA
-              </span>
-              <h1 className="font-serif italic text-6xl md:text-8xl text-white font-light tracking-tight leading-none drop-shadow-sm">
-                {restaurantName}
-              </h1>
-              <p className="font-serif italic text-lg md:text-2xl text-white/70 font-light mt-4 tracking-wide max-w-xl mx-auto">
-                Sabores del Caribe colombiano reinterpretados en cocina de autor.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 1 }}
-              className="flex items-center gap-6 pt-4"
-            >
-              <button
-                onClick={scrollToMenu}
-                className="px-8 py-4.5 rounded-full border border-white/20 text-white text-[10px] font-bold uppercase tracking-[0.25em] bg-white/5 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 active:scale-95 shadow-2xl"
-              >
-                Ver la carta
-              </button>
-              <button
-                onClick={() => setShowEventWizard(true)}
-                className="px-8 py-4.5 rounded-full text-black text-[10px] font-bold uppercase tracking-[0.25em] bg-amber-400 hover:bg-amber-500 transition-all duration-300 active:scale-95 shadow-2xl"
-              >
-                Reservar Evento
-              </button>
-            </motion.div>
-          </div>
-
-          {/* Scroll down indicator */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50 cursor-pointer pointer-events-auto" onClick={scrollToMenu}>
-            <span className="text-[9px] uppercase tracking-[0.25em] text-black">Deslizar</span>
-            <motion.div 
-              animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity }}
-              className="w-[1px] h-8 bg-black"
-            />
-          </div>
-        </header>
-
-        <div id="menu-start-anchor" />
 
         {/* 2. STICKY EDITORIAL CATEGORY NAVIGATION */}
         <nav className="sticky top-0 z-40 w-full bg-[#FAF8F5]/85 backdrop-blur-xl border-b border-black/[0.04]">
@@ -1393,19 +1038,19 @@ export const MenuEngine = ({ config }) => {
                 onClick={() => setShowCartDrawer(false)}
               />
               <motion.div
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
+                initial={{ x: '120%', opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: '120%', opacity: 0 }}
                 transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-                className="fixed z-[901] flex flex-col inset-y-0 right-0 w-[420px] rounded-l-[2.5rem] border-l shadow-2xl"
+                className="fixed z-[901] flex flex-col top-4 bottom-4 right-4 w-[400px] rounded-[2rem] border shadow-2xl overflow-hidden"
                 style={{
-                  background: 'rgba(253, 248, 239, 0.96)',
-                  backdropFilter: 'blur(25px)',
-                  WebkitBackdropFilter: 'blur(25px)',
-                  borderLeftColor: 'rgba(18, 15, 13, 0.06)'
+                  background: 'rgba(253, 248, 239, 0.85)',
+                  backdropFilter: 'blur(30px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(30px) saturate(180%)',
+                  borderColor: 'rgba(18, 15, 13, 0.08)'
                 }}
               >
-                <div className="flex-1 overflow-hidden p-2">
+                <div className="flex-1 overflow-hidden">
                   <CheckoutPanel isSidebar={false} onClose={() => setShowCartDrawer(false)} />
                 </div>
               </motion.div>
@@ -1614,6 +1259,7 @@ export const MenuEngine = ({ config }) => {
         {/* Swipable Book Container */}
         <div className="relative w-full h-full overflow-hidden">
           <div
+            key={refetchTrigger}
             ref={bookRef}
             className="w-full h-full"
             style={{

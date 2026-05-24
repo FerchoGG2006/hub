@@ -2,7 +2,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const productsService = {
   async getTenantProducts(tenantSlug) {
-    const response = await fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/menu`);
+    const response = await fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/menu?include_unavailable=true`);
     if (!response.ok) throw new Error('Error al obtener productos');
     const json = await response.json();
     const data = json.data || json;
@@ -34,15 +34,30 @@ export const productsService = {
     return response.json();
   },
 
-  async magicSnapIngest(token, file) {
+  async magicSnapIngest(token, files) {
     const formData = new FormData();
-    formData.append('file', file);
+    const fileArray = Array.isArray(files) ? files : [files];
+    fileArray.forEach(file => formData.append('files', file));
+    
     const response = await fetch(`${API_URL}/api/admin/ai-ingest`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
       body: formData,
     });
     if (!response.ok) throw new Error('Error en el análisis visual');
+    return response.json();
+  },
+
+  async updateProductImage(productId, file, token) {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    const response = await fetch(`${API_URL}/api/admin/products/${productId}/image`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
+    });
+    if (!response.ok) throw new Error('Error al actualizar la imagen');
     return response.json();
   }
 };

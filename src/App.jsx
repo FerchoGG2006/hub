@@ -11,6 +11,16 @@ import { LandingPage } from './modules/landing/LandingPage';
 import { BranchPicker } from './modules/menu_engine/BranchPicker';
 import { PrivacyPolicy } from './modules/landing/PrivacyPolicy';
 
+// Silence Chrome intervention warnings for non-cancelable touch events from third-party libraries (e.g. PageFlip)
+if (typeof window !== 'undefined' && window.TouchEvent && window.TouchEvent.prototype) {
+  const originalPreventDefault = window.TouchEvent.prototype.preventDefault;
+  window.TouchEvent.prototype.preventDefault = function () {
+    if (this.cancelable) {
+      originalPreventDefault.call(this);
+    }
+  };
+}
+
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
 /* ── MAIN APP ENGINE ── */
@@ -82,7 +92,8 @@ const HubLoader = () => {
          if (!res.ok) throw new Error('Tenant not found');
          return res.json();
       })
-      .then(data => {
+      .then(json => {
+        const data = json.data || json;
         setConfig(data);
         if (data.brand_color) {
            document.documentElement.style.setProperty('--color-primary-500', data.brand_color);

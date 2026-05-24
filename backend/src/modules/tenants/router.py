@@ -97,7 +97,7 @@ def onboard_new_tenant(
     brand_color: str = Form("#f59e0b"),
     whatsapp_number: str = Form(""),
     email: str = Form(""),
-    file: UploadFile = File(...),
+    file: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
     logger.info(f"Iniciando onboarding para: {name} ({slug})")
@@ -140,34 +140,35 @@ def onboard_new_tenant(
         db.commit()
 
         try:
-            image_bytes = file.file.read()
-            menu_data = extract_menu_from_image(image_bytes)
-            
-            for category_data in menu_data:
-                cat_name = category_data.get("category", "Miscelaneo")
-                cat_icon = category_data.get("icon", "🍽️")
+            if file and file.filename != "":
+                image_bytes = file.file.read()
+                menu_data = extract_menu_from_image(image_bytes)
                 
-                nueva_cat = models.Category(
-                    tenant_id=nuevo_tenant.id,
-                    name=cat_name,
-                    icon=cat_icon
-                )
-                db.add(nueva_cat)
-                db.commit()
-                db.refresh(nueva_cat)
-                
-                products = category_data.get("products", [])
-                for p in products:
-                    nuevo_prod = models.Product(
+                for category_data in menu_data:
+                    cat_name = category_data.get("category", "Miscelaneo")
+                    cat_icon = category_data.get("icon", "🍽️")
+                    
+                    nueva_cat = models.Category(
                         tenant_id=nuevo_tenant.id,
-                        category_id=nueva_cat.id,
-                        name=p.get("name", "Plato Desconocido"),
-                        description=p.get("description", ""),
-                        price=str(p.get("price", "$0")),
-                        emoji=p.get("emoji", "🍽️")
+                        name=cat_name,
+                        icon=cat_icon
                     )
-                    db.add(nuevo_prod)
-                db.commit()
+                    db.add(nueva_cat)
+                    db.commit()
+                    db.refresh(nueva_cat)
+                    
+                    products = category_data.get("products", [])
+                    for p in products:
+                        nuevo_prod = models.Product(
+                            tenant_id=nuevo_tenant.id,
+                            category_id=nueva_cat.id,
+                            name=p.get("name", "Plato Desconocido"),
+                            description=p.get("description", ""),
+                            price=str(p.get("price", "$0")),
+                            emoji=p.get("emoji", "🍽️")
+                        )
+                        db.add(nuevo_prod)
+                    db.commit()
         except Exception as e:
             logger.error(f"Error procesando menú IA: {e}")
 
