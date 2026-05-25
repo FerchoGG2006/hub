@@ -12,6 +12,8 @@ import json
 
 router = APIRouter(prefix="/api/admin/instagram", tags=["social"])
 
+from src.shared.presence_engine import is_branch_open
+
 @router.get("/status")
 def get_instagram_status(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     branches = db.query(models.Branch).filter(models.Branch.tenant_id == current_user.tenant_id, models.Branch.is_active == True).all()
@@ -25,10 +27,12 @@ def get_instagram_status(db: Session = Depends(get_db), current_user: models.Use
             "autopilot_active": b.autopilot_active,
             "opening_time": b.opening_time or "11:00",
             "closing_time": b.closing_time or "22:00",
+            "is_open": is_branch_open(b),
             "is_linked": bool(b.ig_token)
         } for b in branches
     ]
     return success_response({"branches": data})
+
 
 class AutopilotToggleRequest(BaseModel):
     active: bool

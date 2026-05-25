@@ -59,27 +59,54 @@ export const MarketingManager = () => {
         });
         
         const json = await res.json();
-        const data = json.data || json;
+        const responseData = json.data || json;
         
-        if (data.status === 'success') {
-            const count = data.contacts_count || 5; // Default for simulation if empty
+        if (responseData.status === 'success') {
+            const campaignId = responseData.campaign_id;
+            const count = responseData.contacts_count;
             setTotalContacts(count);
             
-            // Simulación de envío progresivo para UX Premium
-            for (let i = 1; i <= count; i++) {
-                await new Promise(r => setTimeout(r, 150)); // Simular latencia de red por mensaje
-                setSentCount(i);
-                setProgress((i / count) * 100);
-            }
-            
-            alert(`🚀 ¡Campaña completada! Se enviaron ${count} mensajes por WhatsApp y Email.`);
+            // Sondeo (polling) en tiempo real del progreso de envío asíncrono
+            await new Promise((resolve, reject) => {
+                const pollInterval = setInterval(async () => {
+                    try {
+                        const progressRes = await fetch(`${API_URL}/api/admin/marketing/campaigns/${campaignId}/progress`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (progressRes.ok) {
+                            const progressJson = await progressRes.json();
+                            const progressData = progressJson.data || progressJson;
+                            
+                            const delivered = progressData.stats.delivered;
+                            const failed = progressData.stats.failed;
+                            const currentProgress = progressData.stats.progress_percent;
+                            
+                            setSentCount(delivered + failed);
+                            setProgress(currentProgress);
+                            
+                            if (progressData.status === 'completed' || progressData.status === 'failed') {
+                                clearInterval(pollInterval);
+                                alert(`🚀 ¡Campaña procesada! ${delivered} entregados, ${failed} fallidos.`);
+                                resolve();
+                            }
+                        }
+                    } catch (err) {
+                        clearInterval(pollInterval);
+                        reject(err);
+                    }
+                }, 1000);
+            });
+        } else {
+            alert(`Error al encolar: ${responseData.message}`);
         }
     } catch (err) {
         console.error(err);
-        alert("Error al procesar el envío masivo.");
+        alert("Error al procesar el envío masivo en la cola.");
+    } finally {
+        setSending(false);
     }
-    setSending(false);
   };
+
 
   return (
     <div className="max-w-4xl mx-auto space-y-10">

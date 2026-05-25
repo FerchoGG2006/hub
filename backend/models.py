@@ -253,8 +253,44 @@ class Customer(Base):
     total_orders = Column(Integer, default=0)
     last_interaction = Column(DateTime, default=datetime.utcnow)
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Nuevos campos de CRM, opt-in y segmentación
+    whatsapp_opt_in = Column(Boolean, default=True)
+    instagram_username = Column(String(100), nullable=True)
+    last_order_at = Column(DateTime, nullable=True)
+    tags = Column(JSON, default=[])
 
     tenant = relationship("Tenant")
+
+class Campaign(Base):
+    """Modelo para registrar Campañas Masivas creadas por el admin o la IA."""
+    __tablename__ = "campaigns"
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    name = Column(String(100), nullable=False)
+    campaign_type = Column(String(20), nullable=False)  # "whatsapp", "email", "instagram", "sms"
+    audience_filter = Column(String(50), default="all")  # "all", "inactive", "vip"
+    message_body = Column(Text, nullable=False)
+    status = Column(String(20), default="pending")  # "pending", "sending", "completed", "failed"
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    tenant = relationship("Tenant")
+    jobs = relationship("CampaignJob", back_populates="campaign", cascade="all, delete-orphan")
+
+class CampaignJob(Base):
+    """Modelo para la cola de envíos individuales de una Campaña."""
+    __tablename__ = "campaign_jobs"
+    id = Column(Integer, primary_key=True, index=True)
+    campaign_id = Column(Integer, ForeignKey("campaigns.id"), nullable=False)
+    customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False)
+    status = Column(String(20), default="pending")  # "pending", "sending", "delivered", "failed"
+    delivered_at = Column(DateTime, nullable=True)
+    failed_reason = Column(Text, nullable=True)
+    retry_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    campaign = relationship("Campaign", back_populates="jobs")
+    customer = relationship("Customer")
 
 class Payment(Base):
     """Registros de transacciones de pago reales confirmadas."""
@@ -269,3 +305,4 @@ class Payment(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     session = relationship("PaymentSession")
+

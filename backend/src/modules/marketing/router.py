@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 import models
 import auth
@@ -7,6 +7,7 @@ from src.shared.utils.responses import success_response
 from pydantic import BaseModel
 import datetime
 import json
+from src.modules.marketing.worker import process_campaign_queue
 
 router = APIRouter(prefix="/api/admin/marketing", tags=["marketing"])
 
@@ -74,30 +75,120 @@ def generate_ai_campaign(req: AIMarketingRequest, db: Session = Depends(get_db),
     return success_response(data)
 
 @router.post("/send-mass")
-def send_mass_campaign(req: AIMarketingRequest, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+def send_mass_campaign(
+    req: AIMarketingRequest, 
+    background_tasks: BackgroundTasks, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.get_current_user)
+):
     tid = current_user.tenant_id
-    if not tid: return success_response({"status": "error", "message": "No tenant found"})
+    if not tid: 
+        return success_response({"status": "error", "message": "No tenant found"})
     
-    # Consultar directamente nuestra nueva base de datos centralizada de clientes
+    # 1. Obtener la audiencia (clientes con número de teléfono registrado)
     customers = db.query(models.Customer).filter_by(tenant_id=tid).all()
-    all_phones = [c.phone for c in customers if c.phone]
+    target_customers = [c for c in customers if c.phone]
     
-    # Envío real a través de Meta Cloud API usando la utilidad existente
-    from events import send_whatsapp_message
+    if not target_customers:
+        return success_response({
+            "status": "error",
+            "message": "No hay clientes con teléfono registrados en el CRM para esta sede."
+        })
     
-    # Intentamos buscar el texto generado de la campaña o usamos un texto persuasivo por defecto
+    # 2. Crear la Campaña en la base de datos
+    campaign_name = f"Campaña Masiva — {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}"
     sms_text = req.goal or "¡Aprovecha hoy nuestro descuento exclusivo! Toca el link y pide en Platorin."
     
-    for c in customers:
-        if c.phone:
-            send_whatsapp_message(c.phone, sms_text)
-    
+    new_campaign = models.Campaign(
+        tenant_id=tid,
+        name=campaign_name,
+        campaign_type="whatsapp",
+        audience_filter="all",
+        message_body=sms_text,
+        status="pending"
+    )
+    db.add(new_campaign)
+    db.commit()
+    db.refresh(new_campaign)
+
+    # 3. Crear los Jobs individuales en la cola
+    for cust in target_customers:
+        job = models.CampaignJob(
+            campaign_id=new_campaign.id,
+            customer_id=cust.id,
+            status="pending"
+        )
+        db.add(job)
+    db.commit()
+
+    # 4. Encolar la ejecución asíncrona en BackgroundTasks
+    background_tasks.add_task(process_campaign_queue, new_campaign.id)
+
     return success_response({
         "status": "success",
-        "contacts_count": len(all_phones),
-        "message": f"Campaña programada para {len(all_phones)} contactos registrados.",
-        "phones": all_phones
+        "campaign_id": new_campaign.id,
+        "contacts_count": len(target_customers),
+        "message": f"Campaña encolada exitosamente para {len(target_customers)} clientes."
     })
+
+@router.get("/campaigns")
+def list_campaigns(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    """Lista el historial de campañas creadas."""
+    tid = current_user.tenant_id
+    if not tid: 
+        return success_response([])
+    
+    camps = db.query(models.Campaign).filter_by(tenant_id=tid).order_by(models.Campaign.created_at.desc()).all()
+    return success_response([
+        {
+            "id": c.id,
+            "name": c.name,
+            "campaign_type": c.campaign_type,
+            "status": c.status,
+            "message_body": c.message_body,
+            "created_at": c.created_at.isoformat()
+        } for c in camps
+    ])
+
+@router.get("/campaigns/{campaign_id}/progress")
+def get_campaign_progress(campaign_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    """Retorna las estadísticas reales del progreso de envío de una campaña."""
+    campaign = db.query(models.Campaign).filter_by(id=campaign_id).first()
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaña no encontrada")
+
+    if current_user.role != "superadmin" and campaign.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=403, detail="No tienes acceso a esta campaña")
+
+    jobs = db.query(models.CampaignJob).filter_by(campaign_id=campaign_id).all()
+    
+    total = len(jobs)
+    pending = sum(1 for j in jobs if j.status in ("pending", "sending"))
+    delivered = sum(1 for j in jobs if j.status == "delivered")
+    failed = sum(1 for j in jobs if j.status == "failed")
+
+    return success_response({
+        "campaign_id": campaign.id,
+        "name": campaign.name,
+        "status": campaign.status,
+        "stats": {
+            "total": total,
+            "pending": pending,
+            "delivered": delivered,
+            "failed": failed,
+            "progress_percent": round((delivered + failed) / total * 100, 1) if total > 0 else 100
+        },
+        "jobs": [
+            {
+                "id": j.id,
+                "customer_name": j.customer.name or "Sin nombre",
+                "phone": j.customer.phone,
+                "status": j.status,
+                "failed_reason": j.failed_reason
+            } for j in jobs
+        ]
+    })
+
 
 @router.get("/coupon/{code}")
 def validate_coupon(slug: str, code: str, db: Session = Depends(get_db)):

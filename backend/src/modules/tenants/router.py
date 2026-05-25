@@ -12,6 +12,7 @@ from datetime import datetime
 
 router = APIRouter(prefix="/api", tags=["tenants"])
 logger = logging.getLogger("platorin")
+from src.shared.presence_engine import is_branch_open
 
 @router.get("/v1/tenant/{slug}")
 def get_tenant_config(slug: str, db: Session = Depends(get_db)):
@@ -47,6 +48,9 @@ def get_tenant_config(slug: str, db: Session = Depends(get_db)):
                 "ig_username": b.ig_username,
                 "ig_profile_picture": b.ig_profile_picture,
                 "autopilot_active": b.autopilot_active,
+                "opening_time": b.opening_time or "11:00",
+                "closing_time": b.closing_time or "22:00",
+                "is_open": is_branch_open(b),
                 "tt_username": b.tt_username,
                 "tt_profile_picture": b.tt_profile_picture,
                 "is_tt_linked": bool(b.tt_token)
@@ -54,6 +58,7 @@ def get_tenant_config(slug: str, db: Session = Depends(get_db)):
         ]
     }
     return success_response(data)
+
 
 @router.get("/admin/tenants")
 def get_all_tenants(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_superadmin)):

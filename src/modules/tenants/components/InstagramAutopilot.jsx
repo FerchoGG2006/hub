@@ -45,15 +45,20 @@ export const InstagramAutopilot = () => {
       });
       if (res.ok) {
         const data = await res.json();
-        setBranches(data.branches || []);
-        if (data.branches?.length > 0) {
-            setIsLinked(data.branches.some(b => b.is_linked));
-            const first = data.branches[0];
-            const allSame = data.branches.every(b => b.opening_time === first.opening_time && b.closing_time === first.closing_time && b.autopilot_active === first.autopilot_active);
+        const branchList = data.branches || [];
+        setBranches(branchList);
+        if (branchList.length > 0) {
+            setIsLinked(branchList.some(b => b.is_linked));
+            const first = branchList[0];
+            const allSame = branchList.every(b => b.opening_time === first.opening_time && b.closing_time === first.closing_time && b.autopilot_active === first.autopilot_active);
 
             if (allSame) {
                 setGlobalHours({ opening_time: first.opening_time, closing_time: first.closing_time, active: first.autopilot_active });
             }
+
+            // Inicializar el simulador con el estado real del backend
+            setBioStatus(first.is_open ? 'OPEN' : 'CLOSED');
+            setSimulatedTime(new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false }));
         }
       }
     } catch (e) {
@@ -62,17 +67,24 @@ export const InstagramAutopilot = () => {
   };
 
   useEffect(() => {
-    if (isLinked) {
+    if (isLinked && branches.length > 0) {
+      const first = branches[0];
       const interval = setInterval(() => {
         setSimulatedTime(prev => {
-           if(prev === '08:00') { setBioStatus('OPEN'); return '11:00'; }
-           if(prev === '11:00') { setBioStatus('CLOSED'); return '22:00'; }
-           if(prev === '22:00') { setBioStatus('CLOSED'); return '08:00'; }
+           // Ciclamos para demostrar cómo cambia de forma dinámica
+           if (bioStatus === 'CLOSED') {
+               setBioStatus('OPEN');
+               return first.opening_time || '11:00';
+           } else {
+               setBioStatus('CLOSED');
+               return first.closing_time || '22:00';
+           }
         });
-      }, 3000);
+      }, 4000);
       return () => clearInterval(interval);
     }
-  }, [isLinked]);
+  }, [isLinked, branches, bioStatus]);
+
 
   const handleFBLogin = () => {
     if (!window.FB) return alert("Cargando SDK de Facebook...");
