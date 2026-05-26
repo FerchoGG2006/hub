@@ -323,11 +323,31 @@ export const MenuEngine = ({ config }) => {
   
   const [currentPage, setCurrentPage]         = useState(0);
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const trackProductClick = useCallback(async (productId) => {
+    try {
+      const slug = config?.slug || 'la-rivera';
+      await fetch(`${API_URL}/api/v1/analytics/track?product_id=${productId}&action=view&tenant_slug=${slug}`, {
+        method: 'POST'
+      });
+    } catch (e) {
+      console.warn('Analytics tracking ignored:', e.message);
+    }
+  }, [config?.slug]);
+
+  const handleSelectProduct = useCallback((item) => {
+    setSelectedProduct(item);
+    if (item?.id) {
+      trackProductClick(item.id);
+    }
+  }, [trackProductClick]);
+
   const [showEventWizard, setShowEventWizard] = useState(false);
   const [showPeel, setShowPeel]               = useState(false);
   const [hasInteracted, setHasInteracted]     = useState(false);
   const [activeCategory, setActiveCategory]   = useState('');
   const [showCartDrawer, setShowCartDrawer]   = useState(false);
+
 
   const bookRef        = useRef(null);
   const pflip          = useRef(null);
@@ -811,7 +831,7 @@ export const MenuEngine = ({ config }) => {
         cart={cart}
         addToCart={addToCart}
         selectedProduct={selectedProduct}
-        setSelectedProduct={setSelectedProduct}
+        setSelectedProduct={handleSelectProduct}
         showCartDrawer={showCartDrawer}
         setShowCartDrawer={setShowCartDrawer}
         formatPriceFn={formatPrice}
@@ -938,7 +958,7 @@ export const MenuEngine = ({ config }) => {
                         {/* Immersive Photo */}
                         <div 
                           className="w-full md:w-[55%] aspect-[16/11] rounded-[1.8rem] overflow-hidden bg-[#F7F2E9] relative group cursor-pointer shadow-md border border-black/[0.02]"
-                          onClick={() => setSelectedProduct(item)}
+                          onClick={() => handleSelectProduct(item)}
                         >
                           <img 
                             src={itemImg} 
@@ -976,7 +996,7 @@ export const MenuEngine = ({ config }) => {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (item.variants && item.variants.length > 0) {
-                                  setSelectedProduct(item);
+                                  handleSelectProduct(item);
                                 } else {
                                   addToCart(item);
                                   if (navigator.vibrate) navigator.vibrate(12);
@@ -1346,7 +1366,7 @@ export const MenuEngine = ({ config }) => {
                           key={item.id}
                           item={item}
                           accent={meta.accent}
-                          onSelect={() => { setSelectedProduct(item); handleInteraction(); }}
+                          onSelect={() => { handleSelectProduct(item); handleInteraction(); }}
                         />
                       ))}
                     </div>

@@ -83,8 +83,10 @@ def get_tenant_metrics(
         "currency": "COP"
     })
 
+from src.shared.utils.websocket_manager import manager
+
 @router.post("/track")
-def track_event(
+async def track_event(
     product_id: int, 
     action: str, 
     tenant_slug: str, 
@@ -97,4 +99,17 @@ def track_event(
     log = models.Analytics(tenant_id=tenant.id, product_id=product_id, action=action)
     db.add(log)
     db.commit()
+    
+    # Notificar en tiempo real vía WebSockets al panel administrador
+    try:
+        await manager.broadcast({
+            "type": "ANALYTICS_UPDATE", 
+            "tenant_id": tenant.id,
+            "product_id": product_id,
+            "action": action
+        }, tenant_id=tenant.id)
+    except Exception as e:
+        logger.error(f"Error broadcasting analytics update: {e}")
+        
     return success_response({"status": "ok"})
+
