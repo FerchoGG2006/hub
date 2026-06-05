@@ -34,6 +34,8 @@ class Tenant(Base):
     # Phase 4 Billing
     subscription_status = Column(String(20), default="active") # active, suspended
     valid_until = Column(DateTime, nullable=True)
+    chatbot_enabled = Column(Boolean, default=True)
+    chatbot_personality = Column(Text, default="Eres PlatoBot, el asistente inteligente de este restaurante. Responde preguntas sobre el menú de forma amable y concisa.")
 
     branches = relationship("Branch", back_populates="tenant", cascade="all, delete-orphan")
 
@@ -302,7 +304,65 @@ class Payment(Base):
     method = Column(String(50), nullable=True)
     status = Column(String(20), nullable=False)
     raw_response = Column(JSON, nullable=True)
+    session = relationship("PaymentSession")
+
+class WhatsAppMessage(Base):
+    __tablename__ = "whatsapp_messages"
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    customer_id = Column(Integer, ForeignKey("customers.id"), nullable=True)
+    phone = Column(String(20), index=True, nullable=False)
+    sender = Column(String(20), nullable=False)  # "customer" | "agent" | "bot"
+    body = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    session = relationship("PaymentSession")
+    tenant = relationship("Tenant")
+    customer = relationship("Customer")
+
+class CartSession(Base):
+    __tablename__ = "cart_sessions"
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    phone = Column(String(20), index=True, nullable=False)
+    customer_name = Column(String(100), nullable=True)
+    items_json = Column(Text, nullable=False)
+    status = Column(String(20), default="active")  # "active" | "converted" | "abandoned" | "recovered"
+    last_interaction = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    tenant = relationship("Tenant")
+
+
+class CashSession(Base):
+    __tablename__ = "cash_sessions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    opened_at = Column(DateTime, default=datetime.utcnow)
+    closed_at = Column(DateTime, nullable=True)
+    opened_by = Column(String(100), nullable=True)
+    closed_by = Column(String(100), nullable=True)
+    base_amount = Column(Integer, default=0)       # Efectivo con el que abre
+    real_cash = Column(Integer, nullable=True)       # Dinero real contado al cerrar
+    status = Column(String(20), default="open")     # "open" | "closed"
+    notes = Column(Text, nullable=True)
+
+    tenant = relationship("Tenant")
+    expenses = relationship("CashExpense", back_populates="session", cascade="all, delete-orphan")
+
+
+class CashExpense(Base):
+    __tablename__ = "cash_expenses"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(Integer, ForeignKey("cash_sessions.id"), nullable=False)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    amount = Column(Integer, nullable=False)
+    description = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    created_by = Column(String(100), nullable=True)
+
+    session = relationship("CashSession", back_populates="expenses")
+    tenant = relationship("Tenant")
+
 

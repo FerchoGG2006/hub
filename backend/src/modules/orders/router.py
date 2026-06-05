@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import models
 import auth
 from database import get_db
@@ -265,3 +265,195 @@ def get_cash_summary(db: Session = Depends(get_db), current_user: models.User = 
         "ticket_promedio": round(total_ventas / total_pedidos_cerrados, 0) if total_pedidos_cerrados > 0 else 0,
         "metodos_pago": metodos
     })
+
+
+class OpenSessionRequest(BaseModel):
+    base_amount: int
+    notes: Optional[str] = None
+
+
+class CloseSessionRequest(BaseModel):
+    real_cash: int
+    notes: Optional[str] = None
+
+
+class AddExpenseRequest(BaseModel):
+    amount: int
+    description: str
+
+
+@router.get("/admin/caja/session/current")
+def get_current_cash_session(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    """Obtiene la sesión de caja abierta actual de un tenant."""
+    tid = current_user.tenant_id
+    session = db.query(models.CashSession).filter_by(tenant_id=tid, status="open").first()
+    if not session:
+        return success_response(None)
+    
+    # Calcular dinámicamente las ventas en efectivo durante este turno
+    orders = db.query(models.Order).filter(
+        models.Order.tenant_id == tid,
+        models.Order.status == "paid",
+        models.Order.payment_method == "efectivo",
+        models.Order.created_at >= session.opened_at
+    ).all()
+    cash_sales = sum(o.total_price for o in orders)
+
+    # Calcular ventas digitales durante este turno (informativo)
+    digital_orders = db.query(models.Order).filter(
+        models.Order.tenant_id == tid,
+        models.Order.status == "paid",
+        models.Order.payment_method != "efectivo",
+        models.Order.created_at >= session.opened_at
+    ).all()
+    digital_sales = sum(o.total_price for o in digital_orders)
+
+    # Calcular egresos registrados durante este turno
+    expenses = db.query(models.CashExpense).filter_by(session_id=session.id).all()
+    total_expenses = sum(e.amount for e in expenses)
+
+    return success_response({
+        "id": session.id,
+        "opened_at": session.opened_at.isoformat(),
+        "opened_by": session.opened_by,
+        "base_amount": session.base_amount,
+        "cash_sales": cash_sales,
+        "digital_sales": digital_sales,
+        "total_expenses": total_expenses,
+        "expected_cash": session.base_amount + cash_sales - total_expenses,
+        "status": session.status,
+        "notes": session.notes,
+        "expenses": [
+            {
+                "id": e.id,
+                "amount": e.amount,
+                "description": e.description,
+                "created_at": e.created_at.isoformat(),
+                "created_by": e.created_by
+            } for e in expenses
+        ]
+    })
+
+
+@router.post("/admin/caja/session/open")
+def open_cash_session(req: OpenSessionRequest, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    """Abre un nuevo turno/sesión de caja en el local."""
+    tid = current_user.tenant_id
+    # Validar que no haya una caja ya abierta
+    existing = db.query(models.CashSession).filter_by(tenant_id=tid, status="open").first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Ya existe un turno de caja abierto en este local.")
+
+    new_session = models.CashSession(
+        tenant_id=tid,
+        base_amount=req.base_amount,
+        opened_by=current_user.username,
+        status="open",
+        notes=req.notes
+    )
+    db.add(new_session)
+    db.commit()
+    db.refresh(new_session)
+    return success_response({"status": "ok", "message": "Turno de caja abierto correctamente"})
+
+
+@router.post("/admin/caja/session/expense")
+def add_cash_expense(req: AddExpenseRequest, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    """Registra un egreso de caja chica para gastos menores."""
+    tid = current_user.tenant_id
+    # Obtener sesión activa
+    session = db.query(models.CashSession).filter_by(tenant_id=tid, status="open").first()
+    if not session:
+        raise HTTPException(status_code=400, detail="No hay ningún turno de caja abierto para registrar egresos.")
+
+    new_expense = models.CashExpense(
+        session_id=session.id,
+        tenant_id=tid,
+        amount=req.amount,
+        description=req.description,
+        created_by=current_user.username
+    )
+    db.add(new_expense)
+    db.commit()
+    db.refresh(new_expense)
+    return success_response({"status": "ok", "message": "Egreso de caja registrado correctamente"})
+
+
+@router.post("/admin/caja/session/close")
+def close_cash_session(req: CloseSessionRequest, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    """Realiza el arqueo y cierre del turno de caja actual."""
+    tid = current_user.tenant_id
+    session = db.query(models.CashSession).filter_by(tenant_id=tid, status="open").first()
+    if not session:
+        raise HTTPException(status_code=400, detail="No hay ningún turno de caja abierto para realizar el cierre.")
+
+    # Calcular ventas en efectivo durante este turno
+    orders = db.query(models.Order).filter(
+        models.Order.tenant_id == tid,
+        models.Order.status == "paid",
+        models.Order.payment_method == "efectivo",
+        models.Order.created_at >= session.opened_at
+    ).all()
+    cash_sales = sum(o.total_price for o in orders)
+
+    # Calcular egresos
+    expenses = db.query(models.CashExpense).filter_by(session_id=session.id).all()
+    total_expenses = sum(e.amount for e in expenses)
+
+    expected_cash = session.base_amount + cash_sales - total_expenses
+    discrepancy = req.real_cash - expected_cash
+
+    session.closed_at = datetime.utcnow()
+    session.closed_by = current_user.username
+    session.real_cash = req.real_cash
+    session.status = "closed"
+    session.notes = (session.notes or "") + f"\n[Cierre] Real: ${req.real_cash} | Esperado: ${expected_cash} | Discrepancia: ${discrepancy}. Notes: {req.notes or ''}"
+    
+    db.commit()
+    return success_response({
+        "status": "ok",
+        "message": "Cierre de caja registrado correctamente",
+        "expected_cash": expected_cash,
+        "real_cash": req.real_cash,
+        "discrepancy": discrepancy
+    })
+
+
+@router.get("/admin/caja/session/history")
+def get_cash_session_history(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    """Lista las sesiones de caja cerradas históricamente para auditoría."""
+    tid = current_user.tenant_id
+    sessions = db.query(models.CashSession).filter_by(tenant_id=tid, status="closed").order_by(models.CashSession.closed_at.desc()).limit(30).all()
+    
+    res = []
+    for s in sessions:
+        orders = db.query(models.Order).filter(
+            models.Order.tenant_id == tid,
+            models.Order.status == "paid",
+            models.Order.payment_method == "efectivo",
+            models.Order.created_at >= s.opened_at,
+            models.Order.created_at <= s.closed_at
+        ).all()
+        cash_sales = sum(o.total_price for o in orders)
+        
+        expenses = db.query(models.CashExpense).filter_by(session_id=s.id).all()
+        total_expenses = sum(e.amount for e in expenses)
+        
+        expected_cash = s.base_amount + cash_sales - total_expenses
+        discrepancy = (s.real_cash or 0) - expected_cash
+        
+        res.append({
+            "id": s.id,
+            "opened_at": s.opened_at.isoformat(),
+            "closed_at": s.closed_at.isoformat() if s.closed_at else None,
+            "opened_by": s.opened_by,
+            "closed_by": s.closed_by,
+            "base_amount": s.base_amount,
+            "cash_sales": cash_sales,
+            "total_expenses": total_expenses,
+            "expected_cash": expected_cash,
+            "real_cash": s.real_cash,
+            "discrepancy": discrepancy,
+            "notes": s.notes
+        })
+    return success_response(res)

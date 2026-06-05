@@ -56,6 +56,7 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
   }, [cart]);
 
   const handleFinish = async () => {
+    if (sending) return;
     if (!customerName || !phone) {
       alert("Por favor completa tu nombre y número de WhatsApp.");
       return;
@@ -196,7 +197,7 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
         .cart {
           width: 100%;
           height: 100%;
-          background: transparent;
+          background: var(--white);
           display: flex;
           flex-direction: column;
           overflow: hidden;
@@ -204,21 +205,21 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
           color: var(--ink);
         }
         .cart-top {
-          padding: 1.25rem 1.25rem 0.75rem;
+          padding: 0.9rem 1.25rem 0.6rem;
           border-bottom: 1px solid var(--ink-10);
           flex-shrink: 0;
+          background: var(--white);
         }
         .cart-top-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 0.8rem;
         }
         .cart-title {
           font-family: var(--serif);
           font-style: italic;
           font-weight: 700;
-          font-size: 1.4rem;
+          font-size: 1.35rem;
           color: var(--ink);
           letter-spacing: -.01em;
         }
@@ -241,16 +242,16 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
 
         .mini-field {
           width: 100%;
-          padding: 0.55rem 0.75rem;
+          padding: 0.5rem 0.75rem;
           border: 1.5px solid var(--ink-10);
           border-radius: var(--r1);
-          font-size: .76rem;
+          font-size: .74rem;
           font-family: var(--sans);
           color: var(--ink);
           background: rgba(255,255,255,0.6);
           outline: none;
-          transition: border .2s;
-          margin-bottom: 0.5rem;
+          transition: border .2s, background-color .2s;
+          margin-bottom: 0.45rem;
         }
         .mini-field:focus { border-color: var(--green); background: #FFF; }
         .mini-field::placeholder { color: var(--ink-25); }
@@ -296,18 +297,40 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
           border-bottom: 1px solid var(--ink-05);
         }
         .ci:last-child { border-bottom: none; }
-        .ci-q {
-          width: 20px;
-          height: 20px;
-          border-radius: 5px;
-          background: var(--green);
-          color: var(--white);
-          font-size: .6rem;
+        .ci-qty-selector {
+          display: flex;
+          align-items: center;
+          background: var(--green-l);
+          border: 1px solid rgba(27,94,56,0.15);
+          border-radius: var(--r1);
+          padding: 2px;
+          gap: 0.15rem;
+          flex-shrink: 0;
+        }
+        .ci-qty-btn {
+          width: 18px;
+          height: 18px;
+          border: none;
+          background: transparent;
+          color: var(--green);
+          font-size: 0.72rem;
           font-weight: 800;
+          cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          flex-shrink: 0;
+          transition: background 0.12s;
+          border-radius: 4px;
+        }
+        .ci-qty-btn:hover {
+          background: rgba(27,94,56,0.12);
+        }
+        .ci-qty-val {
+          min-width: 14px;
+          text-align: center;
+          font-size: 0.68rem;
+          font-weight: 800;
+          color: var(--green);
         }
         .ci-name {
           flex: 1;
@@ -354,41 +377,48 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
         }
         .rec-row {
           display: flex;
-          flex-direction: column;
-          gap: .35rem;
+          gap: .5rem;
+          overflow-x: auto;
+          scrollbar-width: none;
+          padding-bottom: 0.25rem;
         }
+        .rec-row::-webkit-scrollbar { display: none; }
         .rec-item {
           display: flex;
           align-items: center;
-          gap: .5rem;
-          padding: .4rem .5rem;
+          gap: .45rem;
+          padding: .4rem .55rem;
           border-radius: var(--r1);
           background: var(--gold-l);
-          border: 1px solid rgba(200,137,26,.1);
+          border: 1px solid rgba(184, 125, 26, 0.12);
           cursor: pointer;
           transition: background .15s;
+          flex-shrink: 0;
+          width: 155px;
         }
-        .rec-item:hover { background: rgba(200,137,26,.18); }
+        .rec-item:hover { background: rgba(184, 125, 26, 0.14); }
         .ri-img {
-          width: 28px;
-          height: 28px;
-          border-radius: 5px;
+          width: 24px;
+          height: 24px;
+          border-radius: 4px;
           overflow: hidden;
           flex-shrink: 0;
-          background: rgba(255,255,255,0.5);
+          background: rgba(255,255,255,0.6);
           display: flex;
           align-items: center;
           justify-content: center;
         }
         .ri-info { flex: 1; min-width: 0; }
-        .ri-name { font-size: .68rem; font-weight: 600; color: var(--ink); line-height: 1.2; }
-        .ri-sub { font-size: .58rem; color: var(--ink-55); font-weight: 300; }
-        .ri-add { font-size: .6rem; font-weight: 700; color: var(--green); flex-shrink: 0; }
+        .ri-name { font-size: .64rem; font-weight: 600; color: var(--ink); line-height: 1.15; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+        .ri-sub { font-size: .54rem; color: var(--ink-55); font-weight: 400; }
+        .ri-add { font-size: .56rem; font-weight: 800; color: var(--green); flex-shrink: 0; margin-left: auto; }
 
         .cart-foot {
-          padding: 1rem 1.25rem 1.25rem;
+          padding: 0.7rem 1.25rem 0.95rem;
           border-top: 1px solid var(--ink-10);
+          background: var(--white);
           flex-shrink: 0;
+          box-shadow: 0 -3px 10px rgba(0,0,0,0.02);
         }
         .field-label {
           font-size: .58rem;
@@ -428,19 +458,19 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
         .tot-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .25rem; }
         .tot-lbl { font-size: .7rem; color: var(--ink-55); font-weight: 400; }
         .tot-v { font-size: .78rem; font-weight: 700; color: var(--ink); }
-        .total-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: .35rem; }
+        .total-row { display: flex; justify-content: space-between; align-items: baseline; mt-1; }
         .total-lbl { font-family: var(--serif); font-style: italic; font-size: 1.1rem; font-weight: 600; color: var(--ink); }
         .total-v { font-size: 1.15rem; font-weight: 800; color: var(--green); letter-spacing: -.03em; }
 
         .cta {
           width: 100%;
-          padding: .75rem;
+          padding: 0.65rem;
           background: var(--green);
           color: var(--white);
           border: none;
           border-radius: var(--r4);
           font-family: var(--sans);
-          font-size: .82rem;
+          font-size: 0.78rem;
           font-weight: 700;
           cursor: pointer;
           transition: all .18s var(--ease);
@@ -448,20 +478,20 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
           align-items: center;
           justify-content: center;
           gap: .4rem;
-          margin-top: 1rem;
+          margin-top: 0.4rem;
         }
-        .cta:hover:not(:disabled) { background: var(--green-xd); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(27,94,56,.22); }
+        .cta:hover:not(:disabled) { background: var(--green-xd); transform: translateY(-1px); box-shadow: 0 4px 15px rgba(27,94,56,.18); }
         .cta:disabled { opacity: .35; cursor: not-allowed; transform: none; }
         
         .cta-wa {
           width: 100%;
-          padding: .65rem;
+          padding: 0.55rem;
           background: rgba(37,211,102,.1);
           color: var(--wa);
           border: 1.5px solid rgba(37,211,102,.2);
           border-radius: var(--r4);
           font-family: var(--sans);
-          font-size: .76rem;
+          font-size: 0.72rem;
           font-weight: 700;
           cursor: pointer;
           transition: all .16s;
@@ -469,10 +499,10 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
           align-items: center;
           justify-content: center;
           gap: .35rem;
-          margin-top: .45rem;
+          margin-top: 0.35rem;
         }
-        .cta-wa:hover { background: rgba(37,211,102,.18); }
-        .wompi-line { display: flex; align-items: center; justify-content: center; gap: .3rem; margin-top: .6rem; font-size: .6rem; color: var(--ink-25); }
+        .cta-wa:hover { background: rgba(37,211,102,.16); }
+        .wompi-line { display: flex; align-items: center; justify-content: center; gap: .3rem; margin-top: 0.45rem; font-size: 0.58rem; color: var(--ink-25); }
         .wompi-line span { background: rgba(95,53,205,.08); color: #5F35CD; padding: .1rem .4rem; border-radius: 3px; font-weight: 800; font-size: .58rem; }
       `}</style>
 
@@ -505,8 +535,6 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
               )}
             </div>
           </div>
-          <input className="mini-field" type="text" placeholder="Nombre completo" value={customerName} onChange={e => setCustomerName(e.target.value)} />
-          <input className="mini-field" type="tel" placeholder="WhatsApp · Teléfono" value={phone} onChange={e => setPhone(e.target.value)} style={{ marginBottom: 0 }} />
         </div>
 
         <div className="cart-scroll-area">
@@ -520,12 +548,16 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
             ) : (
               cart.map(item => (
                 <div key={item.instanceId} className="ci">
-                  <div className="ci-q">{item.qty}</div>
+                  <div className="ci-qty-selector">
+                    <button className="ci-qty-btn" onClick={() => updateQty(item.instanceId, -1)}>−</button>
+                    <span className="ci-qty-val">{item.qty}</span>
+                    <button className="ci-qty-btn" onClick={() => updateQty(item.instanceId, 1)}>+</button>
+                  </div>
                   <div className="ci-name">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span>{item.name}</span>
-                      <button onClick={() => setEditingItem(item)} className="text-[7.5px] uppercase tracking-[0.1em] font-black text-amber-700/70 hover:text-amber-800">
-                        ✎
+                      <button onClick={() => setEditingItem(item)} className="text-[7.5px] uppercase tracking-[0.1em] font-black text-amber-700/70 hover:text-amber-800 inline-flex items-center gap-0.5">
+                        ✎ <span className="opacity-90 font-bold">Editar</span>
                       </button>
                     </div>
                     {item.customizations?.removed?.length > 0 && (
@@ -547,7 +579,7 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
           </div>
 
           {recommendations.length > 0 && (
-            <div className="rec-strip" style={{ marginTop: 'auto' }}>
+            <div className="rec-strip" style={{ marginTop: '0.2rem' }}>
               <div className="rec-lbl">✦ Combina perfecto con</div>
               <div className="rec-row">
                 {recommendations.map(rec => (
@@ -563,30 +595,45 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
               </div>
             </div>
           )}
+
+          {/* Opciones de datos, entrega, pago y desglose dentro de la zona scrollable */}
+          <div className="cart-options-section" style={{ padding: '1rem 1.25rem', borderTop: '1px solid var(--ink-10)', background: 'rgba(23,17,10,0.01)' }}>
+            <span className="field-label">Tus datos</span>
+            <input className="mini-field" type="text" placeholder="Nombre completo" value={customerName} onChange={e => setCustomerName(e.target.value)} />
+            <input className="mini-field" type="tel" placeholder="WhatsApp · Teléfono" value={phone} onChange={e => setPhone(e.target.value)} style={{ marginBottom: '1rem' }} />
+
+            <span className="field-label">¿Cómo recibes?</span>
+            <div className="seg" style={{ gridTemplateColumns: isQrTable ? '1fr 1fr 1fr' : '1fr 1fr' }}>
+              {isQrTable && (
+                <button className={`seg-btn ${delivery === 'mesa' ? 'on' : ''}`} onClick={() => setDelivery('mesa')}>📍 Mesa {tableNum}</button>
+              )}
+              <button className={`seg-btn ${delivery === 'pick' ? 'on' : ''}`} onClick={() => setDelivery('pick')}>🏃 Recoger</button>
+              <button className={`seg-btn ${delivery === 'domicilio' ? 'on' : ''}`} onClick={() => setDelivery('domicilio')}>🛵 Domicilio</button>
+            </div>
+            
+            {delivery === 'domicilio' && (
+              <input className="mini-field" type="text" placeholder="Dirección exacta de entrega" value={address} onChange={e => setAddress(e.target.value)} style={{ marginTop: '-0.3rem', marginBottom: '0.8rem' }} />
+            )}
+
+            {delivery === 'mesa' && !urlMesa && (
+              <input className="mini-field" type="text" placeholder="Número de mesa" value={tableNum} onChange={e => setTableNum(e.target.value)} style={{ marginTop: '-0.3rem', marginBottom: '0.8rem' }} />
+            )}
+
+            <span className="field-label">¿Cómo pagas?</span>
+            <div className="seg" style={{ marginBottom: '1rem' }}>
+              <button className={`seg-btn ${payment === 'efectivo' ? 'on' : ''}`} onClick={() => setPayment('efectivo')}>💵 Efectivo</button>
+              <button className={`seg-btn ${payment === 'digital' ? 'on gold-on' : ''}`} onClick={() => setPayment('digital')}>💳 Wompi</button>
+            </div>
+
+            <div className="tot-row"><span className="tot-lbl">Subtotal</span><span className="tot-v">${(subtotal / 1000).toFixed(0)}k</span></div>
+            {delivery === 'domicilio' && (
+              <div className="tot-row"><span className="tot-lbl">Domicilio</span><span className="tot-v">$5k</span></div>
+            )}
+          </div>
         </div>
 
         <div className="cart-foot">
-          <span className="field-label">¿Cómo recibes?</span>
-          <div className="seg">
-            <button className={`seg-btn ${delivery === 'pick' ? 'on' : ''}`} onClick={() => setDelivery('pick')}>🏃 Recoger</button>
-            <button className={`seg-btn ${delivery === 'domicilio' ? 'on' : ''}`} onClick={() => setDelivery('domicilio')}>🛵 Domicilio</button>
-          </div>
-          
-          {delivery === 'domicilio' && (
-            <input className="mini-field" type="text" placeholder="Dirección exacta de entrega" value={address} onChange={e => setAddress(e.target.value)} style={{ marginTop: '-0.3rem', marginBottom: '0.8rem' }} />
-          )}
-
-          <span className="field-label">¿Cómo pagas?</span>
-          <div className="seg" style={{ marginBottom: '1rem' }}>
-            <button className={`seg-btn ${payment === 'efectivo' ? 'on' : ''}`} onClick={() => setPayment('efectivo')}>💵 Efectivo</button>
-            <button className={`seg-btn ${payment === 'digital' ? 'on gold-on' : ''}`} onClick={() => setPayment('digital')}>💳 Wompi</button>
-          </div>
-
-          <div className="tot-row"><span className="tot-lbl">Subtotal</span><span className="tot-v">${(subtotal / 1000).toFixed(0)}k</span></div>
-          {delivery === 'domicilio' && (
-            <div className="tot-row"><span className="tot-lbl">Domicilio</span><span className="tot-v">$5k</span></div>
-          )}
-          <div className="total-row">
+          <div className="total-row" style={{ marginTop: 0, marginBottom: '0.4rem' }}>
             <span className="total-lbl">Total</span>
             <span className="total-v">${(total / 1000).toFixed(0)}k</span>
           </div>

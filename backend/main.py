@@ -21,11 +21,14 @@ from src.modules.analytics.router import router as analytics_router
 from src.modules.payments.router import router as payments_router
 from src.modules.marketing.router import router as marketing_router
 from src.modules.social.router import router as social_router
+from src.modules.whatsapp.router import router as whatsapp_router
+from src.modules.menus.cart_router import router as cart_router
 
 # Activar Listeners de Dominio (Modular Monolith)
 import src.modules.crm.service # Activa el registro automático de clientes
 import src.modules.realtime.service # Activa las notificaciones en vivo
 import src.modules.marketing.service # Activa campañas automáticas
+import src.modules.whatsapp.service # Activa las alertas transaccionales de WhatsApp
 
 
 
@@ -40,6 +43,7 @@ models.Base.metadata.create_all(bind=engine)
 
 # Background Tasks
 from core.payments.payment_service import handle_payment_expiration
+from src.modules.whatsapp.recovery_service import recover_abandoned_carts
 
 def run_job_with_db(job_func):
     db = SessionLocal()
@@ -50,6 +54,7 @@ def run_job_with_db(job_func):
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(lambda: run_job_with_db(handle_payment_expiration), 'interval', minutes=1)
+scheduler.add_job(lambda: run_job_with_db(recover_abandoned_carts), 'interval', minutes=1)
 scheduler.start()
 
 # FastAPI App
@@ -107,6 +112,8 @@ app.include_router(analytics_router)
 app.include_router(payments_router)
 app.include_router(marketing_router)
 app.include_router(social_router)
+app.include_router(whatsapp_router)
+app.include_router(cart_router)
 
 # Legacy/Core Routers
 app.include_router(payments_webhook_router)

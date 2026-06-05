@@ -8,9 +8,12 @@ export function useViewport916() {
       const winH = window.innerHeight;
       const ratio = 9 / 16;
       let w, h;
-      if (winW / winH <= ratio) { 
+      if (winW < 768) {
+        w = winW;
+        h = winH; // Always fill 100% on mobile screens
+      } else if (winW / winH <= ratio) { 
         w = winW; 
-        h = winH; // Llenar toda la pantalla en móviles
+        h = winH; 
       } else { 
         h = winH; 
         w = winH * ratio; 

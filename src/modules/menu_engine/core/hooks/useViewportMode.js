@@ -22,7 +22,10 @@ export function useViewportMode() {
         // Mobile locks at 9:16 ratio if screen is wider, otherwise fills
         const ratio = 9 / 16;
         let w, h;
-        if (winW / winH <= ratio) {
+        if (winW < 768) {
+          w = winW;
+          h = winH; // Always fill 100% on mobile screens
+        } else if (winW / winH <= ratio) {
           w = winW;
           h = winH;
         } else {

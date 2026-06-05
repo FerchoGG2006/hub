@@ -67,7 +67,7 @@ const EditorialProduct = ({ item, index, accent, onSelect }) => {
         </h3>
 
         {(item.desc || item.description) && (
-          <p className="text-sm text-black/45 leading-relaxed font-light max-w-md">
+          <p className="text-[15px] text-black/80 leading-relaxed font-medium max-w-md">
             {item.desc || item.description}
           </p>
         )}
@@ -95,27 +95,7 @@ const CategorySection = ({ name, items, meta, onSelectProduct }) => {
   const isInView = useInView(ref, { once: true, margin: '-40px' });
 
   return (
-    <section id={`cat-section-${name}`} className="pt-16 pb-8">
-      <motion.div
-        ref={ref}
-        initial={{ opacity: 0, y: 20 }}
-        animate={isInView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-8 pl-1"
-      >
-        <div className="flex items-center gap-4 mb-3">
-          <span className="text-3xl">{meta.icon}</span>
-          <div>
-            <h2 className="font-serif text-[42px] font-black italic tracking-tight leading-[0.95] text-[#120F0D]">
-              {name}
-            </h2>
-            <div
-              className="h-[2.5px] rounded-full w-16 mt-3"
-              style={{ backgroundColor: meta.accent, opacity: 0.5 }}
-            />
-          </div>
-        </div>
-      </motion.div>
+    <section id={`cat-section-${name}`} ref={ref} className="pt-8 pb-4">
 
       <div className="space-y-0">
         {items
@@ -225,9 +205,6 @@ export const DesktopEditorialView = ({
             <h1 className="font-serif italic text-4xl font-bold tracking-tight text-[#120F0D] leading-none">
               {restaurantName}
             </h1>
-            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-black/25 mt-2">
-              Carta Digital
-            </p>
           </div>
           {config?.logo_url && (
             <img src={config.logo_url} alt="" className="h-10 w-10 rounded-full object-cover border border-black/10" />
@@ -387,7 +364,7 @@ export const DesktopEditorialView = ({
                     </span>
                   )}
                   <h3 className="text-xl font-bold tracking-tight text-[#120F0D]">{selectedProduct.name}</h3>
-                  <p className="text-xs font-light leading-relaxed text-black/60">
+                  <p className="text-sm font-medium leading-relaxed text-black/80">
                     {selectedProduct.desc || selectedProduct.description || 'Una experiencia gastronómica exclusiva.'}
                   </p>
                 </div>

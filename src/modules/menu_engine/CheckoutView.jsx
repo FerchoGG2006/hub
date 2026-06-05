@@ -21,9 +21,34 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
   const [payment, setPayment] = useState('efectivo');  // efectivo | transferencia
   const [done, setDone]       = useState(false);
   const [customerName, setCustomerName] = useState('');
+  const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [tableNumber, setTableNumber] = useState(tableFromUrl || '');
   const [editingItem, setEditingItem] = useState(null);
+
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+  // Debounced effect to sync active cart session for abandoned cart tracking
+  React.useEffect(() => {
+    if (!customerName || !phone || phone.length < 7 || cart.length === 0) return;
+    
+    const delayDebounceFn = setTimeout(() => {
+      const tenantSlug = config?.slug || window.location.pathname.split('/')[1]?.split('?')[0] || '';
+      fetch(`${API_URL}/api/v1/tenant/${tenantSlug}/cart-sessions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: phone,
+          customer_name: customerName,
+          items_json: JSON.stringify(cart)
+        })
+      })
+      .then(res => res.json())
+      .catch(err => console.error("Error syncing cart session:", err));
+    }, 2000);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [cart, phone, customerName, config?.slug]);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -95,6 +120,10 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
       alert("Por favor ingresa tu nombre de pedido.");
       return;
     }
+    if (!phone || phone.length < 7) {
+      alert("Por favor ingresa tu número de WhatsApp válido.");
+      return;
+    }
     const tableParam = new URLSearchParams(window.location.search).get('mesa');
     
     if (method === 'domicilio' && !address) {
@@ -116,7 +145,7 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
         items_json: JSON.stringify(cart),
         total_price: total,
         customer_name: customerName,
-        phone: "0000",
+        phone: phone,
         table_number: hasTables ? finalLocation : null,
         delivery_method: method,
         payment_method: payment,
@@ -200,6 +229,14 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
               placeholder="¿A nombre de quién hacemos el pedido?" 
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
+              required
+              className="w-full bg-dark/5 border border-dark/10 rounded-2xl p-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-dark/30 text-dark"
+            />
+            <input 
+              type="tel" 
+              placeholder="Tu número de WhatsApp (ej: 573210000000)" 
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               required
               className="w-full bg-dark/5 border border-dark/10 rounded-2xl p-4 text-sm outline-none focus:border-amber-500 transition-colors placeholder-dark/30 text-dark"
             />

@@ -23,9 +23,30 @@ if (typeof window !== 'undefined' && window.TouchEvent && window.TouchEvent.prot
 
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
+// Global fetch interceptor to catch 401 Unauthorized errors and force a graceful logout/reload
+if (typeof window !== 'undefined') {
+  const { fetch: originalFetch } = window;
+  window.fetch = async (...args) => {
+    try {
+      const response = await originalFetch(...args);
+      if (response.status === 401 && typeof args[0] === 'string' && !args[0].includes('/api/auth/token')) {
+        console.warn('Unauthorized request detected by interceptor. Clearing session...');
+        localStorage.removeItem('hub_token');
+        localStorage.removeItem('hub_role');
+        localStorage.removeItem('hub_tenant');
+        window.location.reload();
+      }
+      return response;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  };
+}
+
+
 /* ── MAIN APP ENGINE ── */
 const MainApp = ({ config }) => {
-  const [appState, setAppState] = useState('closed');
+  const [appState, setAppState] = useState('open');
   const [selectedBranch, setSelectedBranch] = useState(() => {
     if (config.branches?.length === 1) return config.branches[0];
     

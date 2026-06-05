@@ -20,6 +20,7 @@ import { OnboardingTour } from './components/OnboardingTour';
 import { EventsManager } from './components/EventsManager';
 import { AdminPayments } from './components/AdminPayments';
 import { CajaManager } from './components/CajaManager';
+import { InboxManager } from './components/InboxManager';
 
 // Services & Hooks
 import { authService } from '../auth/authService';
@@ -35,6 +36,7 @@ const TABS = [
   { id: 'qr', label: 'Terminal QR', icon: '📱' },
   { id: 'analytics', label: 'Métricas', icon: '📊' },
   { id: 'marketing', label: 'Marketing', icon: '✨' },
+  { id: 'inbox', label: 'Inbox', icon: '💬' },
   { id: 'events', label: 'Eventos', icon: '🎉' },
   // { id: 'settings', label: 'Identidad', icon: '🎨' },
   // { id: 'billing', label: 'SaaS Core', icon: '🛡️' },
@@ -313,7 +315,7 @@ const AdminDashboardContent = ({
 
             {activeTab === 'qr' && (
               <motion.div key="qr" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <QRTerminal tenantSlug={tenantSlug} />
+                <QRTerminal tenantSlug={tenantSlug} config={config} />
               </motion.div>
             )}
 
@@ -338,6 +340,12 @@ const AdminDashboardContent = ({
             {activeTab === 'events' && (
               <motion.div key="events" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <EventsManager slug={tenantSlug} />
+              </motion.div>
+            )}
+
+            {activeTab === 'inbox' && (
+              <motion.div key="inbox" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <InboxManager />
               </motion.div>
             )}
           </AnimatePresence>

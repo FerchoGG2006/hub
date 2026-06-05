@@ -78,67 +78,9 @@ const CornerPeel = ({ visible, accent }) => (
   </AnimatePresence>
 );
 
-// ── Category Hero Component (Original Mobile) ──
+
+
 const HERO_THRESHOLD = 5;
-
-const CategoryHero = ({ meta, restaurantName }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 12 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.15, duration: 0.5 }}
-    style={{
-      flex: 1,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'space-evenly',
-      paddingTop: 8,
-      paddingBottom: 12,
-      minHeight: 0,
-    }}
-  >
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '60%' }}>
-      <div style={{ flex: 1, height: 1, background: `${meta.accent}20` }} />
-      <div style={{ width: 6, height: 6, borderRadius: '50%', background: `${meta.accent}40` }} />
-      <div style={{ flex: 1, height: 1, background: `${meta.accent}20` }} />
-    </div>
-
-    <p style={{
-      fontSize: 12, fontWeight: 300,
-      color: 'rgba(30,20,8,0.38)', fontStyle: 'italic',
-      lineHeight: 1.55, textAlign: 'center',
-      maxWidth: '70%', margin: 0,
-    }}>
-      {'Nuestra selección de '}
-      <span style={{ fontWeight: 600, color: `${meta.accent}cc` }}>
-        {meta.label?.toLowerCase() || 'productos'}
-      </span>
-    </p>
-
-    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-      {[0, 1, 2].map(i => (
-        <motion.div key={i}
-          animate={{ opacity: [0.15, 0.6, 0.15], scale: [1, 1.15, 1] }}
-          transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.28 }}
-          style={{
-            width: i === 1 ? 18 : 6, height: 6, borderRadius: 3,
-            background: meta.accent,
-          }}
-        />
-      ))}
-    </div>
-
-    {restaurantName && (
-      <p style={{
-        fontSize: 8, fontWeight: 900,
-        letterSpacing: '0.4em', textTransform: 'uppercase',
-        color: 'rgba(30,20,8,0.14)', margin: 0,
-      }}>
-        {restaurantName}
-      </p>
-    )}
-  </motion.div>
-);
 
 // ── Nav Arrow Component (Original Mobile) ──
 const NavArrow = ({ direction, visible, onClick }) => (
@@ -238,13 +180,13 @@ const CompactProductRow = React.memo(({ item, accent, onSelect }) => {
       </div>
 
       {/* Name + description */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 pr-2">
         <p className="text-[11.5px] font-bold uppercase tracking-tight leading-tight truncate"
           style={{ color: '#1a1008' }}>
           {item.name}
         </p>
         {(item.desc || item.description) && (
-          <p className="text-[9px] font-light leading-tight mt-[1px] opacity-60 italic"
+          <p className="text-[10px] font-medium leading-[1.2] mt-[3px] opacity-80"
             style={{ 
               color: '#1a1008',
               display: '-webkit-box',
@@ -567,7 +509,7 @@ export const MenuEngine = ({ config }) => {
         }
 
         pflip.current = new PageFlip(bookRef.current, {
-          width: 360, height: 640,
+          width: vpWidth || 360, height: vpHeight || 640,
           size: 'stretch',
           minWidth: 280, maxWidth: 600,
           minHeight: 480, maxHeight: 1400,
@@ -748,34 +690,19 @@ export const MenuEngine = ({ config }) => {
   }, [handleInteraction]);
 
   const goPrev = useCallback(() => {
-    handleInteraction();
-    const pf = pflip.current;
-    if (!pf || currentPage <= 0) return;
-    try { 
-      pf.flipPrev('top');
-    } catch (_) {
-      try { pf.turnToPage(currentPage - 1); } catch (__) { console.debug("pageflip error ignored", __); }
-      setCurrentPage(currentPage - 1);
-      currentPageRef.current = currentPage - 1;
+    if (currentPage > 0) {
+      goToPage(currentPage - 1);
     }
-    if (navigator.vibrate) navigator.vibrate(8);
-  }, [handleInteraction, currentPage]);
+  }, [goToPage, currentPage]);
 
   const goNext = useCallback(() => {
-    handleInteraction();
     const pf = pflip.current;
     if (!pf) return;
     const maxPages = pf.getPageCount();
-    if (currentPage >= maxPages - 1) return;
-    try { 
-      pf.flipNext('top');
-    } catch (_) {
-      try { pf.turnToPage(currentPage + 1); } catch (__) { console.debug("pageflip error ignored", __); }
-      setCurrentPage(currentPage + 1);
-      currentPageRef.current = currentPage + 1;
+    if (currentPage < maxPages - 1) {
+      goToPage(currentPage + 1);
     }
-    if (navigator.vibrate) navigator.vibrate(8);
-  }, [handleInteraction, currentPage]);
+  }, [goToPage, currentPage]);
 
   // Auto-scroll category bar on mobile
   useEffect(() => {
@@ -983,7 +910,7 @@ export const MenuEngine = ({ config }) => {
                             <h3 className="font-serif italic text-3xl font-bold tracking-tight text-[#120F0D] leading-tight">
                               {item.name}
                             </h3>
-                            <p className="text-xs text-black/55 font-light leading-relaxed font-sans">
+                            <p className="text-sm text-black/80 font-medium leading-relaxed font-sans">
                               {item.desc || item.description || 'Una composición de sabores exclusivos elaborada con ingredientes seleccionados de primera calidad, diseñados por nuestro chef.'}
                             </p>
                           </div>
@@ -1124,7 +1051,7 @@ export const MenuEngine = ({ config }) => {
                       </span>
                     )}
                     <h3 className="text-xl font-bold tracking-tight text-[#120F0D]">{selectedProduct.name}</h3>
-                    <p className="text-xs font-light leading-relaxed text-black/60">
+                    <p className="text-sm font-medium leading-relaxed text-black/80">
                       {selectedProduct.desc || selectedProduct.description || 'Una experiencia gastronómica exclusiva elaborada bajo estrictos estándares por nuestro chef de cocina.'}
                     </p>
                   </div>
@@ -1305,9 +1232,7 @@ export const MenuEngine = ({ config }) => {
                     }}
                     onClick={e => e.stopPropagation()}
                   >
-                    {/* Top accent */}
-                    <div className="absolute top-0 left-0 right-0 h-[2px]"
-                      style={{ background:`linear-gradient(to right, transparent, ${meta.accent}30, transparent)` }} />
+
 
                     {/* Spine shadow */}
                     <div className="absolute right-0 top-0 bottom-0 w-[22px] pointer-events-none z-30"
@@ -1332,11 +1257,8 @@ export const MenuEngine = ({ config }) => {
                     )}
 
                     {/* Header */}
-                    <div className="mb-3 relative z-20 pl-1">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <motion.div initial={{ x:-14, opacity:0 }} animate={{ x:0, opacity:1 }}
-                          className="flex items-center gap-2">
-                        </motion.div>
+                    <div className="mb-2 relative z-20 pl-1">
+                      <div className="flex items-center justify-end mb-1">
                         <span className="font-mono text-[10px] italic"
                           style={{ color:'rgba(30,20,8,0.2)' }}>
                           {String(pageIdx + 1).padStart(2,'0')}
@@ -1344,13 +1266,6 @@ export const MenuEngine = ({ config }) => {
                           {String(totalPages).padStart(2,'0')}
                         </span>
                       </div>
-                      <h2 className="text-[26px] font-black uppercase italic tracking-tighter leading-[0.85] break-words mb-2"
-                        style={{ color:'#1a1008' }}>
-                        {cat}
-                      </h2>
-                      <motion.div initial={{ width:0 }} animate={{ width:36 }}
-                        className="h-[2px] rounded-full"
-                        style={{ backgroundColor:meta.accent, opacity:0.55 }} />
                     </div>
 
                     {/* Products list */}
@@ -1371,10 +1286,7 @@ export const MenuEngine = ({ config }) => {
                       ))}
                     </div>
 
-                    {/* Category Hero overlay when sparse */}
-                    {isSparse && (
-                      <CategoryHero meta={meta} restaurantName={restaurantName} />
-                    )}
+
                   </div>
                 </div>
               );
@@ -1507,8 +1419,8 @@ export const MenuEngine = ({ config }) => {
                 </div>
                 <h3 className="text-4xl font-black italic uppercase tracking-tighter leading-[0.8] mb-4"
                   style={{ color:'#1a1008' }}>{selectedProduct.name}</h3>
-                <p className="text-xs italic font-light leading-relaxed mb-10"
-                  style={{ color:'rgba(30,20,8,0.4)' }}>
+                <p className="text-[13px] font-medium leading-relaxed mb-10"
+                  style={{ color:'rgba(30,20,8,0.75)' }}>
                   {selectedProduct.description || 'Una experiencia gourmet diseñada para elevar tus sentidos.'}
                 </p>
                 <div className="flex flex-col gap-4">

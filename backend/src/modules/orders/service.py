@@ -50,6 +50,20 @@ class OrderService:
             db.add(nuevo_pedido)
             db.flush() 
 
+            # Marcar CartSession activa como 'converted'
+            try:
+                if nuevo_pedido.phone:
+                    clean_phone = nuevo_pedido.phone.replace("+", "").replace(" ", "").replace("-", "")
+                    active_cart = db.query(models.CartSession).filter_by(
+                        tenant_id=tenant_id,
+                        phone=clean_phone,
+                        status="active"
+                    ).first()
+                    if active_cart:
+                        active_cart.status = "converted"
+            except Exception as e:
+                logger.warning(f"Error marcando CartSession como converted: {e}")
+
             # INTEGRACIÓN CON INVENTARIO (Atomic)
             if has_module(db, tenant_id, "inventory"):
                 items = json.loads(nuevo_pedido.items_json)
