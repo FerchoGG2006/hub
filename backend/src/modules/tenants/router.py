@@ -118,13 +118,15 @@ def onboard_new_tenant(
         raise AppError(message="Este correo electrónico ya tiene una cuenta activa.", status_code=400, code="USER_EXISTS")
 
     from utils.gemini_extractor import extract_menu_from_image
+    from datetime import datetime, timedelta
     try:
         nuevo_tenant = models.Tenant(
             slug=slug,
             name=name,
             brand_color=brand_color,
             whatsapp_number=whatsapp_number,
-            enabled_modules=["orders", "products", "tables", "inventory"]
+            enabled_modules=["orders", "products", "tables", "inventory"],
+            valid_until=datetime.utcnow() + timedelta(days=30)
         )
         db.add(nuevo_tenant)
         db.commit()

@@ -230,7 +230,7 @@ export const LandingPage = () => {
             <h1>Tu menú digital.<br /><span className="italic-line">Tus pedidos en orden.</span></h1>
             <p className="hero-sub">Digitaliza tu carta y recibe cada pedido organizado directamente en WhatsApp. Sin apps que descargar, sin complicaciones, sin perder ninguno.</p>
             <div className="hero-ctas">
-              <button className="btn-filled" onClick={() => navigate('/register')}>Empezar gratis 14 días →</button>
+              <button className="btn-filled" onClick={() => navigate('/register')}>Empezar gratis 1 mes →</button>
               <button className="btn-outline" onClick={() => goTo('como-funciona')}>Ver cómo funciona</button>
             </div>
             <div className="hero-trust">
@@ -474,7 +474,7 @@ export const LandingPage = () => {
 
         <section className="cta-sect">
           <h2 className="rv">¿Listo para organizar<br /><span className="si">tus pedidos hoy?</span></h2>
-          <p className="rv d1">14 días gratis. Sin tarjeta. Sin compromisos.</p>
+          <p className="rv d1">1 mes gratis. Sin tarjeta. Sin compromisos.</p>
           <div className="cta-row rv d2">
             <button className="btn-dark" onClick={() => navigate('/register')}>Empezar gratis →</button>
             <a href="https://wa.me/573005390069" target="_blank" className="btn-wa">Preguntar por WhatsApp</a>
@@ -545,7 +545,7 @@ export const LandingPage = () => {
           </div>
           <div className="faq-wrap">
             <div className="faq-item"><button className="faq-q" onClick={toggleFaq}>¿Puedo cambiar de plan cuando quiera?<span className="faq-arrow">+</span></button><div className="faq-a"><div className="faq-a-inner">Sí. Puedes subir o bajar de plan en cualquier momento desde tu panel. Si subes de plan, el cambio es inmediato. Si bajas, el cambio aplica al inicio del siguiente periodo.</div></div></div>
-            <div className="faq-item"><button className="faq-q" onClick={toggleFaq}>¿Los 14 días gratis aplican para todos los planes?<span className="faq-arrow">+</span></button><div className="faq-a"><div className="faq-a-inner">Sí. Los 14 días de prueba gratuita aplican para el plan Pro, con todas las funcionalidades incluidas. No necesitas tarjeta de crédito para activarlos. Al terminar el periodo, decides si continúas o te quedas en el plan Gratis.</div></div></div>
+            <div className="faq-item"><button className="faq-q" onClick={toggleFaq}>¿El mes gratis aplica para todos los planes?<span className="faq-arrow">+</span></button><div className="faq-a"><div className="faq-a-inner">Sí. El mes de prueba gratuita aplica para el plan Pro, con todas las funcionalidades incluidas. No necesitas tarjeta de crédito para activarlo. Al terminar el periodo, decides si continúas o te quedas en el plan Gratis.</div></div></div>
             <div className="faq-item"><button className="faq-q" onClick={toggleFaq}>¿Cómo se cobra el plan? ¿Puedo pagar mensual?<span className="faq-arrow">+</span></button><div className="faq-a"><div className="faq-a-inner">Sí, el cobro es mensual y se hace vía Wompi al inicio de cada periodo. También ofrecemos descuento del 20% si pagas anual. Puedes hablar con nosotros por WhatsApp para coordinar la forma de pago que mejor te funcione.</div></div></div>
             <div className="faq-item"><button className="faq-q" onClick={toggleFaq}>¿Qué pasa con mi cuenta si no pago a tiempo?<span className="faq-arrow">+</span></button><div className="faq-a"><div className="faq-a-inner">Te avisamos 5 días antes del vencimiento y el día del vencimiento. Si no se renueva, tu cuenta pasa automáticamente al plan Gratis — tu carta queda activa pero con las limitaciones del plan gratuito. Tus datos nunca se borran.</div></div></div>
           </div>

@@ -153,6 +153,11 @@ const AdminDashboardContent = ({
   const navRef = useRef(null);
   const tabRefs = useRef({});
 
+  // Trial Calculation
+  const validUntil = config?.valid_until ? new Date(config.valid_until) : null;
+  const now = new Date();
+  const daysLeft = validUntil ? Math.ceil((validUntil - now) / (1000 * 60 * 60 * 24)) : null;
+
   // Auto-scroll to active tab
   useEffect(() => {
     const activeBtn = tabRefs.current[activeTab];
@@ -247,6 +252,20 @@ const AdminDashboardContent = ({
 
       {/* ── MAIN CONTENT AREA ── */}
       <main className="md:pl-24 min-h-screen pb-32 md:pb-0">
+        {/* ── TRIAL REMINDER BANNER ── */}
+        {config?.subscription_status === 'active' && validUntil && daysLeft > 0 && (
+            <div className="bg-amber-100 border-b border-amber-200 text-amber-800 text-xs font-bold text-center py-2.5 px-4">
+                ✨ Estás en tu mes de prueba gratuita. Te quedan {daysLeft} {daysLeft === 1 ? 'día' : 'días'} de acceso total. 
+                <button onClick={() => setActiveTab('billing')} className="underline ml-2 hover:text-amber-900 transition-colors">Ver planes</button>
+            </div>
+        )}
+        {config?.subscription_status === 'suspended' && (
+            <div className="bg-red-100 border-b border-red-200 text-red-800 text-xs font-bold text-center py-2.5 px-4">
+                ⚠️ Tu periodo de prueba ha finalizado y tu cuenta está pausada. 
+                <button onClick={() => setActiveTab('billing')} className="underline ml-2 hover:text-red-900 transition-colors">Renueva ahora</button>
+            </div>
+        )}
+
         {/* OPERATIONAL HEADER */}
         <div className="max-w-7xl mx-auto px-8 md:px-16 pt-12">
             <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12">
