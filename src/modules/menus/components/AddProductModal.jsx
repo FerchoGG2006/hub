@@ -6,7 +6,7 @@ import { ProductCell } from '../../tenants/components/ProductCell';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-export const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
+export const AddProductModal = ({ isOpen, onClose, onProductAdded, businessType }) => {
   const { tenantSlug } = useParams();
   const [formData, setFormData] = useState({ name: '', price: '', desc: '', emoji: '🍽️', category: '' });
   const [file, setFile] = useState(null);
@@ -97,7 +97,9 @@ export const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
         {/* Editor de Contenido */}
         <div className="flex-1 space-y-6">
           <div className="flex justify-between items-center mb-6">
-            <Heading level={3} className="!text-amber-500 italic uppercase tracking-tighter">Nuevo Producto</Heading>
+            <Heading level={3} className="!text-amber-500 italic uppercase tracking-tighter">
+              {businessType === 'rental' ? 'Nuevo Equipo' : (businessType === 'service' ? 'Nuevo Servicio' : 'Nuevo Producto')}
+            </Heading>
             <Button 
               variant="secondary" 
               size="sm" 
@@ -111,7 +113,9 @@ export const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
 
           <form id="product-form" onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="text-[9px] uppercase tracking-[0.2em] text-[var(--text-disabled)] block mb-2 font-bold ml-2">Imagen del producto</label>
+              <label className="text-[9px] uppercase tracking-[0.2em] text-[var(--text-disabled)] block mb-2 font-bold ml-2">
+                {businessType === 'service' ? 'Imagen del servicio' : 'Imagen del producto'}
+              </label>
               <input type="file" accept="image/*" onChange={handleFileChange}
                 className="w-full text-xs file:bg-[var(--bg-secondary)] file:text-[var(--text-muted)] file:border file:border-[var(--border-soft)] file:px-4 file:py-2 file:rounded-full file:font-bold file:cursor-pointer" />
             </div>
@@ -119,12 +123,12 @@ export const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
             <div className="flex gap-3">
               <input value={formData.emoji} onChange={e => setFormData({ ...formData, emoji: e.target.value })}
                 className="w-14 text-center text-xl bg-[var(--bg-secondary)] border-b border-[var(--border-soft)] py-3 outline-none focus:border-[var(--brand-accent)] transition-colors rounded-t-xl" />
-              <input placeholder="Nombre del Plato" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
+              <input placeholder={businessType === 'rental' ? "Nombre del Equipo" : (businessType === 'service' ? "Nombre del Servicio" : "Nombre del Plato")} required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
                 className="flex-1 bg-transparent border-b border-[var(--border-soft)] py-3 text-sm outline-none focus:border-[var(--brand-accent)] transition-colors placeholder-[var(--text-disabled)] text-[var(--text-primary)] font-medium" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <input placeholder="Precio (EJ: $25k)" required value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })}
+              <input placeholder={businessType === 'rental' ? "Tarifa diaria (EJ: $25k)" : "Precio (EJ: $25k)"} required value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })}
                 className="bg-transparent border-b border-[var(--border-soft)] py-3 text-sm outline-none focus:border-[var(--brand-accent)] transition-colors placeholder-[var(--text-disabled)] text-[var(--text-primary)] font-mono" />
               <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}
                 className="bg-transparent border-b border-[var(--border-soft)] py-3 text-sm outline-none focus:border-[var(--brand-accent)] transition-colors text-[var(--text-muted)] appearance-none">
@@ -132,7 +136,7 @@ export const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
               </select>
             </div>
 
-            <textarea placeholder="Describe el plato de forma tentadora..." value={formData.desc} onChange={e => setFormData({ ...formData, desc: e.target.value })}
+            <textarea placeholder={businessType === 'service' ? "Describe en qué consiste el servicio..." : "Describe el artículo o plato..."} value={formData.desc} onChange={e => setFormData({ ...formData, desc: e.target.value })}
               className="w-full bg-[var(--bg-secondary)] border border-[var(--border-soft)] p-4 rounded-2xl text-xs h-32 outline-none focus:border-[var(--brand-accent)] transition-colors resize-none placeholder-[var(--text-disabled)] text-[var(--text-primary)]" />
           </form>
         </div>
@@ -162,7 +166,7 @@ export const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
       
       <div className="mt-8 flex justify-center">
         <Button type="submit" form="product-form" isLoading={loading} className="w-full max-w-sm py-5 !rounded-2xl">
-          Guardar Producto
+          Guardar {businessType === 'rental' ? 'Equipo' : (businessType === 'service' ? 'Servicio' : 'Producto')}
         </Button>
       </div>
     </Modal>

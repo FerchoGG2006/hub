@@ -6,7 +6,7 @@ import { PaymentGatewayModal } from '../tenants/components/PaymentGatewayModal';
 import { ProductCustomizer } from './ProductCustomizer';
 import { MENU_DATA } from './MenuData';
 
-export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
+export const CheckoutPanel = ({ config, branch, onClose, isSidebar = false }) => {
   const { tenantSlug } = useParams();
   const { cart, totalPrice, clearCart, parsePrice, updateQty, updateCustomization, addToCart } = useCart();
 
@@ -22,7 +22,13 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [tableNum, setTableNum] = useState(urlMesa || '');
+  const [startDate, setStartDate] = useState(''); // Para alquileres o servicios
+  const [endDate, setEndDate] = useState(''); // Para alquileres
   const [sending, setSending] = useState(false);
+  
+  const isRental = config?.business_type === 'rental';
+  const isService = config?.business_type === 'service';
+  const isRestaurant = !isRental && !isService;
   const [sent, setSent] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [bumpBadge, setBumpBadge] = useState(false);
@@ -75,6 +81,8 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
       delivery_method: delivery,
       payment_method: payment === 'digital' ? 'wompi' : 'efectivo',
       table_number: delivery === 'mesa' ? tableNum : (delivery === 'domicilio' ? address : null),
+      start_date: startDate ? new Date(startDate).toISOString() : null,
+      end_date: endDate ? new Date(endDate).toISOString() : null,
       total_price: totalPrice,
       items_json: JSON.stringify(cart.map(i => ({
         id: i.id,
@@ -148,7 +156,7 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
         </motion.div>
         <h2 className="text-2xl font-bold italic text-[#17110A] text-center uppercase tracking-tight"
           style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
-          ¡Pedido Recibido!
+          {isRental ? "¡Reserva Confirmada!" : (isService ? "¡Solicitud Recibida!" : "¡Pedido Recibido!")}
         </h2>
         <p className="text-xs text-[#17110A]/60 text-center leading-relaxed max-w-[280px]">
           {payment === 'digital' 
@@ -203,12 +211,16 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
           overflow: hidden;
           font-family: var(--sans);
           color: var(--ink);
+          border-radius: inherit;
         }
         .cart-top {
           padding: 0.9rem 1.25rem 0.6rem;
           border-bottom: 1px solid var(--ink-10);
           flex-shrink: 0;
           background: var(--white);
+          border-radius: inherit;
+          border-bottom-left-radius: 0;
+          border-bottom-right-radius: 0;
         }
         .cart-top-row {
           display: flex;
@@ -419,6 +431,9 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
           background: var(--white);
           flex-shrink: 0;
           box-shadow: 0 -3px 10px rgba(0,0,0,0.02);
+          border-radius: inherit;
+          border-top-left-radius: 0;
+          border-top-right-radius: 0;
         }
         .field-label {
           font-size: .58rem;
@@ -525,7 +540,9 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
       <aside className="cart">
         <div className="cart-top">
           <div className="cart-top-row">
-            <div className="cart-title">Tu pedido</div>
+            <div className="cart-title">
+              {isRental ? "Tu reserva" : (isService ? "Tu solicitud" : "Tu pedido")}
+            </div>
             <div className="flex items-center gap-3">
               <div className={`cart-badge ${bumpBadge ? 'bump' : ''}`}>{totalQty}</div>
               {!isSidebar && (
@@ -603,20 +620,39 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
             <input className="mini-field" type="tel" placeholder="WhatsApp · Teléfono" value={phone} onChange={e => setPhone(e.target.value)} style={{ marginBottom: '1rem' }} />
 
             <span className="field-label">¿Cómo recibes?</span>
-            <div className="seg" style={{ gridTemplateColumns: isQrTable ? '1fr 1fr 1fr' : '1fr 1fr' }}>
-              {isQrTable && (
+            <div className="seg" style={{ gridTemplateColumns: (isQrTable && isRestaurant) ? '1fr 1fr 1fr' : '1fr 1fr' }}>
+              {(isQrTable && isRestaurant) && (
                 <button className={`seg-btn ${delivery === 'mesa' ? 'on' : ''}`} onClick={() => setDelivery('mesa')}>📍 Mesa {tableNum}</button>
               )}
-              <button className={`seg-btn ${delivery === 'pick' ? 'on' : ''}`} onClick={() => setDelivery('pick')}>🏃 Recoger</button>
-              <button className={`seg-btn ${delivery === 'domicilio' ? 'on' : ''}`} onClick={() => setDelivery('domicilio')}>🛵 Domicilio</button>
+              <button className={`seg-btn ${delivery === 'pick' ? 'on' : ''}`} onClick={() => setDelivery('pick')}>
+                {isRental ? '🏢 Recoger local' : (isService ? '🏢 Ir al local' : '🏃 Recoger')}
+              </button>
+              <button className={`seg-btn ${delivery === 'domicilio' ? 'on' : ''}`} onClick={() => setDelivery('domicilio')}>
+                {isRental ? '🚚 Entrega' : (isService ? '🏠 A domicilio' : '🛵 Domicilio')}
+              </button>
             </div>
             
             {delivery === 'domicilio' && (
-              <input className="mini-field" type="text" placeholder="Dirección exacta de entrega" value={address} onChange={e => setAddress(e.target.value)} style={{ marginTop: '-0.3rem', marginBottom: '0.8rem' }} />
+              <input className="mini-field" type="text" placeholder="Dirección exacta" value={address} onChange={e => setAddress(e.target.value)} style={{ marginTop: '-0.3rem', marginBottom: '0.8rem' }} />
             )}
 
-            {delivery === 'mesa' && !urlMesa && (
+            {delivery === 'mesa' && !urlMesa && isRestaurant && (
               <input className="mini-field" type="text" placeholder="Número de mesa" value={tableNum} onChange={e => setTableNum(e.target.value)} style={{ marginTop: '-0.3rem', marginBottom: '0.8rem' }} />
+            )}
+
+            {/* Fechas para alquiler / servicios */}
+            {(isRental || isService) && (
+              <>
+                <span className="field-label">
+                  {isRental ? "Fechas de Alquiler" : "Fecha y Hora de la Cita"}
+                </span>
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <input className="mini-field" type={isService ? "datetime-local" : "date"} placeholder="Inicio" value={startDate} onChange={e => setStartDate(e.target.value)} />
+                  {isRental && (
+                    <input className="mini-field" type="date" placeholder="Fin" value={endDate} onChange={e => setEndDate(e.target.value)} />
+                  )}
+                </div>
+              </>
             )}
 
             <span className="field-label">¿Cómo pagas?</span>
@@ -639,7 +675,7 @@ export const CheckoutPanel = ({ onClose, isSidebar = false }) => {
           </div>
 
           <button className="cta" disabled={sending || cart.length === 0} onClick={handleFinish}>
-            {sending ? <span className="animate-spin mr-2">⟳</span> : '✓ '}{sending ? 'Procesando...' : 'Confirmar pedido'}
+            {sending ? <span className="animate-spin mr-2">⟳</span> : '✓ '}{sending ? 'Procesando...' : (isRental ? 'Confirmar reserva' : (isService ? 'Confirmar solicitud' : 'Confirmar pedido'))}
           </button>
           <button className="cta-wa" onClick={askWa}>
             <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a8.26 8.26 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479s1.065 2.875 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.112 1.523 5.835L0 24l6.341-1.5A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.813 9.813 0 01-4.984-1.361l-.357-.212-3.766.889.929-3.657-.232-.375A9.818 9.818 0 012.182 12C2.182 6.568 6.568 2.182 12 2.182S21.818 6.568 21.818 12 17.432 21.818 12 21.818z"/></svg>

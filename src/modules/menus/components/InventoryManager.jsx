@@ -2,17 +2,32 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, Heading, Badge, EmptyState, Button } from '../../../shared/ui';
 
-export const InventoryManager = ({ products, toggleProduct, magicSnap }) => {
+import { AddProductModal } from './AddProductModal';
+
+export const InventoryManager = ({ products, toggleProduct, magicSnap, updateImage, config }) => {
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  
+  const isRental = config?.business_type === 'rental';
+  const isService = config?.business_type === 'service';
+  
+  const title = isRental ? "Inventario" : (isService ? "Servicios" : "Carta Digital");
+  const subtitle = isRental ? "Gestiona tus equipos y disponibilidad." : (isService ? "Gestiona tus servicios." : "Gestiona tus platos, precios y disponibilidad en tiempo real.");
+  const emptyTitle = isRental ? "Tu inventario está vacío" : (isService ? "No hay servicios" : "Tu carta está vacía");
+  const emptyDesc = isRental ? "Empieza agregando tus equipos de alquiler." : (isService ? "Agrega los servicios que ofreces." : "Empieza subiendo una foto de tus platos o agrégalos manualmente.");
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
       
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-[var(--border-soft)] pb-10">
         <div>
-          <Badge variant="brand" className="mb-2">Catálogo de productos</Badge>
-          <Heading level={2}>Mi <span className="font-[var(--font-serif)] italic">Carta Digital</span></Heading>
-          <p className="text-[var(--text-muted)] text-sm mt-1">Gestiona tus platos, precios y disponibilidad en tiempo real.</p>
+          <Badge variant="brand" className="mb-2">Catálogo</Badge>
+          <Heading level={2}>Mi <span className="font-[var(--font-serif)] italic">{title}</span></Heading>
+          <p className="text-[var(--text-muted)] text-sm mt-1">{subtitle}</p>
         </div>
         <div className="flex gap-4">
+          <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+            + Agregar
+          </Button>
            <label className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--brand-accent)]/10 text-[var(--brand-accent)] border border-[var(--brand-accent)]/20 rounded-[var(--radius-xl)] font-semibold text-sm hover:bg-[var(--brand-accent)]/20 cursor-pointer transition-all active:scale-95">
               <span className="text-xl">📸</span>
               <span>Foto-Plato (IA)</span>
@@ -30,9 +45,9 @@ export const InventoryManager = ({ products, toggleProduct, magicSnap }) => {
       
       {products.length === 0 ? (
         <EmptyState 
-          icon="🍳"
-          title="Tu carta está vacía"
-          description="Empieza subiendo una foto de tus platos o agrégalos manualmente."
+          icon={isService ? "🛠️" : (isRental ? "📦" : "🍳")}
+          title={emptyTitle}
+          description={emptyDesc}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -59,7 +74,7 @@ export const InventoryManager = ({ products, toggleProduct, magicSnap }) => {
                     if (file && updateImage) {
                       try {
                         await updateImage(item.id, file);
-                      } catch (err) {
+                      } catch {
                         alert("Error al subir la imagen");
                       }
                     }
@@ -88,6 +103,13 @@ export const InventoryManager = ({ products, toggleProduct, magicSnap }) => {
           ))}
         </div>
       )}
+      
+      <AddProductModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onProductAdded={() => { window.location.reload(); }} 
+        businessType={config?.business_type}
+      />
     </motion.div>
   );
 };

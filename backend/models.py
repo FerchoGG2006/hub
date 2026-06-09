@@ -25,6 +25,8 @@ class Tenant(Base):
     whatsapp_number = Column(String(20))
     whatsapp_message = Column(Text, default="¡Hola! Quiero hacer el siguiente pedido:")
     enabled_modules = Column(JSON, default=["orders", "products"]) # "tables", "variants", "inventory", etc.
+    business_type = Column(String(50), default="restaurant") # restaurant, rental, service
+    settings = Column(JSON, default={}) # Vertical-specific settings
     
     # Phase 2 Branding
     instagram_url = Column(String(255), nullable=True)
@@ -97,8 +99,10 @@ class Product(Base):
     emoji        = Column(String(10), default="🍽️")
     image_url    = Column(Text)
     is_available = Column(Boolean, default=True)
-    type         = Column(String(20), default="simple") # simple, variant
-
+    type         = Column(String(20), default="simple") # simple, variant, rental, service
+    
+    # Alquiler / Servicios
+    price_type   = Column(String(20), default="fixed") # fixed, hourly, daily, custom
     tenant   = relationship("Tenant")
     category = relationship("Category", back_populates="products")
     variants = relationship("ProductVariant", back_populates="product", cascade="all, delete-orphan")
@@ -119,6 +123,11 @@ class Order(Base):
     customer_name   = Column(String(100))
     created_at      = Column(DateTime, default=datetime.utcnow)
     branch_id       = Column(Integer, ForeignKey("branches.id"), nullable=True)
+    
+    # Alquiler / Servicios
+    start_date      = Column(DateTime, nullable=True)
+    end_date        = Column(DateTime, nullable=True)
+
     
     tenant = relationship("Tenant")
     branch = relationship("Branch", back_populates="orders")

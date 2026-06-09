@@ -92,7 +92,6 @@ const EditorialProduct = ({ item, index, accent, onSelect }) => {
    ═══════════════════════════════════════════════════════════ */
 const CategorySection = ({ name, items, meta, onSelectProduct }) => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-40px' });
 
   return (
     <section id={`cat-section-${name}`} ref={ref} className="pt-8 pb-4">
@@ -127,18 +126,10 @@ export const DesktopEditorialView = ({
   setSelectedProduct,
   showCartDrawer,
   setShowCartDrawer,
-  formatPriceFn,
 }) => {
-  const [activeCategory, setActiveCategory] = useState(null);
   const categories = Object.keys(allMenuData || {});
+  const [activeCategory, setActiveCategory] = useState(categories.length > 0 ? categories[0] : null);
   const navRef = useRef(null);
-
-  // Set default active category
-  useEffect(() => {
-    if (categories.length > 0 && !activeCategory) {
-      setActiveCategory(categories[0]);
-    }
-  }, [categories, activeCategory]);
 
   // Intersection Observer for active category tracking on scroll
   useEffect(() => {
@@ -309,7 +300,7 @@ export const DesktopEditorialView = ({
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-              className="fixed z-[901] flex flex-col inset-y-0 right-0 w-[420px] rounded-l-[2.5rem] border-l shadow-2xl"
+              className="fixed z-[901] flex flex-col top-4 bottom-4 right-0 w-[420px] rounded-l-[2rem] border-l shadow-2xl overflow-hidden"
               style={{
                 background: 'rgba(253, 248, 239, 0.96)',
                 backdropFilter: 'blur(25px)',
@@ -317,8 +308,8 @@ export const DesktopEditorialView = ({
                 borderLeftColor: 'rgba(18, 15, 13, 0.06)',
               }}
             >
-              <div className="flex-1 overflow-hidden p-2">
-                <CheckoutPanel isSidebar={false} onClose={() => setShowCartDrawer(false)} />
+              <div className="flex-1 overflow-hidden rounded-l-[2.5rem]">
+                <CheckoutPanel config={config} isSidebar={false} onClose={() => setShowCartDrawer(false)} />
               </div>
             </motion.div>
           </>

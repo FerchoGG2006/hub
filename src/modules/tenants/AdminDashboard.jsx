@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,18 +28,43 @@ import { WebSocketProvider, useWebSocketContext } from '../../shared/contexts/We
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-const TABS = [
-  { id: 'pedidos', label: 'Órdenes', icon: '📝' },
-  { id: 'caja', label: 'Caja', icon: '💰' },
-  { id: 'carta', label: 'Mi Carta', icon: '🍽️' },
-  { id: 'qr', label: 'Terminal QR', icon: '📱' },
-  { id: 'analytics', label: 'Métricas', icon: '📊' },
-  { id: 'marketing', label: 'Marketing', icon: '✨' },
-  { id: 'inbox', label: 'Inbox', icon: '💬' },
-  { id: 'events', label: 'Eventos', icon: '🎉' },
-  // { id: 'settings', label: 'Identidad', icon: '🎨' },
-  // { id: 'billing', label: 'SaaS Core', icon: '🛡️' },
-];
+const getTabs = (businessType) => {
+  const baseTabs = [
+    { id: 'caja', label: 'Caja', icon: '💰' },
+    { id: 'qr', label: 'Terminal QR', icon: '📱' },
+    { id: 'analytics', label: 'Métricas', icon: '📊' },
+    { id: 'marketing', label: 'Marketing', icon: '✨' },
+    { id: 'inbox', label: 'Inbox', icon: '💬' },
+    { id: 'events', label: 'Eventos', icon: '🎉' },
+  ];
+
+  if (businessType === 'rental') {
+    return [
+      { id: 'pedidos', label: 'Alquileres', icon: '📝' },
+      baseTabs[0],
+      { id: 'carta', label: 'Inventario', icon: '📦' },
+      ...baseTabs.slice(1)
+    ];
+  }
+
+  if (businessType === 'service') {
+    return [
+      { id: 'pedidos', label: 'Solicitudes', icon: '📅' },
+      baseTabs[0],
+      { id: 'carta', label: 'Servicios', icon: '🛠️' },
+      ...baseTabs.slice(1)
+    ];
+  }
+
+  // Default (Restaurant)
+  return [
+    { id: 'pedidos', label: 'Órdenes', icon: '📝' },
+    baseTabs[0],
+    { id: 'carta', label: 'Mi Carta', icon: '🍽️' },
+    ...baseTabs.slice(1)
+  ];
+};
+
 
 export const AdminDashboard = () => {
   const { tenantSlug } = useParams();
@@ -195,14 +219,14 @@ const AdminDashboardContent = ({
         </div>
         
         <div className="flex flex-col gap-6 w-full items-center mb-8">
-          {TABS.map(tab => (
+          {getTabs(config?.business_type).map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex-shrink-0 w-14 h-14 rounded-2xl flex flex-col items-center justify-center transition-all group ${activeTab === tab.id ? 'bg-[var(--brand-primary)] text-white shadow-xl shadow-[var(--brand-primary)]/20' : 'text-[var(--text-disabled)] hover:bg-[var(--bg-secondary)]'}`}
             >
               <span className="text-xl">{tab.icon}</span>
-              <span className="text-[7px] uppercase font-black mt-1 tracking-widest">{tab.label}</span>
+              <span className="text-[7px] uppercase font-black mt-1 tracking-widest text-center">{tab.label}</span>
             </button>
           ))}
         </div>
@@ -222,7 +246,7 @@ const AdminDashboardContent = ({
           className="bg-white/80 backdrop-blur-xl border border-[var(--border-soft)] h-20 rounded-[2.5rem] flex items-center px-4 shadow-heavy overflow-x-auto no-scrollbar scroll-smooth snap-x"
         >
             <div className="flex items-center gap-8 px-10">
-              {TABS.map(tab => (
+              {getTabs(config?.business_type).map(tab => (
                 <button
                   key={tab.id}
                   ref={el => tabRefs.current[tab.id] = el}
@@ -230,7 +254,7 @@ const AdminDashboardContent = ({
                   className={`flex flex-col items-center min-w-[60px] snap-center transition-all ${activeTab === tab.id ? 'text-[var(--brand-primary)] scale-110' : 'text-[var(--text-disabled)] opacity-60'}`}
                 >
                   <span className="text-xl">{tab.icon}</span>
-                  <span className="text-[6px] uppercase font-black mt-1 tracking-widest">{tab.label}</span>
+                  <span className="text-[6px] uppercase font-black mt-1 tracking-widest text-center">{tab.label}</span>
                   {activeTab === tab.id && <motion.div layoutId="mobile-indicator" className="w-1 h-1 bg-[var(--brand-primary)] rounded-full mt-1" />}
                 </button>
               ))}
@@ -322,6 +346,7 @@ const AdminDashboardContent = ({
                   toggleProduct={toggleProduct} 
                   magicSnap={magicSnap} 
                   updateImage={updateImage}
+                  config={config}
                 />
               </motion.div>
             )}
