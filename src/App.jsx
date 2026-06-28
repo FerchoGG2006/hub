@@ -170,6 +170,7 @@ const HubLoader = () => {
 };
 
 import { RegisterBusiness } from './modules/auth/RegisterBusiness';
+import { DigitalMenu } from './modules/digital_menu/DigitalMenu';
 
 const App = () => {
   return (
@@ -180,6 +181,7 @@ const App = () => {
         <Route path="/superadmin" element={<SuperAdmin />} />
         <Route path="/admin/:tenantSlug/*" element={<AdminDashboard />} />
         <Route path="/legal/privacidad" element={<PrivacyPolicy />} />
+        <Route path="/menu-platorin" element={<DigitalMenu />} />
         <Route path="/:tenantSlug" element={<HubLoader />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
