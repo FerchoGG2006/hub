@@ -141,7 +141,7 @@ const TableCard = ({ mesa, onInitiateClose, onInitiateAdd, isClosing }) => {
 export const CajaManager = () => {
   const { tenantSlug } = useParams();
   const [mesas, setMesas] = useState([]);
-  const [resumen, setResumen] = useState(null);
+  const [, setResumen] = useState(null);
   const [mesaToClose, setMesaToClose] = useState(null);
   const [tableToAdd, setTableToAdd] = useState(null);
   const [closingTables, setClosingTables] = useState({});
@@ -269,7 +269,7 @@ export const CajaManager = () => {
         const json = await res.json();
         alert(json.message || "Error al abrir la caja.");
       }
-    } catch (err) {
+    } catch {
       alert("Error de conexión con el servidor.");
     } finally {
       setIsOpening(false);
@@ -301,7 +301,7 @@ export const CajaManager = () => {
         const json = await res.json();
         alert(json.message || "Error al registrar el egreso.");
       }
-    } catch (err) {
+    } catch {
       alert("Error de conexión con el servidor.");
     } finally {
       setIsRegisteringExpense(false);
@@ -334,7 +334,7 @@ export const CajaManager = () => {
         const json = await res.json();
         alert(json.message || "Error al cerrar la caja.");
       }
-    } catch (err) {
+    } catch {
       alert("Error de conexión con el servidor.");
     } finally {
       setIsClosingSession(false);

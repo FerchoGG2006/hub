@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import models
@@ -16,19 +16,21 @@ logger = logging.getLogger("platorin.orders")
 
 
 @router.post("/v1/tenant/{slug}/orders")
-async def receive_order(slug: str, req: OrderRequest, db: Session = Depends(get_db)):
+async def receive_order(slug: str, req: OrderRequest, db: Session = Depends(get_db), idempotency_key: Optional[str] = Header(default=None, max_length=100)):
     t = db.query(models.Tenant).filter_by(slug=slug).first()
     if not t:
         raise AppError(message="Tenant no encontrado", status_code=404)
     
     # Nuevo servicio modular (Emite eventos internamente)
-    nuevo = await OrderService.create_order(db, t.id, req.dict())
+    nuevo = await OrderService.create_order(db, t.id, req.model_dump(), idempotency_key)
     
-    return success_response({"orderId": nuevo.id}, message="Pedido recibido")
+    return success_response({"orderId": nuevo.id, "orderToken": auth.create_order_token(nuevo), "total": nuevo.total_price}, message="Pedido recibido")
 
 @router.get("/v1/tenant/{slug}/orders/{order_id}")
-def get_public_order_status(slug: str, order_id: int, db: Session = Depends(get_db)):
-    order = db.query(models.Order).filter_by(id=order_id).first()
+def get_public_order_status(slug: str, order_id: int, db: Session = Depends(get_db), x_order_token: Optional[str] = Header(default=None)):
+    auth.require_order_token(x_order_token, order_id)
+    tenant = db.query(models.Tenant).filter_by(slug=slug).first()
+    order = db.query(models.Order).filter_by(id=order_id, tenant_id=tenant.id).first() if tenant else None
     if not order:
         raise AppError(message="Pedido no encontrado", status_code=404)
     
@@ -49,6 +51,7 @@ def get_orders(db: Session = Depends(get_db), current_user: models.User = Depend
             "customer_name": o.customer_name,
             "total_price": o.total_price,
             "status": o.status,
+            "payment_status": o.payment_status,
             "table_number": o.table_number,
             "items_json": o.items_json,
             "created_at": o.created_at.isoformat(),
@@ -91,6 +94,7 @@ def get_open_tables(db: Session = Depends(get_db), current_user: models.User = D
         .filter(
             models.Order.tenant_id == tenant_id,
             models.Order.status.in_(active_statuses),
+            models.Order.payment_status != "paid",
             models.Order.table_number.isnot(None),
             models.Order.table_number != ""
         )
@@ -148,7 +152,8 @@ async def close_table(
         .filter(
             models.Order.tenant_id == tenant_id,
             models.Order.table_number == table_number,
-            models.Order.status.in_(["pending", "preparing", "ready", "completed"])
+            models.Order.status.in_(["pending", "preparing", "ready", "completed"]),
+            models.Order.payment_status != "paid"
         )
         .all()
     )
@@ -159,6 +164,8 @@ async def close_table(
     total_cobrado = 0
     for order in active_orders:
         order.status = "paid"
+        order.payment_status = 'paid'
+        order.paid_at = datetime.utcnow()
         total_cobrado += (order.total_price or 0)
     
     db.commit()
@@ -178,7 +185,7 @@ async def close_table(
     })
 
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class AdminAddOrderRequest(BaseModel):
     items_json: str
@@ -223,8 +230,8 @@ def get_cash_summary(db: Session = Depends(get_db), current_user: models.User = 
         func.count(models.Order.id)
     ).filter(
         models.Order.tenant_id == tenant_id,
-        models.Order.status == "paid",
-        func.date(models.Order.created_at) == today
+        models.Order.payment_status == "paid",
+        func.date(models.Order.paid_at) == today
     ).first()
     
     total_ventas = paid_today[0] or 0
@@ -239,8 +246,8 @@ def get_cash_summary(db: Session = Depends(get_db), current_user: models.User = 
         )
         .filter(
             models.Order.tenant_id == tenant_id,
-            models.Order.status == "paid",
-            func.date(models.Order.created_at) == today
+            models.Order.payment_status == "paid",
+            func.date(models.Order.paid_at) == today
         )
         .group_by(models.Order.payment_method)
         .all()
@@ -254,6 +261,7 @@ def get_cash_summary(db: Session = Depends(get_db), current_user: models.User = 
     active_count = db.query(func.count(models.Order.id)).filter(
         models.Order.tenant_id == tenant_id,
         models.Order.status.in_(["pending", "preparing", "ready", "completed"]),
+            models.Order.payment_status != "paid",
         func.date(models.Order.created_at) == today
     ).scalar() or 0
     
@@ -268,17 +276,17 @@ def get_cash_summary(db: Session = Depends(get_db), current_user: models.User = 
 
 
 class OpenSessionRequest(BaseModel):
-    base_amount: int
+    base_amount: int = Field(ge=0)
     notes: Optional[str] = None
 
 
 class CloseSessionRequest(BaseModel):
-    real_cash: int
+    real_cash: int = Field(ge=0)
     notes: Optional[str] = None
 
 
 class AddExpenseRequest(BaseModel):
-    amount: int
+    amount: int = Field(gt=0)
     description: str
 
 
@@ -293,18 +301,18 @@ def get_current_cash_session(db: Session = Depends(get_db), current_user: models
     # Calcular dinámicamente las ventas en efectivo durante este turno
     orders = db.query(models.Order).filter(
         models.Order.tenant_id == tid,
-        models.Order.status == "paid",
+        models.Order.payment_status == "paid",
         models.Order.payment_method == "efectivo",
-        models.Order.created_at >= session.opened_at
+        models.Order.paid_at >= session.opened_at
     ).all()
     cash_sales = sum(o.total_price for o in orders)
 
     # Calcular ventas digitales durante este turno (informativo)
     digital_orders = db.query(models.Order).filter(
         models.Order.tenant_id == tid,
-        models.Order.status == "paid",
+        models.Order.payment_status == "paid",
         models.Order.payment_method != "efectivo",
-        models.Order.created_at >= session.opened_at
+        models.Order.paid_at >= session.opened_at
     ).all()
     digital_sales = sum(o.total_price for o in digital_orders)
 
@@ -390,9 +398,9 @@ def close_cash_session(req: CloseSessionRequest, db: Session = Depends(get_db), 
     # Calcular ventas en efectivo durante este turno
     orders = db.query(models.Order).filter(
         models.Order.tenant_id == tid,
-        models.Order.status == "paid",
+        models.Order.payment_status == "paid",
         models.Order.payment_method == "efectivo",
-        models.Order.created_at >= session.opened_at
+        models.Order.paid_at >= session.opened_at
     ).all()
     cash_sales = sum(o.total_price for o in orders)
 
@@ -429,10 +437,10 @@ def get_cash_session_history(db: Session = Depends(get_db), current_user: models
     for s in sessions:
         orders = db.query(models.Order).filter(
             models.Order.tenant_id == tid,
-            models.Order.status == "paid",
+            models.Order.payment_status == "paid",
             models.Order.payment_method == "efectivo",
-            models.Order.created_at >= s.opened_at,
-            models.Order.created_at <= s.closed_at
+            models.Order.paid_at >= s.opened_at,
+            models.Order.paid_at <= s.closed_at
         ).all()
         cash_sales = sum(o.total_price for o in orders)
         

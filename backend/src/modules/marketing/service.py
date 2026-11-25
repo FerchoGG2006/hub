@@ -16,7 +16,7 @@ class MarketingService:
         logger.info(f"[Marketing] ¡Bienvenido detectado! Preparando cupón para {customer_name} ({phone})")
         
         # Simulación de envío de WhatsApp de bienvenida
-        print(f"[Marketing Auto] Enviando mensaje a {phone}: '¡Hola {customer_name}! Gracias por elegirnos. Usa el cupón HOLA10 en tu próximo pedido.'")
+        logger.info('Bienvenida de marketing pendiente: no hay proveedor configurado')
 
 # Suscribir Marketing al descubrimiento de clientes
 bus.subscribe("CUSTOMER_CREATED", MarketingService.trigger_welcome_campaign)

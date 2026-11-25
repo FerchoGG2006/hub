@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, Boolean, DateTime, JSON
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, Boolean, DateTime, JSON, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -118,6 +118,8 @@ class Order(Base):
     total_price     = Column(Integer, nullable=False)
     items_json      = Column(Text, nullable=False)
     status          = Column(String(20), default="pending")
+    payment_status  = Column(String(20), nullable=False, default='unpaid', server_default='unpaid')
+    paid_at         = Column(DateTime, nullable=True)
     table_number    = Column(String(255))
     phone           = Column(String(20))
     customer_name   = Column(String(100))
@@ -131,6 +133,16 @@ class Order(Base):
     
     tenant = relationship("Tenant")
     branch = relationship("Branch", back_populates="orders")
+
+class OrderRequestKey(Base):
+    __tablename__ = 'order_request_keys'
+    __table_args__ = (UniqueConstraint('tenant_id', 'key', name='uq_order_request_tenant_key'),)
+    id = Column(Integer, primary_key=True)
+    tenant_id = Column(Integer, ForeignKey('tenants.id'), nullable=False)
+    key = Column(String(100), nullable=False)
+    fingerprint = Column(String(64), nullable=False)
+    order_id = Column(Integer, ForeignKey('orders.id'), nullable=True)
+
 
 class Coupon(Base):
     __tablename__ = "coupons"

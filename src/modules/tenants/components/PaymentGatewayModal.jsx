@@ -355,9 +355,10 @@ const Step4Success = () => (
 );
 
 // ─── Main Component ────────────────────────────────────────────────────────────
-export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => {
+export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId, orderToken }) => {
   const [step, setStep] = useState(1);
   const [paymentData, setPaymentData] = useState(null);
+  const [paymentError, setPaymentError] = useState(null);
   const [timeLeft, setTimeLeft] = useState(900);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -372,7 +373,7 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
 
   // Effect 1: Init payment session
   useEffect(() => {
-    if (!isOpen || !orderId) return;
+    if (!isOpen || !orderId || paymentError) return;
     const init = async () => {
       if (paymentData) return;
       setStep(1);
@@ -380,39 +381,30 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
         const base = import.meta.env.VITE_API_URL || 'http://localhost:8000';
         const res = await fetch(`${base}/payments/session`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-Order-Token': orderToken },
           body: JSON.stringify({ orderId, provider: 'wompi' }),
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(data.message || data.detail || 'No se pudo iniciar el pago');
         setPaymentData(data);
         setStep(2);
       } catch (err) {
         console.error('Error creating payment session:', err);
+        setPaymentError(err.message);
       }
     };
     init();
-  }, [isOpen, orderId, paymentData]);
+  }, [isOpen, orderId, paymentData, orderToken, paymentError]);
 
   // Effect 2: Status monitoring (polling + WS)
   useEffect(() => {
     if (!isOpen || !paymentData?.reference) return;
     const base = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    let ws = null;
-
-    ws = new WebSocket(base.replace('http', 'ws') + '/ws/menu');
-    ws.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      if (data.type === 'ORDER_UPDATED' && data.order_id === orderId && data.status === 'paid') {
-        setStep(4);
-        clearInterval(poll);
-        setTimeout(() => { onSuccess(); onClose(); }, 3000);
-      }
-    };
-    ws.onerror = (e) => console.warn('WS error:', e);
 
     const poll = setInterval(async () => {
       try {
-        const res  = await fetch(`${base}/payments/status/${paymentData.reference}`);
+        const res  = await fetch(`${base}/payments/status/${paymentData.reference}`, { headers: { 'X-Order-Token': orderToken } });
+        if (!res.ok) throw new Error('No se pudo consultar el pago');
         const data = await res.json();
         if (data.status === 'paid') {
           setStep(4);
@@ -426,10 +418,9 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
     }, 3000);
 
     return () => {
-      if (ws?.readyState < 2) ws.close();
       clearInterval(poll);
     };
-  }, [isOpen, paymentData?.reference, orderId, onSuccess, onClose]);
+  }, [isOpen, paymentData?.reference, orderId, orderToken, onSuccess, onClose]);
 
   // Effect 3: Timer
   useEffect(() => {
@@ -439,6 +430,16 @@ export const PaymentGatewayModal = ({ isOpen, onClose, onSuccess, orderId }) => 
   }, [isOpen]);
 
   if (!isOpen) return null;
+  if (paymentError) return (
+    <div className="fixed inset-0 z-[500] bg-black/70 flex items-center justify-center p-6">
+      <div className="bg-white rounded-2xl p-8 max-w-md text-center space-y-4">
+        <h2 className="font-bold text-xl">No pudimos iniciar el pago</h2>
+        <p role="alert">{paymentError}</p>
+        <button onClick={() => setPaymentError(null)} className="px-5 py-3 bg-amber-400 rounded-xl">Reintentar</button>
+        <button onClick={onClose} className="px-5 py-3">Cerrar</button>
+      </div>
+    </div>
+  );
 
   return (
     <>

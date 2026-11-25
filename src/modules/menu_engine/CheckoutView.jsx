@@ -48,7 +48,7 @@ export const CheckoutView = ({ isOpen, onClose, config, branch }) => {
     }, 2000);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [cart, phone, customerName, config?.slug]);
+  }, [cart, phone, customerName, config?.slug, API_URL]);
 
   React.useEffect(() => {
     if (isOpen) {

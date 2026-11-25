@@ -3,6 +3,10 @@ from sqlalchemy import desc
 import models
 import json
 import logging
+import hashlib
+from datetime import datetime
+from sqlalchemy.exc import IntegrityError
+from src.shared.errors.app_error import AppError
 from src.shared.infra.event_bus import bus
 
 logger = logging.getLogger("platorin.orders")
@@ -18,14 +22,27 @@ VALID_STATUS_TRANSITIONS = {
 }
 
 from services.module_service import has_module
+from src.modules.orders.validation import validate_order, release_inventory
 
 class OrderService:
     @staticmethod
-    async def create_order(db: Session, tenant_id: int, order_data: dict) -> models.Order:
+    async def create_order(db: Session, tenant_id: int, order_data: dict, idempotency_key=None) -> models.Order:
         """
         Crea un pedido, gestiona inventario y emite el evento ORDER_CREATED.
         """
         try:
+            fingerprint = hashlib.sha256(json.dumps(order_data, sort_keys=True).encode()).hexdigest()
+            request_key = None
+            if idempotency_key:
+                existing = db.query(models.OrderRequestKey).filter_by(tenant_id=tenant_id, key=idempotency_key).first()
+                if existing:
+                    if existing.fingerprint != fingerprint:
+                        raise AppError('La clave ya se utilizó para otro pedido', 409)
+                    return db.get(models.Order, existing.order_id)
+                request_key = models.OrderRequestKey(tenant_id=tenant_id, key=idempotency_key, fingerprint=fingerprint)
+                db.add(request_key)
+                db.flush()
+            order_data = validate_order(db, tenant_id, order_data)
             # Validación de Mesas
             table_number = order_data.get("table_number")
             if table_number and not has_module(db, tenant_id, "tables"):
@@ -49,6 +66,8 @@ class OrderService:
             
             db.add(nuevo_pedido)
             db.flush() 
+            if request_key:
+                request_key.order_id = nuevo_pedido.id
 
             # Marcar CartSession activa como 'converted'
             try:
@@ -63,25 +82,6 @@ class OrderService:
                         active_cart.status = "converted"
             except Exception as e:
                 logger.warning(f"Error marcando CartSession como converted: {e}")
-
-            # INTEGRACIÓN CON INVENTARIO (Atomic)
-            if has_module(db, tenant_id, "inventory"):
-                items = json.loads(nuevo_pedido.items_json)
-                for item in items:
-                    prod_id = item.get("id")
-                    var_id = item.get("variant_id")
-                    qty = item.get("qty", 1)
-
-                    if var_id:
-                        inv = db.query(models.Inventory).filter_by(variant_id=var_id).first()
-                    else:
-                        inv = db.query(models.Inventory).filter_by(product_id=prod_id).first()
-                    
-                    if inv:
-                        if inv.stock >= qty:
-                            inv.stock -= qty
-                        else:
-                            logger.warning(f"Stock insuficiente para item {prod_id}/{var_id}")
 
             db.commit()
             db.refresh(nuevo_pedido)
@@ -101,6 +101,13 @@ class OrderService:
             logger.info(f"Pedido #{nuevo_pedido.id} creado y evento emitido.")
             return nuevo_pedido
 
+        except IntegrityError:
+            db.rollback()
+            if idempotency_key:
+                existing = db.query(models.OrderRequestKey).filter_by(tenant_id=tenant_id, key=idempotency_key).first()
+                if existing and existing.fingerprint == fingerprint and existing.order_id:
+                    return db.get(models.Order, existing.order_id)
+            raise AppError('Conflicto al registrar el pedido; reintenta', 409)
         except Exception as e:
             db.rollback()
             logger.error(f"Error en OrderService.create_order: {e}")
@@ -119,6 +126,15 @@ class OrderService:
             raise ValueError(f"Transición inválida: {order.status} -> {new_status}")
 
         old_status = order.status
+        if new_status == 'paid':
+            if order.payment_method == 'wompi':
+                raise ValueError('Los pagos Wompi se confirman mediante la pasarela')
+            order.payment_status = 'paid'
+            order.paid_at = datetime.utcnow()
+        if new_status == 'cancelled' and order.payment_status == 'paid':
+            raise ValueError('Un pedido pagado requiere un proceso de devolución')
+        if new_status == 'cancelled':
+            release_inventory(db, order)
         order.status = new_status
         db.commit()
 

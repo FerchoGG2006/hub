@@ -15,7 +15,7 @@ class Settings:
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY")
     
     # Auth
-    JWT_SECRET: str = os.getenv("JWT_SECRET", "super-secret-key")
+    JWT_SECRET: str = os.getenv("JWT_SECRET_KEY") or os.getenv("JWT_SECRET", "")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 1 week
 
 settings = Settings()

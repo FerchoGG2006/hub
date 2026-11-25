@@ -12,9 +12,15 @@ class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[int, List[WebSocket]] = {}
         self._redis_task = None
+        self.admin_connections = set()
 
-    async def connect(self, websocket: WebSocket, tenant_id: int):
+    async def connect(self, websocket: WebSocket, tenant_id: int, admin: bool = False):
         await websocket.accept()
+        self.register(websocket, tenant_id, admin)
+
+    def register(self, websocket, tenant_id, admin=False):
+        if admin:
+            self.admin_connections.add(websocket)
         if tenant_id not in self.active_connections:
             self.active_connections[tenant_id] = []
         self.active_connections[tenant_id].append(websocket)
@@ -43,6 +49,8 @@ class ConnectionManager:
         connections = self.active_connections.get(tenant_id, [])
         dead = []
         for connection in connections:
+            if connection not in self.admin_connections and message.get('type') != 'MENU_UPDATE':
+                continue
             try:
                 await connection.send_text(json.dumps(message))
             except Exception:
@@ -50,8 +58,10 @@ class ConnectionManager:
         # Limpiar sockets muertos
         for d in dead:
             connections.remove(d)
+            self.admin_connections.discard(d)
 
     def disconnect(self, websocket: WebSocket, tenant_id: int):
+        self.admin_connections.discard(websocket)
         if tenant_id in self.active_connections:
             if websocket in self.active_connections[tenant_id]:
                 self.active_connections[tenant_id].remove(websocket)

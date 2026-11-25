@@ -5,11 +5,11 @@ import { CartProvider } from './modules/menu_engine/CartContext';
 import { CoverPage } from './modules/menu_engine/CoverPage';
 import { MenuEngine } from './modules/menu_engine/MenuEngine';
 import { FloatingCart } from './modules/menu_engine/FloatingCart';
-import { AdminDashboard } from './modules/tenants/AdminDashboard';
-import { SuperAdmin } from './modules/auth/SuperAdmin';
-import { LandingPage } from './modules/landing/LandingPage';
+const AdminDashboard = React.lazy(() => import('./modules/tenants/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
+const SuperAdmin = React.lazy(() => import('./modules/auth/SuperAdmin').then(module => ({ default: module.SuperAdmin })));
+const LandingPage = React.lazy(() => import('./modules/landing/LandingPage').then(module => ({ default: module.LandingPage })));
 import { BranchPicker } from './modules/menu_engine/BranchPicker';
-import { PrivacyPolicy } from './modules/landing/PrivacyPolicy';
+const PrivacyPolicy = React.lazy(() => import('./modules/landing/PrivacyPolicy').then(module => ({ default: module.PrivacyPolicy })));
 
 // Silence Chrome intervention warnings for non-cancelable touch events from third-party libraries (e.g. PageFlip)
 if (typeof window !== 'undefined' && window.TouchEvent && window.TouchEvent.prototype) {
@@ -73,7 +73,7 @@ const MainApp = ({ config }) => {
 
 
   return (
-    <CartProvider>
+    <CartProvider key={config.slug}>
       <main className="w-full bg-[#050505] overflow-x-hidden min-h-svh">
         <AnimatePresence mode="wait">
           {appState === 'closed' ? (
@@ -84,7 +84,7 @@ const MainApp = ({ config }) => {
           ) : (
             <motion.div key="menu" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               transition={{ duration: 0.4 }} className="absolute inset-0">
-              <MenuEngine config={config} />
+              <MenuEngine config={config} branch={selectedBranch} />
               <FloatingCart config={config} branch={selectedBranch} />
             </motion.div>
           )}
@@ -169,12 +169,13 @@ const HubLoader = () => {
   return <MainApp config={config} />;
 };
 
-import { RegisterBusiness } from './modules/auth/RegisterBusiness';
-import { DigitalMenu } from './modules/digital_menu/DigitalMenu';
+const RegisterBusiness = React.lazy(() => import('./modules/auth/RegisterBusiness').then(module => ({ default: module.RegisterBusiness })));
+const DigitalMenu = React.lazy(() => import('./modules/digital_menu/DigitalMenu').then(module => ({ default: module.DigitalMenu })));
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <React.Suspense fallback={<div className="min-h-screen grid place-items-center">Cargando Platorin...</div>}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegisterBusiness />} />
@@ -185,6 +186,7 @@ const App = () => {
         <Route path="/:tenantSlug" element={<HubLoader />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </React.Suspense>
     </BrowserRouter>
   );
 };

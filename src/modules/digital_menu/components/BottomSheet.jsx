@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const BottomSheet = ({ isOpen, product, onClose, onAddToCart }) => {
   const [quantity, setQuantity] = useState(1);
 
-  useEffect(() => {
-    if (isOpen) setQuantity(1);
-  }, [isOpen, product]);
+  const handleClose = () => {
+    setQuantity(1);
+    onClose();
+  };
 
   if (!product) return null;
 
   const handleAdd = () => {
     onAddToCart({ ...product, quantity });
-    onClose();
+    handleClose();
   };
 
   const numericPrice = product.numericPrice || 0;
@@ -29,7 +30,7 @@ export const BottomSheet = ({ isOpen, product, onClose, onAddToCart }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            onClick={onClose}
+            onClick={handleClose}
             className="fixed inset-0 bg-[#2A1508]/70 z-40 backdrop-blur-[6px]"
           />
 
@@ -100,7 +101,7 @@ export const BottomSheet = ({ isOpen, product, onClose, onAddToCart }) => {
                   Añadir al carrito — ${formattedTotal}
                 </button>
                 <button
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="w-full text-[#8B6F56] hover:text-[#3E1F0D] font-bold uppercase tracking-widest py-2.5 rounded-2xl active:scale-[0.97] transition-all text-xs"
                 >
                   Cancelar

@@ -14,22 +14,22 @@ const MENU_DATA = [
       {
         id: "g1", name: "Galleta de Pistachos", numericPrice: 7000, price: "7K",
         description: "Crujiente por fuera, suave por dentro y con pistachos reales. ¡Irresistible!",
-        image: "/images/pistachio.png", emoji: "🍪"
+        image: `${import.meta.env.BASE_URL}images/pistachio.png`, emoji: "🍪"
       },
       {
         id: "g2", name: "Galleta Red", numericPrice: 6000, price: "6K",
         description: "Red velvet con chips blancos. Suave, intensa y deliciosa.",
-        image: "/images/red_velvet.png", emoji: "🔴"
+        image: `${import.meta.env.BASE_URL}images/red_velvet.png`, emoji: "🔴"
       },
       {
         id: "g3", name: "Galleta Snickers", numericPrice: 7000, price: "7K",
         description: "Chocolate, maní y caramelo. La galleta que lo tiene todo.",
-        image: "/images/snickers.png", emoji: "🥜"
+        image: `${import.meta.env.BASE_URL}images/snickers.png`, emoji: "🥜"
       },
       {
         id: "g4", name: "Galleta Chips de Chocolate", numericPrice: 6000, price: "6K",
         description: "Clásica, reconfortante y cargada de chips de chocolate.",
-        image: "/images/choc_chip.png", emoji: "🍫"
+        image: `${import.meta.env.BASE_URL}images/choc_chip.png`, emoji: "🍫"
       }
     ]
   },
@@ -41,17 +41,17 @@ const MENU_DATA = [
       {
         id: "b1", name: "Brookie", numericPrice: 8000, price: "8K",
         description: "La mejor combinación que existe: brownie + cookie. Fudgy y perfecta.",
-        image: "/images/brookie.png", emoji: "🤎"
+        image: `${import.meta.env.BASE_URL}images/brookie.png`, emoji: "🤎"
       },
       {
         id: "b2", name: "Brownie de Arequipe", numericPrice: 7000, price: "7K",
         description: "Húmedo, intenso y con el toque perfecto de arequipe.",
-        image: "/images/arequipe.png", emoji: "🍯"
+        image: `${import.meta.env.BASE_URL}images/arequipe.png`, emoji: "🍯"
       },
       {
         id: "b3", name: "Brownie de Milo", numericPrice: 6000, price: "6K",
         description: "Suave, chocolatoso y con todo el sabor único de Milo.",
-        image: "/images/milo.png", emoji: "🥛"
+        image: `${import.meta.env.BASE_URL}images/milo.png`, emoji: "🥛"
       }
     ]
   }
@@ -229,7 +229,7 @@ export const DigitalMenu = () => {
             className="relative mb-1"
           >
             <div className="w-24 h-24 bg-[#FFF8F0] rounded-full flex items-center justify-center shadow-xl overflow-hidden border-3 border-[#5C3520] p-1">
-              <img src="/images/logo.png" alt="Más Perrón Logo" className="w-full h-full object-cover rounded-full" />
+              <img src={`${import.meta.env.BASE_URL}images/logo.png`} alt="Más Perrón Logo" className="w-full h-full object-cover rounded-full" />
             </div>
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#3E1F0D] text-[#F0DCC4] text-[8px] font-black uppercase tracking-[0.2em] px-3 py-[3px] rounded-full whitespace-nowrap shadow-md border border-[#C4956A]/30">
               masperron.vp

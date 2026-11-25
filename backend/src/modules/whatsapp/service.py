@@ -37,7 +37,8 @@ class WhatsAppAlertsService:
             )
 
             logger.info(f"📬 Enviando alerta de pedido creado #{order_id} a {clean_phone}")
-            send_whatsapp_message(clean_phone, msg)
+            if not send_whatsapp_message(clean_phone, msg):
+                return
 
             # Guardar en base de datos de Inbox
             db_msg = models.WhatsAppMessage(

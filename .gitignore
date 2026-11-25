@@ -9,6 +9,9 @@ dist-ssr/
 .env
 .env.local
 .env.*.local
+.env.*
+!.env.example
+!.env.*.example
 
 # Editor directories
 .vscode/
@@ -29,6 +32,9 @@ npm-debug.log*
 
 # Python & DB
 venv/
+.venv/
+.local/
+platorin-ultimo.zip
 backend/venv/
 __pycache__/
 *.pyc

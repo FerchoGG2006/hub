@@ -2,27 +2,38 @@ services:
   # ─── BACKEND (FastAPI) ───
   - type: web
     name: hub-api
-    env: python
-    buildCommand: pip install -r backend/requirements.txt
+    runtime: python
+    buildCommand: pip install -r backend/requirements.lock
+    healthCheckPath: /health/ready
     startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.16
+      - key: AUTO_CREATE_SCHEMA
+        value: 'false'
+      - key: ENABLE_SCHEDULER
+        value: 'true'
+      - key: SEED_DEMO_DATA
+        value: 'false'
       - key: DATABASE_URL
-        value: postgresql://platorin_user:vGCQkb6wkWzYmNGoHUg8NwaErT2TAkxs@dpg-d89b74ml51nc7388m26g-a/platorin
+        sync: false
       - key: GEMINI_API_KEY
-        value: AIzaSyAF4jl-4aMZK9pk5uOcRJ95PWOyQTz8JY8
-      - key: JWT_SECRET
-        value: 9e59f1ae-52d0-434d-848f-572c3a051503
+        sync: false
+      - key: JWT_SECRET_KEY
+        sync: false
       - key: FRONTEND_URL
         value: https://hub-frontend-bbaa.onrender.com
       - key: FB_CLIENT_ID
         value: 1975318246711677
       - key: FB_CLIENT_SECRET
-        value: 2be64dd59233f0a37d88c7026bc6a142
+        sync: false
       - key: META_VERIFY_TOKEN
-        value: hub_secret_token_2026
+        sync: false
       - key: WOMPI_PUBLIC_KEY
         sync: false
       - key: WOMPI_PRIVATE_KEY
+        sync: false
+      - key: WOMPI_INTEGRITY_SECRET
         sync: false
       - key: WOMPI_EVENTS_SECRET
         sync: false
@@ -37,10 +48,12 @@ services:
   # ─── FRONTEND (React + Vite served via Node) ───
   - type: web
     name: hub-frontend
-    env: node
-    buildCommand: npm install && npm run build
-    startCommand: npx serve dist -s -l $PORT
+    runtime: node
+    buildCommand: npm ci && npm run build
+    startCommand: npm exec -- serve dist -s -l $PORT
     envVars:
+      - key: NODE_VERSION
+        value: '24'
       - key: VITE_API_URL
         value: https://hub-api-2lql.onrender.com
       - key: VITE_FB_APP_ID

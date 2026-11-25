@@ -38,17 +38,4 @@ def get_billing_status(db: Session = Depends(get_db), current_user: models.User 
 
 @router.post("/admin/billing/subscribe")
 def subscribe_tenant(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    from datetime import datetime, timedelta
-    tenant = db.query(models.Tenant).filter(models.Tenant.id == current_user.tenant_id).first()
-    if not tenant:
-        raise AppError(message="Tenant no encontrado", status_code=404)
-        
-    tenant.subscription_status = "active"
-    tenant.valid_until = datetime.utcnow() + timedelta(days=30)
-    db.commit()
-    
-    data = {
-        "valid_until": tenant.valid_until.isoformat(), 
-        "subscription_status": tenant.subscription_status
-    }
-    return success_response(data, message="Facturación completada")
+    raise AppError(message="La suscripción requiere un pago verificado. Contacta con administración.", status_code=403)

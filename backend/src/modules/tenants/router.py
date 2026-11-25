@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Form, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Form, UploadFile, File, Request
+from src.shared.middleware.rate_limit import enforce_limit
+import re
 from sqlalchemy.orm import Session
 from typing import List
 import models
@@ -97,6 +99,7 @@ def reset_passcode(
 
 @router.post("/admin/onboard")
 def onboard_new_tenant(
+    request: Request,
     name: str = Form(...),
     slug: str = Form(...),
     brand_color: str = Form("#f59e0b"),
@@ -106,6 +109,13 @@ def onboard_new_tenant(
     db: Session = Depends(get_db)
 ):
     logger.info(f"Iniciando onboarding para: {name} ({slug})")
+    enforce_limit(('onboard', request.client.host if request.client else ''), 5, 3600)
+    if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', slug) or len(slug) > 50 or not 1 <= len(name) <= 100 or len(email) > 50:
+        raise AppError('Nombre, identificador o correo inválidos', 400)
+    if len(whatsapp_number) > 20 or not re.fullmatch(r'#[0-9A-Fa-f]{6}', brand_color):
+        raise AppError('WhatsApp o color de marca inválidos', 400)
+    if file and file.size and file.size > 10 * 1024 * 1024:
+        raise AppError('La imagen no puede superar 10 MB', 413)
     
     # Validar duplicados antes de procesar
     existing_tenant = db.query(models.Tenant).filter_by(slug=slug).first()
@@ -134,7 +144,7 @@ def onboard_new_tenant(
         
         import secrets
         import string
-        generated_pass = ''.join(secrets.choice(string.digits) for i in range(6))
+        generated_pass = secrets.token_urlsafe(12)
         
         hashed_password = auth.get_password_hash(generated_pass)
         nuevo_usuario = models.User(
@@ -182,7 +192,8 @@ def onboard_new_tenant(
         # ── Seed demo data para dashboard vivo desde el minuto 1 ──
         try:
             from src.modules.tenants.seed_demo import seed_restaurant_demo
-            seed_restaurant_demo(db, nuevo_tenant.id)
+            if os.getenv("SEED_DEMO_DATA", "false").lower() == "true":
+                seed_restaurant_demo(db, nuevo_tenant.id)
             logger.info(f"Demo data sembrado para {slug}")
         except Exception as e:
             logger.error(f"Error sembrando demo data: {e}")
@@ -202,7 +213,7 @@ def onboard_new_tenant(
                 "user": nuevo_usuario.username,
                 "passcode": generated_pass
             },
-            "url": f"https://techgastrohub.com/t/{slug}"
+            "url": f"{os.getenv('FRONTEND_URL', 'http://localhost:3000').rstrip('/')}/{slug}"
         }
         return success_response(data)
     except Exception as e:
