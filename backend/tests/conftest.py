@@ -4,11 +4,15 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from sqlalchemy.engine import make_url
 
 BACKEND = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND))
 TEST_DIR = tempfile.TemporaryDirectory(prefix='platorin-tests-')
-os.environ['DATABASE_URL'] = 'sqlite:///' + (Path(TEST_DIR.name) / 'test.db').as_posix()
+test_url = os.getenv('PLATORIN_TEST_DATABASE_URL')
+if test_url and not (make_url(test_url).database or '').endswith('_test'):
+    raise RuntimeError('La base externa de pruebas debe terminar en _test. Nunca uses la base de un negocio.')
+os.environ['DATABASE_URL'] = test_url or 'sqlite:///' + (Path(TEST_DIR.name) / 'test.db').as_posix()
 os.environ['JWT_SECRET_KEY'] = 'test-only-secret-key-with-at-least-32-characters'
 os.environ['AUTO_CREATE_SCHEMA'] = 'false'
 os.environ['ENABLE_SCHEDULER'] = 'false'

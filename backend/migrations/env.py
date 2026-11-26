@@ -11,7 +11,13 @@ if context.is_offline_mode():
     with context.begin_transaction():
         context.run_migrations()
 else:
-    with engine.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata, compare_type=True, render_as_batch=engine.dialect.name == 'sqlite')
+    def run_with_connection(connection):
+        context.configure(connection=connection, target_metadata=target_metadata, compare_type=True, render_as_batch=connection.dialect.name == 'sqlite')
         with context.begin_transaction():
             context.run_migrations()
+    connection = context.config.attributes.get('connection')
+    if connection is not None:
+        run_with_connection(connection)
+    else:
+        with engine.connect() as connection:
+            run_with_connection(connection)

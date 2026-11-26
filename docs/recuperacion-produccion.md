@@ -1,5 +1,7 @@
 # Recuperación de producción
 
+Actualización del 26 de noviembre: el usuario descartó pagar Render. La ruta vigente y la recuperación de datos Neon se documentan en [alojamiento-gratuito.md](alojamiento-gratuito.md). Los pasos de Render siguientes son el plan anterior y no deben ejecutarse para este piloto. La copia Neon ya fue adaptada y validada; la rama original se conserva.
+
 ## Preparado en código
 
 - Python 3.12, dependencias fijadas en requirements.lock, Node 24 y npm ci.
@@ -17,7 +19,7 @@
 6. Desplegar API y frontend; comprobar /health/ready, origen CORS, login, aislamiento de dos negocios y recorrido de pedido → cocina → caja.
 7. Configurar webhook sandbox de Wompi en /payments/webhook y comprobar pago válido, firma inválida, importe incorrecto, duplicado y fallo temporal. Pasar a producción solo con claves y pruebas del comercio real.
 
-No se ha ejecutado ninguno de estos cambios sobre la base o las cuentas de producción en esta intervención.
+La base original de producción no se modificó. Se adaptó únicamente la rama de recuperación indicada en el documento actualizado.
 
 ## Esquema nuevo
 
