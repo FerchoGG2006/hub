@@ -49,7 +49,10 @@ export const CartProvider = ({ children }) => {
     ).filter(i => i.qty > 0));
   }, []);
 
-  const clearCart = useCallback(() => setCart([]), []);
+  const clearCart = useCallback(() => {
+    setCart([]);
+    sessionStorage.removeItem('platorin_checkout');
+  }, []);
 
   const parsePrice = (price) => {
     if (!price) return 0;

@@ -66,26 +66,6 @@ export const InstagramAutopilot = () => {
     }
   };
 
-  useEffect(() => {
-    if (isLinked && branches.length > 0) {
-      const first = branches[0];
-      const interval = setInterval(() => {
-        setSimulatedTime(prev => {
-           // Ciclamos para demostrar cómo cambia de forma dinámica
-           if (bioStatus === 'CLOSED') {
-               setBioStatus('OPEN');
-               return first.opening_time || '11:00';
-           } else {
-               setBioStatus('CLOSED');
-               return first.closing_time || '22:00';
-           }
-        });
-      }, 4000);
-      return () => clearInterval(interval);
-    }
-  }, [isLinked, branches, bioStatus]);
-
-
   const handleFBLogin = () => {
     if (!window.FB) return alert("Cargando SDK de Facebook...");
     window.FB.login((response) => {

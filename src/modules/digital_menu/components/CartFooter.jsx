@@ -7,7 +7,8 @@ export const CartFooter = ({ cartItems }) => {
   const formattedTotal = `$${totalPrice / 1000}K`;
 
   const handleCheckout = () => {
-    const phone = "573000000000"; // Reemplazar con número real
+    const phone = (import.meta.env.VITE_DEMO_WHATSAPP_NUMBER || '').replace(/\D/g, '');
+    if (!phone) return;
 
     let message = "¡Hola! 🐾 Quiero pedir de *Más Perrón*:\n\n";
     cartItems.forEach(item => {
@@ -33,6 +34,7 @@ export const CartFooter = ({ cartItems }) => {
           <div className="max-w-md mx-auto">
             <button
               onClick={handleCheckout}
+              disabled={!import.meta.env.VITE_DEMO_WHATSAPP_NUMBER}
               className="w-full bg-[#25D366] text-white font-black uppercase tracking-[0.12em] py-4 px-5 rounded-2xl flex justify-between items-center active:scale-[0.97] transition-all text-[14px]"
               style={{ boxShadow: '0 6px 24px rgba(37,211,102,0.35)' }}
             >
@@ -40,7 +42,7 @@ export const CartFooter = ({ cartItems }) => {
                 <span className="bg-white/20 backdrop-blur-sm w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black">
                   {totalItems}
                 </span>
-                <span>Pedir por WhatsApp</span>
+                <span>{import.meta.env.VITE_DEMO_WHATSAPP_NUMBER ? 'Pedir por WhatsApp' : 'WhatsApp no disponible'}</span>
               </div>
               <span className="text-base font-black">{formattedTotal}</span>
             </button>

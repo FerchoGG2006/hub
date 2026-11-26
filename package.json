@@ -1,12 +1,13 @@
 {
-  "name": "lacarta",
+  "name": "platorin",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:backend": "cd backend && uvicorn main:app --host 0.0.0.0 --port 8080 --reload",
-    "dev:all": "start npm run dev && start npm run dev:backend",
+    "dev:backend": "node scripts/dev-backend.mjs",
+    "dev:all": "concurrently -k -n web,api \"npm run dev -- --host 127.0.0.1\" \"npm run dev:backend\"",
+    "start": "serve dist -s -l tcp://0.0.0.0:3000",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -14,6 +15,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "axios": "^1.21.1",
     "framer-motion": "^12.38.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
@@ -23,6 +25,7 @@
     "react-dom": "^19.2.4",
     "react-phone-input-2": "^2.15.1",
     "react-router-dom": "^7.14.1",
+    "serve": "^14.2.8",
     "zustand": "^5.0.13"
   },
   "devDependencies": {
@@ -31,6 +34,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.5.0",
+    "concurrently": "^10.0.7",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",

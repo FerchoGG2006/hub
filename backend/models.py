@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, Boolean, DateTime, JSON
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, Boolean, DateTime, JSON, UniqueConstraint, Index, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -118,6 +119,8 @@ class Order(Base):
     total_price     = Column(Integer, nullable=False)
     items_json      = Column(Text, nullable=False)
     status          = Column(String(20), default="pending")
+    payment_status  = Column(String(20), nullable=False, default='unpaid', server_default='unpaid')
+    paid_at         = Column(DateTime, nullable=True)
     table_number    = Column(String(255))
     phone           = Column(String(20))
     customer_name   = Column(String(100))
@@ -131,6 +134,16 @@ class Order(Base):
     
     tenant = relationship("Tenant")
     branch = relationship("Branch", back_populates="orders")
+
+class OrderRequestKey(Base):
+    __tablename__ = 'order_request_keys'
+    __table_args__ = (UniqueConstraint('tenant_id', 'key', name='uq_order_request_tenant_key'),)
+    id = Column(Integer, primary_key=True)
+    tenant_id = Column(Integer, ForeignKey('tenants.id'), nullable=False)
+    key = Column(String(100), nullable=False)
+    fingerprint = Column(String(64), nullable=False)
+    order_id = Column(Integer, ForeignKey('orders.id'), nullable=True)
+
 
 class Coupon(Base):
     __tablename__ = "coupons"
@@ -184,6 +197,7 @@ class Analytics(Base):
 class SpecialEvent(Base):
     """Modelo de Solicitudes de Eventos Especiales (público → admin)."""
     __tablename__ = "special_events"
+    __table_args__ = (Index("idx_special_events_restaurant", "restaurant_id"), Index("idx_special_events_status", "status"))
 
     id              = Column(Integer, primary_key=True, index=True)
     restaurant_id   = Column(Integer, ForeignKey("tenants.id"), nullable=False)
@@ -192,7 +206,7 @@ class SpecialEvent(Base):
     event_type      = Column(String(30), default="otro")   # cumpleanos, aniversario, reunion, despedida, otro
     event_date      = Column(DateTime, nullable=True)
     guests_count    = Column(Integer, default=1)
-    extras          = Column(JSON, default=[])              # lista: decoracion, torta, zona_privada, menu_especial, musica
+    extras          = Column(JSON().with_variant(JSONB(), "postgresql"), default=[])              # lista: decoracion, torta, zona_privada, menu_especial, musica
     notes           = Column(Text, nullable=True)           # mensaje adicional del cliente
     admin_notes     = Column(Text, nullable=True)           # notas internas del admin
     status          = Column(String(20), default="pending") # pending | managing | confirmed | rejected
@@ -266,7 +280,7 @@ class Customer(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Nuevos campos de CRM, opt-in y segmentación
-    whatsapp_opt_in = Column(Boolean, default=True)
+    whatsapp_opt_in = Column(Boolean, default=False)
     instagram_username = Column(String(100), nullable=True)
     last_order_at = Column(DateTime, nullable=True)
     tags = Column(JSON, default=[])
@@ -313,6 +327,7 @@ class Payment(Base):
     method = Column(String(50), nullable=True)
     status = Column(String(20), nullable=False)
     raw_response = Column(JSON, nullable=True)
+    created_at = Column(DateTime, nullable=True, server_default=func.now(), default=datetime.utcnow)
     session = relationship("PaymentSession")
 
 class WhatsAppMessage(Base):

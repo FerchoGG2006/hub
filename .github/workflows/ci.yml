@@ -1,0 +1,83 @@
+name: Validate Platorin
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm audit --audit-level=moderate
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.lock
+      - run: pip install -r backend/requirements-dev.txt
+      - run: python -m pytest backend/tests -q
+      - run: pip-audit -r backend/requirements.lock --no-deps --disable-pip
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: platorin
+          POSTGRES_PASSWORD: test-only-password
+          POSTGRES_DB: platorin_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PLATORIN_TEST_DATABASE_URL: postgresql://platorin:test-only-password@localhost:5432/platorin_test
+      DATABASE_URL: postgresql://platorin:test-only-password@localhost:5432/platorin_test
+      DB_SSLMODE: disable
+      DB_POOL_MODE: 'null'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.lock
+      - run: pip install -r backend/requirements-dev.txt
+      - run: python -m alembic -c backend/alembic.ini upgrade head
+      - run: python -m alembic -c backend/alembic.ini check
+      - run: python -m pytest backend/tests -q
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t platorin-api .
+      - name: Smoke test under 512 MB
+        run: |
+          docker run -d --name platorin-smoke --memory=512m -p 127.0.0.1:8000:8080 \
+            -e PORT=8080 -e DATABASE_URL=sqlite:////tmp/smoke.db \
+            -e JWT_SECRET_KEY=test-only-container-key-at-least-32-characters \
+            platorin-api sh -c 'alembic upgrade head && exec uvicorn main:app --host 0.0.0.0 --port "$PORT" --workers 1'
+          for attempt in $(seq 1 25); do
+            if curl --fail --silent http://127.0.0.1:8000/health/ready; then exit 0; fi
+            sleep 2
+          done
+          docker logs platorin-smoke
+          exit 1
+      - name: Stop smoke test
+        if: always()
+        run: docker rm -f platorin-smoke || true

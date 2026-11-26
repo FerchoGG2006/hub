@@ -4,7 +4,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 const WebSocketContext = createContext(null);
 
 export function WebSocketProvider({ tenantId, children }) {
-  const ws = useWebSocket(tenantId);
+  const ws = useWebSocket(tenantId, true);
   return (
     <WebSocketContext.Provider value={ws}>
       {children}

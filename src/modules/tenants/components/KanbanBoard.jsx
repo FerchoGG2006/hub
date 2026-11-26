@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, Heading, Badge, Button, EmptyState } from '../../../shared/ui';
-import { useWebSocket } from '../../../shared/hooks/useWebSocket';
 import { ORDER_STATUS } from '../../../shared/constants/orders';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -130,9 +129,9 @@ const KanbanColumn = ({ title, items, nextStatus, color, icon, changeStatus, pri
   </div>
 );
 
-export const KanbanBoard = ({ tenantId, lastMessage }) => {
+export const KanbanBoard = ({ lastMessage }) => {
   const [orders, setOrders] = useState([]);
-  const [stats, setStats] = useState({ avgPrep: '0:00', totalServed: 0 });
+  const [, setStats] = useState({ avgPrep: '0:00', totalServed: 0 });
 
   const playAlert = useCallback(() => {
     try {

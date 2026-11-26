@@ -1,6 +1,8 @@
 import os
 from datetime import datetime, timedelta
 import hashlib
+import hmac
+import secrets
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -12,17 +14,29 @@ from database import get_db
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "hub-saas-super-secret-key-12345")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY") or os.getenv("JWT_SECRET", "")
+if len(SECRET_KEY) < 32:
+    raise RuntimeError("Configura JWT_SECRET_KEY con al menos 32 caracteres aleatorios")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 1 week
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 def get_password_hash(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+    salt = secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac('sha256', password.encode(), bytes.fromhex(salt), 600_000).hex()
+    return f"pbkdf2_sha256$600000${salt}${digest}"
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return get_password_hash(plain_password) == hashed_password
+    if hashed_password.startswith('pbkdf2_sha256$'):
+        try:
+            _, iterations, salt, expected = hashed_password.split('$')
+            digest = hashlib.pbkdf2_hmac('sha256', plain_password.encode(), bytes.fromhex(salt), int(iterations)).hex()
+            return hmac.compare_digest(digest, expected)
+        except (ValueError, TypeError):
+            return False
+    # Upgrade existing SHA-256 hashes on the next successful login.
+    return hmac.compare_digest(hashlib.sha256(plain_password.encode()).hexdigest(), hashed_password)
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
@@ -37,7 +51,25 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
 from src.shared.infra.tenant_context import TenantContext
 
+
+def create_order_token(order):
+    return create_access_token({'scope': 'order', 'order_id': order.id, 'tenant_id': order.tenant_id}, timedelta(days=1))
+
+
+def require_order_token(token, order_id):
+    try:
+        payload = jwt.decode(token or '', SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get('scope') != 'order' or payload.get('order_id') != order_id:
+            raise ValueError()
+        return payload
+    except (jwt.PyJWTError, ValueError):
+        raise HTTPException(status_code=403, detail='Acceso al pedido denegado')
+
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    return resolve_user(token, db)
+
+
+def resolve_user(token: str, db: Session):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

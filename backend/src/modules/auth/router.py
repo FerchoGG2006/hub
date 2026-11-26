@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from src.shared.middleware.rate_limit import enforce_limit
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
@@ -10,7 +11,8 @@ from src.shared.utils.responses import success_response
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 @router.post("/token")
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    enforce_limit(('login', request.client.host if request.client else '', form_data.username[:100]), 10, 60)
     user = db.query(models.User).filter(models.User.username == form_data.username).first()
     if not user or not auth.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
@@ -19,6 +21,9 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
             headers={"WWW-Authenticate": "Bearer"}
         )
     
+    if not user.hashed_password.startswith('pbkdf2_sha256$'):
+        user.hashed_password = auth.get_password_hash(form_data.password)
+        db.commit()
     access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = auth.create_access_token(
         data={"sub": user.username, "role": user.role, "tenant_id": user.tenant_id}, 

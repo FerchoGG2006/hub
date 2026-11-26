@@ -238,7 +238,7 @@ const LoadingSkeleton = () => (
 
 
 // ── MAIN ENGINE ──
-export const MenuEngine = ({ config }) => {
+export const MenuEngine = ({ config, branch }) => {
   const { addToCart, cart, totalPrice } = useCart();
   const { width: vpWidth, height: vpHeight } = useViewport916();
   const { mode } = useViewportMode();
@@ -470,7 +470,7 @@ export const MenuEngine = ({ config }) => {
     };
     timer = setTimeout(initFlip, 400);
     return () => { clearTimeout(timer); if (desktopPflip.current) desktopPflip.current.destroy(); };
-  }, [mode, paginatedMenuData]);
+  }, [mode, paginatedMenuData, handleInteraction]);
 
   const desktopGoToPage = (pageNum) => {
     if (!desktopPflip.current) return;
@@ -555,7 +555,7 @@ export const MenuEngine = ({ config }) => {
         isInitialized.current = false;
       }
     };
-  }, [paginatedMenuData, mode, handleInteraction, refetchTrigger]);
+  }, [paginatedMenuData, mode, handleInteraction, refetchTrigger, vpWidth, vpHeight]);
 
   // PageFlip Destructor
   useEffect(() => {
@@ -998,7 +998,7 @@ export const MenuEngine = ({ config }) => {
                 }}
               >
                 <div className="flex-1 overflow-hidden">
-                  <CheckoutPanel isSidebar={false} onClose={() => setShowCartDrawer(false)} />
+                  <CheckoutPanel config={config} branch={branch} isSidebar={false} onClose={() => setShowCartDrawer(false)} />
                 </div>
               </motion.div>
             </>

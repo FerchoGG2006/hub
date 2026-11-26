@@ -35,7 +35,7 @@ def get_tenant_metrics(
     sales_today = db.query(func.sum(models.Order.total_price)).filter(
         models.Order.tenant_id == tenant.id,
         func.date(models.Order.created_at) == today,
-        models.Order.status == 'paid'
+        models.Order.payment_status == 'paid'
     ).scalar() or 0
 
     # ── TOTAL DE ÓRDENES HOY ──

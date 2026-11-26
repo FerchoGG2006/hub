@@ -1,0 +1,15 @@
+**
+!backend/
+!backend/**
+!Dockerfile
+backend/**/.env
+backend/**/.env.*
+backend/**/venv
+backend/**/.venv
+backend/**/__pycache__
+backend/**/*.pyc
+backend/**/*.db
+backend/tests
+backend/scratch
+backend/**/*.zip
+backend/**/*.log

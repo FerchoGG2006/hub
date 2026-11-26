@@ -4,7 +4,7 @@ import { useCart } from '../../shared/hooks/useCart';
 import { useParams } from 'react-router-dom';
 import { PaymentGatewayModal } from '../tenants/components/PaymentGatewayModal';
 import { ProductCustomizer } from './ProductCustomizer';
-import { MENU_DATA } from './MenuData';
+import { ordersService } from '../../shared/services/ordersService';
 
 export const CheckoutPanel = ({ config, branch, onClose, isSidebar = false }) => {
   const { tenantSlug } = useParams();
@@ -35,8 +35,19 @@ export const CheckoutPanel = ({ config, branch, onClose, isSidebar = false }) =>
   
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [activeOrderId, setActiveOrderId] = useState(null);
+  const [orderToken, setOrderToken] = useState(null);
 
   const totalQty = cart.reduce((acc, item) => acc + item.qty, 0);
+  const [catalog, setCatalog] = useState([]);
+  useEffect(() => {
+    const controller = new AbortController();
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    fetch(`${base}/api/v1/tenant/${config?.slug || tenantSlug}/menu`, { signal: controller.signal })
+      .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+      .then(json => setCatalog(Object.values(json.data || {}).flat()))
+      .catch(() => { /* Recommendations are optional; the order remains available. */ });
+    return () => controller.abort();
+  }, [config?.slug, tenantSlug]);
 
   useEffect(() => {
     if (totalQty > 0) {
@@ -49,7 +60,7 @@ export const CheckoutPanel = ({ config, branch, onClose, isSidebar = false }) =>
   const recommendations = useMemo(() => {
     if (cart.length === 0) return [];
     // Flatten MENU_DATA to find categories, or just use specific ones
-    const licores = MENU_DATA["Licores"] || MENU_DATA["Bebidas"] || [];
+    const licores = catalog;
     const cartIds = new Set(cart.map(item => item.id));
     
     return licores
@@ -57,9 +68,9 @@ export const CheckoutPanel = ({ config, branch, onClose, isSidebar = false }) =>
       .slice(0, 2)
       .map(item => ({
         ...item,
-        priceNum: parseInt(item.price.replace('$', '').replace('k', '')) * 1000,
+        priceNum: parsePrice(item.price),
       }));
-  }, [cart]);
+  }, [cart, catalog, parsePrice]);
 
   const handleFinish = async () => {
     if (sending) return;
@@ -93,28 +104,24 @@ export const CheckoutPanel = ({ config, branch, onClose, isSidebar = false }) =>
         customizations: i.customizations
       })))
     };
+    orderPayload.branch_id = branch?.id || null;
 
     try {
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      const res = await fetch(`${baseUrl}/api/v1/tenant/${tenantSlug}/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderPayload)
-      });
-      
-      const data = await res.json();
+      const data = await ordersService.createOrder(tenantSlug, orderPayload);
       const isSuccess = data.status === 'ok' || data.success === true;
       const orderId = data.orderId || data.data?.orderId;
       
       if (isSuccess) {
         if (payment === 'digital') {
           setActiveOrderId(orderId);
+          setOrderToken(data.data?.orderToken || data.orderToken);
           setShowPaymentModal(true);
         } else {
           const lines = cart.map(i => `  ${i.qty}x ${i.name} — $${(parsePrice(i.price) * i.qty / 1000).toFixed(0)}k`).join('\n');
-          const totalStr = `$${((totalPrice + (delivery === 'domicilio' ? 5000 : 0)) / 1000).toFixed(0)}k`;
+          const totalStr = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(data.data.total);
           const msg = `Hola! Quiero hacer un pedido en ${tenantSlug.toUpperCase()} 🍽️\n\n*Nombre:* ${customerName}\n*Tel:* ${phone}\n*Tipo:* ${delivery === 'domicilio' ? 'Domicilio' : 'Recoger en sitio'}\n*Pago:* Efectivo\n\n*Pedido:*\n${lines}\n\n*Total: ${totalStr}*\n\nPedido generado por Platorin ✅`;
-          window.open('https://wa.me/573001234567?text=' + encodeURIComponent(msg), '_blank');
+          const whatsapp = (branch?.whatsapp_number || config?.whatsapp_number || '').replace(/\D/g, '');
+          if (whatsapp) window.open(`https://wa.me/${whatsapp}?text=` + encodeURIComponent(msg), '_blank', 'noopener,noreferrer');
           setSent(true);
           clearCart();
         }
@@ -130,7 +137,9 @@ export const CheckoutPanel = ({ config, branch, onClose, isSidebar = false }) =>
   };
 
   const askWa = () => {
-    window.open(`https://wa.me/573001234567?text=Hola%2C%20tengo%20una%20pregunta%20sobre%20el%20menú%20de%20${tenantSlug.toUpperCase()}`, '_blank');
+    const whatsapp = (branch?.whatsapp_number || config?.whatsapp_number || '').replace(/\D/g, '');
+    if (!whatsapp) return alert('Este negocio todavía no ha configurado su WhatsApp.');
+    window.open(`https://wa.me/${whatsapp}?text=Hola%2C%20tengo%20una%20pregunta%20sobre%20el%20menú%20de%20${tenantSlug.toUpperCase()}`, '_blank', 'noopener,noreferrer');
   };
 
   const handlePaymentSuccess = () => {
@@ -522,10 +531,12 @@ export const CheckoutPanel = ({ config, branch, onClose, isSidebar = false }) =>
       `}</style>
 
       <PaymentGatewayModal 
+        key={activeOrderId}
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         onSuccess={handlePaymentSuccess}
         orderId={activeOrderId}
+        orderToken={orderToken}
       />
 
       {editingItem && (

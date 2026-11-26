@@ -1,9 +1,10 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+const WS_URL = (import.meta.env.VITE_WS_URL || `${API_URL.replace(/^http/, 'ws')}/ws`).replace(/\/$/, '');
 
-export const useWebSocket = (tenantId) => {
+export const useWebSocket = (tenantId, admin = false) => {
   const socketRef = useRef(null);
   const [lastMessage, setLastMessage] = useState(null);
   const [status, setStatus] = useState('disconnected'); 
@@ -16,10 +17,13 @@ export const useWebSocket = (tenantId) => {
 
     setStatus(reconnectAttemptsRef.current > 0 ? 'reconnecting' : 'connecting');
     
-    const ws = new WebSocket(`${WS_URL}/${tenantId}`);
+    const token = admin ? localStorage.getItem('hub_token') : null;
+    if (admin && !token) return;
+    const ws = new WebSocket(`${WS_URL}${admin ? '/admin' : ''}/${tenantId}`);
     socketRef.current = ws;
 
     ws.onopen = () => {
+      if (admin) ws.send(JSON.stringify({ token }));
       console.log('WS Connected');
       setStatus('connected');
       reconnectAttemptsRef.current = 0;
@@ -42,6 +46,7 @@ export const useWebSocket = (tenantId) => {
       const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 10000);
       
       if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      if (ws._disposed) return;
       
       reconnectTimeoutRef.current = setTimeout(() => {
         reconnectAttemptsRef.current += 1;
@@ -53,7 +58,7 @@ export const useWebSocket = (tenantId) => {
       ws.close();
     };
 
-  }, [tenantId]);
+  }, [tenantId, admin]);
 
   // Sincronizar el ref con la función actual
   useEffect(() => {
@@ -63,7 +68,11 @@ export const useWebSocket = (tenantId) => {
   useEffect(() => {
     connect();
     return () => {
-      if (socketRef.current) socketRef.current.close();
+      if (socketRef.current) {
+        socketRef.current._disposed = true;
+        socketRef.current.close();
+        socketRef.current = null;
+      }
       if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
     };
   }, [connect]);

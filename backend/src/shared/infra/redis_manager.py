@@ -23,11 +23,12 @@ class RedisManager:
         try:
             import redis.asyncio as aioredis
             self.client = aioredis.from_url(REDIS_URL, decode_responses=True)
+            await self.client.ping()
             self.pubsub = self.client.pubsub()
             self._available = True
-            logger.info(f"Conectado a Redis en {REDIS_URL}")
+            logger.info("Redis conectado")
         except Exception as e:
-            logger.warning(f"Redis no disponible, modo local activado: {e}")
+            logger.warning("Redis no disponible, modo local activado")
             self._available = False
 
     async def publish(self, channel: str, message: dict):
